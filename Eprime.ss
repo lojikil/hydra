@@ -800,11 +800,25 @@
                          out))))
       (keys *fnarit*)))
 
+(define (set-arity! code)
+    (if (and (pair? code) (or (eq? (car code) 'def) (eq? (car code) 'define)))
+        (if (pair? (cadr code))
+            (begin
+                (cset! *fnarit* (caadr code) (length (cdadr code)))
+                (cset! *fnmung* (caadr code) (cmung-name (caadr code))))
+            (if (and (pair? (caddr code)) (or (eq? (caaddr code) 'fn) (eq? (caaddr code) 'lambda)))
+                (begin
+                    (cset! *fnarit* (cadr code) (length (cadr (caddr code))))
+                    (cset! *fnmung* (cadr code) (cmung-name (cadr code))))
+                #v))
+        #v))
+        
 (def (eprime i o name)
 	   "Main code output"
 	   (let ((in (open i :read)) 
-		 (out (open o :write))
-         (defs '()))
+		    (out (open o :write))
+            (defs '())
+            (codes '()))
 	    (header-out out)
         ;; add another level of indirection:
         ;; foreach expression, collect all 
@@ -821,9 +835,13 @@
         ;; order code so that the generated code matched). 
          
 	    (foreach-expression (fn (e)
-                                (with cde (gen-code e)
-                                    (set! defs (append defs (list cde)))))
+                                (set-arity! e)
+                                (set! codes (append codes (list e))))
                             in)
+        (foreach-proc (fn (c)
+                        (with cde (gen-code c)
+                            (set! defs (append defs (list cde)))))
+                    codes)
         (newline out)
         (write-prototypes out)
         (newline out)
