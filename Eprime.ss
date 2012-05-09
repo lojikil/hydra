@@ -210,6 +210,7 @@
         (goal? x) (gen-goal x)
         (key? x) (gen-key x)
         (void? x) "SVOID"
+        (eof-object? x) "SEOF"
         else (error (format "unsupported data type for code generation: ~s" (type x)))))
 
 (def (gen-dict d)
