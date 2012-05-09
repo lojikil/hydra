@@ -69,12 +69,6 @@
 
 ;; mini-prelude
 
-(define (null? x) (eq? (type x) "Null"))
-(define (string? x) (eq? (type x) "String"))
-(define (symbol? x) (eq? (type x) "Symbol"))
-(define (pair? x) (eq? (type x) "Pair"))
-(define (number? x) (eq? (type x) "Number"))
-
 (define (caar x) (car (car x)))
 (define (cadr x) (car (cdr x)))
 (define (cdar x) (cdr (car x)))
@@ -104,21 +98,30 @@
 (define (cdddar x) (cdr (cdr (cdr (car x)))))
 (define (cddddr x) (cdr (cdr (cdr (cdr x)))))
 
-;; HOFs aren't currently working in E'...
-(define (append-map f x) (if (null? x) x (append (f (car x)) (append-map f (cdr x)))))
+(define (null? n) (eq? n '()))
+(define (pair? n) (eq? (type n) "Pair"))
+(define (vector? n) (eq? (type n) "Vector"))
+(define (dict? n) (eq? (type n) "Dictionary"))
+(define (symbol? n) (eq? (type n) "Symbol"))
+(define (key? n) (eq? (type n) "Key"))
+(define (number? n) (eq? (type n) "Number"))
+(define (string? n) (eq? (type n) "String"))
+(define (bool? n) (eq? (type n) "Boolean"))
+(define (goal? n) (eq? (type n) "Goal"))
+(define (not x)
+        (cond
+                (eq? x #s) #u
+                (eq? x #f) #t
+                (eq? x #u) #s
+                else #f))
+(define (zero? n) (= n 0))
+(define (eof-object? n) (eq? n #e))
+(define (void? x) (eq? x #v))
 
-(define (list->vector l) (coerce l 'vector))
-(define (vector->list v) (coerce v 'pair))
-
-(define (map proc col)
-	(if (empty? col)
-		col
-		(ccons (proc (first col)) (map proc (rest col)))))
-
-(define (zip xs ys)
+(def zip (fn (xs ys)
 	(if (null? xs)
 		'()
-		(cons (cons (car xs) (cons (car ys) '())) (zip (cdr xs) (cdr ys)))))
+		(cons (cons (car xs) (cons (car ys) '())) (zip (cdr xs) (cdr ys))))))
 
 (define (list-copy l)
     " really, should be included from SRFI-1, but this simply makes a copy
@@ -156,7 +159,7 @@
                     (zip params (cslice stack 0 lp)))
                     (list (cons nu-env environment) (cslice stack lp ls)))))))
 
-(define (copy-code code ip offset)
+(define (copy-code code ip (offset 0))
     " copies the spine of code, but at ip & ip+1, insert %nop instructions
       instead, over-writing the call/cc & load-lambda instructions therein.
       "
@@ -165,74 +168,7 @@
         (= offset (- ip 1)) (append (list '(107) '(107)) (copy-code (cddr code) ip (+ offset 2)))
         else (append (list (car code)) (copy-code (cdr code) ip (+ offset 1)))))
 
-(define (hydra@error? x)
-    (and (pair? x) (eq? (car x) 'error)))
-(define (hydra@error msg)
-    "simple, hydra specific errors"
-    (list 'error msg))
-
-(define (hydra@lookup item env)
-    " look up item in the current environment, returning #f for not found"
-    (cond
-        (not (symbol? item)) item ;; to support ((fn (x) (+ x x)) (+ x x) 3)
-        (null? env) (hydra@error (format "unbound variable: ~a" item)) 
-        (dict-has? (car env) item) (nth (car env) item)
-        else (hydra@lookup item (cdr env))))
-
-(define (compile-lambda rst env)
-    (list 'compiled-lambda
-        (vector
-            (list-copy env)
-            (append-map
-                (fn (x) (hydra@compile x env))
-                (cdr rst))
-            (car rst)))) 
-
-(define (hydra@lambda? x)
-    (and (pair? x) (eq? (car x) 'compiled-lambda)))
-
-(define (hydra@primitive? x)
-    (and (pair? x) (eq? (car x) 'primitive)))
-
-(define (hydra@syntax? x)
-    (and (pair? x) (eq? (car x) 'syntax)))
-
-(define (hydra@error? x)
-    (and (pair? x) (eq? (car x) 'error)))
-
-(define (hydra@continuation? x)
-    (and (pair? x) (eq? (car x) 'continuation)))
-
-(define (hydra@add-env! name value environment)
-    " adds name to the environment, but also returns
-      (load #v), so that the compiler adds the correct
-      value (this is in the semantics of Vesta, so I thought
-      it should be left in Hydra as well)"
-    (cset! (car environment) name value))
-
-(define (hydra@set-env! name value environment)
-    " sets a value in the current environment, and returns
-      an error if that binding has not been previously defined"
-    (cond
-        (null? environment) (hydra@error (format "SET! error: undefined name \"~a\"" name))
-        (dict-has? (car environment) name)
-            (cset! (car environment) name value)
-        else (hydra@set-env! name value (cdr environment))))
-
-(define (reverse-append x)
-    "append but in reverse"
-    (cond
-        (null? x) x
-        (null? (cdr x)) (car x)
-        else (append (reverse-append (cddr x)) (cadr x) (car x))))
-
-(define (show x) (display "show: ") (display x) (newline) x)
-
-(define (hydra@error msg)
-    "simple, hydra specific errors"
-    (list 'error msg))
-
-(define (hydra@vm code env ip stack dump)
+(define (hydra@vm code env (ip 0) (stack '()) (dump '()))
      " process the actual instructions of a code object; the basic idea is that
        the user enters:
        h; (car (cdr (cons 1 (cons 2 '()))))
@@ -864,7 +800,7 @@
                         (let ((retcode (hydra@vm (cons (list 3 (car stack)) (list (list 30)))
                                         env
                                         0
-                                        (cons (list 'continuation (copy-code code ip 0) ip env stack dump) '())
+                                        (cons (list 'continuation (copy-code code ip) ip env stack dump) '())
                                         '())))
                          (hydra@vm code
                             env
@@ -1053,13 +989,87 @@
     :%ap  (primitive . 108) ;; apply a continuation
 }))
 
+(define (hydra@lookup item env)
+    " look up item in the current environment, returning #f for not found"
+    (cond
+        (not (symbol? item)) item ;; to support ((fn (x) (+ x x)) (+ x x) 3)
+        (null? env) (hydra@error (format "unbound variable: ~a" item)) 
+        (dict-has? (car env) item) (nth (car env) item)
+        else (hydra@lookup item (cdr env))))
+
+(define (compile-lambda rst env)
+    (list 'compiled-lambda
+        (vector
+            (list-copy env)
+            (append-map
+                (fn (x) (hydra@compile x env))
+                (cdr rst))
+            (car rst)))) 
+
+(define (hydra@lambda? x)
+    (and (pair? x) (eq? (car x) 'compiled-lambda)))
+
+(define (hydra@primitive? x)
+    (and (pair? x) (eq? (car x) 'primitive)))
+
+(define (hydra@syntax? x)
+    (and (pair? x) (eq? (car x) 'syntax)))
+
+(define (hydra@error? x)
+    (and (pair? x) (eq? (car x) 'error)))
+
+(define (hydra@continuation? x)
+    (and (pair? x) (eq? (car x) 'continuation)))
+
+(define (hydra@add-env! name value environment)
+    " adds name to the environment, but also returns
+      (load #v), so that the compiler adds the correct
+      value (this is in the semantics of Vesta, so I thought
+      it should be left in Hydra as well)"
+    (cset! (car environment) name value))
+
+(define (hydra@set-env! name value environment)
+    " sets a value in the current environment, and returns
+      an error if that binding has not been previously defined"
+    (cond
+        (null? environment) (hydra@error (format "SET! error: undefined name \"~a\"" name))
+        (dict-has? (car environment) name)
+            (cset! (car environment) name value)
+        else (hydra@set-env! name value (cdr environment))))
+
+(define (reverse-append x)
+    "append but in reverse"
+    (cond
+        (null? x) x
+        (null? (cdr x)) (car x)
+        else (append (reverse-append (cddr x)) (cadr x) (car x))))
+
+(define (show x) (display "show: ") (display x) (newline) x)
+
+(define (hydra@error msg)
+    "simple, hydra specific errors"
+    (list 'error msg))
+
 (define (hydra@eval line env)
     "simple wrapper around hydra@vm & hydra@compile"
-    (hydra@vm (hydra@compile line env) env 0 '() '()))
+    (hydra@vm (hydra@compile line env) env))
 
-(define (hydra@compile line env)
+(define (hydra@compile-help sym iter-list env)
+    " a helper function for hydra@compile, which collects
+      the old use of append-map into a single function that
+      Eprime can compile (still haven't added HOFs to E'...
+      embarrassing, I know)
+    "
+    (if (null? iter-list)
+        iter-list
+        (append
+            (append (hydra@compile (car iter-list) env)
+                (list (list (cdr (hydra@lookup sym env)))))
+            (hydra@compile-help sym (cdr iter-list) env))))
+
+(define (hydra@compile line env (thusfar '()))
     (if (null? line)
-        line
+        thusfar
         (cond
             (vector? line) (list (list 3 line))
             (dict? line) (list (list 3 line) )
@@ -1078,9 +1088,7 @@
                                 (eq? (cdr v) 'primitive-syntax-plus)
                                     (append 
                                         '((3 0))
-                                        (append-map
-                                            (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%+ env))))))
-                                            rst))
+                                        (hydra@compile-help '%+ rst env))
                                 (eq? (cdr v) 'primitive-syntax-minus)
                                     (cond
                                         (= (length rst) 1)
@@ -1090,16 +1098,12 @@
                                         (> (length rst) 1)
                                             (append 
                                                 (hydra@compile (car rst) env)
-                                                (append-map
-                                                    (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%- env))))))
-                                                    (cdr rst)))
+                                                (hydra@compile-help '%- (cdr rst) env))
                                         else (error "minus fail"))
                                 (eq? (cdr v) 'primitive-syntax-mult)
                                     (append 
                                         '((3 1))
-                                        (append-map
-                                            (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%* env))))))
-                                            rst))
+                                        (hydra@compile-help '%* rst env))
                                 (eq? (cdr v) 'primitive-syntax-div)
                                     (cond
                                         (= (length rst) 1)
@@ -1109,9 +1113,7 @@
                                         (> (length rst) 1)
                                             (append 
                                                 (hydra@compile (car rst) env)
-                                                (append-map
-                                                    (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%/ env))))))
-                                                    (cdr rst)))
+                                                (hydra@compile-help '%/ (cdr rst) env))
                                         else (error "division fail"))
                                 (eq? (cdr v) 'primitive-syntax-numeq)
                                     (cond
@@ -1120,9 +1122,7 @@
                                         (> (length rst) 1)
                                             (append
                                                 (hydra@compile (car rst) env)
-                                                (append-map
-                                                    (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%= env))))))
-                                                    (cdr rst)))
+                                                (hydra@compile-help '%= (cdr rst) env))
                                         else (error "numeq fail"))
                                 (eq? (cdr v) 'primitive-syntax-define)
                                     (let ((name (car rst))
@@ -1158,27 +1158,19 @@
                                 (eq? (cdr v) 'primitive-syntax-lt)
                                     (append 
                                         (hydra@compile (car rst) env)
-                                        (append-map
-                                            (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%< env))))))
-                                            (cdr rst)))
+                                        (hydra@compile-help '%< (cdr rst) env))
                                 (eq? (cdr v) 'primitive-syntax-gt)
                                     (append 
                                         (hydra@compile (car rst) env)
-                                        (append-map
-                                            (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%> env))))))
-                                            (cdr rst)))
+                                        (hydra@compile-help '%> (cdr rst) env))
                                 (eq? (cdr v) 'primitive-syntax-lte)
                                     (append 
                                         (hydra@compile (car rst) env)
-                                        (append-map
-                                            (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%<= env))))))
-                                            (cdr rst)))
+                                        (hydra@compile-help '%<= (cdr rst) env))
                                 (eq? (cdr v) 'primitive-syntax-gte)
                                     (append 
                                         (hydra@compile (car rst) env)
-                                        (append-map
-                                            (fn (x) (append (hydra@compile x env) (list (list (cdr (hydra@lookup '%>= env))))))
-                                            (cdr rst)))
+                                        (hydra@compile-help '%>= (cdr rst) env))
                                 (eq? (cdr v) 'primitive-syntax-list)
                                     ;; if rst is null?, then generate a load-null instruction (4)
                                     ;; otherwise generate the instructions for the list, a length
@@ -1304,6 +1296,21 @@
         (hydra@syntax? x) (display (format "#<syntax ~a>" (cdr x)))
         (hydra@error? x) (display (format "ERROR: ~a" (cdr x)))
         else (display x)))
+
+(define (hydra@load src-file env)
+    "an implementation of the primitive procedure load"
+    (with f (open src-file :read)
+        (with-exception-handler
+            (fn (x) (display (format "An error occured while loading ~S: ~a\n" src-file x)) (close f))
+            (fn ()
+                (letrec ((loop (fn (expr)
+                                    (if (eq? expr #e)
+                                        #v
+                                        (begin
+                                            (hydra@eval expr env)
+                                            (loop (read f)))))))
+                    (loop (read f)))
+                (close f)))))
                                     
 (define (hydra@repl)
     (display "h; ")
