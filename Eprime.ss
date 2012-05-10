@@ -34,6 +34,7 @@
 :integer? [1 #f "fintegerp"]
 :complex? [1 #f "fcomplexp"]
 :rational? [1 #f "frationalp"]
+:rationalize [2 #f "frationalize"]
 :numerator [1 #f "fnum"]
 :denomenator [1 #f "fden"]
 :* [0 #f "fmult"]

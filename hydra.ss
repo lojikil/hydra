@@ -745,7 +745,7 @@
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (make-dict) stack) dump)
+                            (cons (dict) stack) dump)
                     (eq? instr 96) ;; dict-has?
                         (hydra@vm code
                             env
@@ -795,7 +795,7 @@
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (rationalize (car stack)) (cdr stack)) dump)
+                            (cons (rationalize (car stack) (cadr stack)) (cddr stack)) dump)
                     (eq? instr 106) ;; call/cc
                         (let ((retcode (hydra@vm (cons (list 3 (car stack)) (list (list 30)))
                                         env
