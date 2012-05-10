@@ -8,7 +8,7 @@
 (display "HLAP output: ")
 (display hlap)
 (newline)
-(display (hydra@vm hlap *tlenv*))
+(display (hydra@vm hlap *tlenv* 0 '() '()))
 (newline)
 
 ;; To Do:
@@ -35,7 +35,7 @@
     (list 'with 'h (list 'hydra@compile (list 'quote digamma-code) '*tlenv*)
         (list 'if (list 'not (list 'equal? 'h (list 'quote expected-hlap)))
             (list 'display (list 'format "[-] HLAP generation failed for ~a; expected ~a, got ~a~%" (list 'quote digamma-code) (list 'quote expected-hlap) 'h))
-            (list 'with 'e (list 'hydra@vm 'h '*tlenv*)
+            (list 'with 'e (list 'hydra@vm 'h '*tlenv* 0 '() '())
                 (list 'if (list 'not (list 'equal? 'e (list 'quote expected-value)))
                     (list 'display (list 'format "[-] Eval failed for ~a; expected ~a, got ~a~%" (list 'quote digamma-code) (list 'quote expected-value) 'e))
                     (list 'display (list 'format "[+] test passed for ~a~%" (list 'quote digamma-code))))))))

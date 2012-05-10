@@ -67,8 +67,8 @@
 :rest [0 #f "frest"]
 :ccons [0 #f "fccons"] 
 :nth [0 #f "fnth"]
-:keys #t 
-:partial-key? #t
+:keys [1 #f "fkeys"] 
+:partial-key? [2 #f "fpartial_key"]
 :cset! [0 #f "fcset"]
 :string [0 #f "fstring"]
 :empty? [1 #f "fempty"] 
@@ -121,6 +121,8 @@
 :tconc->pair #t
 :tconc-splice! [2 #f "tconc_splice"]
 :eval [1 #f "__seval"]
+:memq [2 #f "memq"]
+:assq [2 #f "assq"]
 ;:meta! #t
 })
 
@@ -892,6 +894,9 @@
     (display x)
     (newline)
 	(let ((f (nth *primitives* (car x))) (args (cdr x)))
+     (display "f == ")
+     (display f)
+     (newline)
 	 (if (= (nth f 0) 0) ; arity
         (if (= (length args) 0)
           (format "~s(snil)" (nth f 2))

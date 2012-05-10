@@ -159,7 +159,7 @@
                     (zip params (cslice stack 0 lp)))
                     (list (cons nu-env environment) (cslice stack lp ls)))))))
 
-(define (copy-code code ip (offset 0))
+(define (copy-code code ip offset)
     " copies the spine of code, but at ip & ip+1, insert %nop instructions
       instead, over-writing the call/cc & load-lambda instructions therein.
       "
@@ -168,7 +168,7 @@
         (= offset (- ip 1)) (append (list '(107) '(107)) (copy-code (cddr code) ip (+ offset 2)))
         else (append (list (car code)) (copy-code (cdr code) ip (+ offset 1)))))
 
-(define (hydra@vm code env (ip 0) (stack '()) (dump '()))
+(define (hydra@vm code env ip stack dump)
      " process the actual instructions of a code object; the basic idea is that
        the user enters:
        h; (car (cdr (cons 1 (cons 2 '()))))
@@ -585,12 +585,12 @@
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (make-rectangular (car stack)) (cdr stack)) dump)
+                            (cons (make-rectangular (car stack) (cadr stack)) (cddr stack)) dump)
                     (eq? instr 64) ;; make-polar
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (make-polar (car stack)) (cdr stack)) dump)
+                            (cons (make-polar (car stack) (cadr stack)) (cddr stack)) dump)
                     (eq? instr 65) ;; magnitude
                         (hydra@vm code
                             env
@@ -800,7 +800,7 @@
                         (let ((retcode (hydra@vm (cons (list 3 (car stack)) (list (list 30)))
                                         env
                                         0
-                                        (cons (list 'continuation (copy-code code ip) ip env stack dump) '())
+                                        (cons (list 'continuation (copy-code code ip 0) ip env stack dump) '())
                                         '())))
                          (hydra@vm code
                             env
@@ -1052,7 +1052,7 @@
 
 (define (hydra@eval line env)
     "simple wrapper around hydra@vm & hydra@compile"
-    (hydra@vm (hydra@compile line env) env))
+    (hydra@vm (hydra@compile line env) env 0 '() '()))
 
 (define (hydra@compile-help sym iter-list env)
     " a helper function for hydra@compile, which collects
