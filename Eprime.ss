@@ -351,9 +351,9 @@
       Parameters:
        - l: list containing name of parameters to be used as argument to gensym
     "
-    (display "l == ")
-    (display l)
-    (newline)
+    ;(display "l == ")
+    ;(display l)
+    ;(newline)
     (map (fn (x) (coerce (gensym x) 'string)) l))
 
 (def (rewrite-tail-call name params state code auxvs )
@@ -549,10 +549,10 @@
             myfun(v125);
         }
     "
-    (display "within gen-foreach\n")
-    (display "code == ")
-    (display code)
-    (newline) 
+    ;(display "within gen-foreach\n")
+    ;(display "code == ")
+    ;(display code)
+    ;(newline) 
     (let ((proc (cadr code))
           (collection (caddr code))
           (col-var (coerce (gensym) 'string))
@@ -560,11 +560,11 @@
 
         (if (and (pair? proc) (or (eq? (car proc) 'fn) (eq? (car proc) 'lambda)))
             (string-append
-                "SExp *" (show col-var) " = " (show (gen-code collection)) ";\n"
+                "SExp *" col-var " = " (gen-code collection) ";\n"
                 "while(f_emptyp(" col-var ") != e->snil) {\n"
                 "SExp *" (coerce (caadr proc) 'string) " = f_first(" col-var ");\n"
                 col-var " = f_rest(" col-var ");\n"
-                (show (gen-begin (cddr proc)))
+                (gen-begin (cddr proc))
                 "\n}\n")
             (string-append
                 "SExp *" col-var " = " (gen-code collection) ","
@@ -887,17 +887,17 @@
 		(if (eq? (cdr l) '())
 		 (if (syntax-form? (car l))
 		  (string-append (gen-code (car l)) ";\n") 
-		  (string-append "ret = " (show (gen-code (show (car l)))) ";\n"))
-		 (string-append (show (gen-code (show (car l)))) ";\n" (show (gen-begin (cdr l))))))
+		  (string-append "ret = " (gen-code (car l)) ";\n"))
+		 (string-append (gen-code (car l)) ";\n" (gen-begin (cdr l)))))
 
 (def (gen-primitive x)
-    (display "within gen-primitive\n")
-    (display x)
-    (newline)
+    ;(display "within gen-primitive\n")
+    ;(display x)
+    ;(newline)
 	(let ((f (nth *primitives* (car x))) (args (cdr x)))
-     (display "f == ")
-     (display f)
-     (newline)
+     ;(display "f == ")
+     ;(display f)
+     ;(newline)
 	 (if (= (nth f 0) 0) ; arity
         (if (= (length args) 0)
           (format "~s(snil)" (nth f 2))
