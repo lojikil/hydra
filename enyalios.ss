@@ -69,19 +69,29 @@
 (define (il->c il lvl out)
     (cond
         (null? il) #v
-        (void? il) #v
+        (void? il) (display "SVOID" out)
         (integer? il) (display (format "makeinteger(~n)" il) out)
         (real? il) (display (format "makereal(~a)" il) out)
         (rational? il) (display (format "makerational(~n,~n)" (numerator il) (denomenator il)) out)
         (complex? il) (display (format "makecomplex(~r,~r)" (real-part il) (imag-part il)) out)
         (string? il) (display (format "makestring(~s)" il) out)
         (char? il) (display (format "makechar(~c)" il) out)
+        (symbol? il) (display il out)
         (pair? (car il))
             (foreach-proc (fn (x) (il->c x lvl out)) il)
         (eq? (car il) 'c-if)
             (begin
                 (int->spaces lvl out)
                 (display "if(" out)
+                (il->c (cadr il) 0 out)
+                (display "){\n" out)
+                (il->c (cddr il) (+ lvl 1) out)
+                (int->spaces lvl out)
+                (display "}\n" out))
+        (eq? (car il) 'c-elif)
+            (begin
+                (int->spaces lvl out)
+                (display "else if(" out)
                 (il->c (cadr il) 0 out)
                 (display "){\n" out)
                 (il->c (cddr il) (+ lvl 1) out)
@@ -100,6 +110,19 @@
                 (display "return " out)
                 (il->c (cadr il) 0 out)
                 (display ";\n" out))
+        (eq? (car il) 'c-dec) ;; function declaration
+            (begin
+                (display "SExp *\n" out)
+                (display (cadr il) out) ;; should be a call to MUNG here...
+                (display
+                    (string-join
+                        (map (fn (x) (format "SExp *~a" x))
+                            (caddr il))
+                        ", ")
+                    out)
+                (display "{\n" out)
+                (foreach-proc (fn (x) (il->c x (+ lvl 1) out)) (cddr il))
+                (display "\n}\n" out))
         (eq? (car il) 'c-eq)
             (begin
                 ;; this is a dummy for now; I would like to
@@ -111,4 +134,6 @@
                 (display ", " out)
                 (il->c (caddr il) 0 out)
                 (display ")" out))
+        (eq? (car il) 'c-primitive)
+            (display "#primitive#" out)
         else (display "###" out)))
