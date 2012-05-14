@@ -58,3 +58,60 @@
 
 (define (generate-code c)
     #f)
+
+(define (int->spaces lvl out)
+    (display "in int->spaces\n")
+    (display "int->spaces lvl == ")
+    (display lvl)
+    (newline)
+    (if (< lvl 1)
+        #v
+        (begin
+            (display "    " out)
+            (int->spaces (- lvl 1) out))))
+
+(define (il->c il lvl out)
+    (display "in il->c\n")
+    (display "il: ")
+    (display il)
+    (newline)
+    (display lvl)
+    (newline)
+    (int->spaces lvl out)
+    (cond
+        (null? il) #v
+        (void? il) #v
+        (integer? il) (display (format "makeinteger(~n)" il) out)
+        (pair? (car il))
+            (foreach-proc (fn (x) (il->c x lvl out)) il)
+        (eq? (car il) 'c-if)
+            (begin
+                (display "if(" out)
+                (il->c (cadr il) 0 out)
+                (display "){\n" out)
+                (il->c (cddr il) (+ lvl 1) out)
+                (int->spaces lvl out)
+                (display "}\n" out))
+        (eq? (car il) 'c-else)
+            (begin
+                (display "else {\n" out)
+                (il->c (cdr il) (+ lvl 1) out)
+                (int->spaces lvl out)
+                (display "}\n" out))
+        (eq? (car il) 'c-return)
+            (begin
+                (display "return " out)
+                (il->c (cadr il) 0 out)
+                (display ";\n" out))
+        (eq? (car il) 'c-eq)
+            (begin
+                ;; this is a dummy for now; I would like to
+                ;; eventually unpack eq?s like so:
+                ;; (eq? x 3)
+                ;; (TYPE(x) == NUMBER && NTYPE(x) == INTEGER && AINT(x) == 3? STRUE : SFALSE)
+                (display "eqp(" out)
+                (il->c (cadr il) 0 out)
+                (display ", " out)
+                (il->c (caddr il) 0 out)
+                (display ")" out))
+        else (display "###" out)))
