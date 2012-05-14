@@ -77,7 +77,6 @@
     (newline)
     (display lvl)
     (newline)
-    (int->spaces lvl out)
     (cond
         (null? il) #v
         (void? il) #v
@@ -86,6 +85,7 @@
             (foreach-proc (fn (x) (il->c x lvl out)) il)
         (eq? (car il) 'c-if)
             (begin
+                (int->spaces lvl out)
                 (display "if(" out)
                 (il->c (cadr il) 0 out)
                 (display "){\n" out)
@@ -94,12 +94,14 @@
                 (display "}\n" out))
         (eq? (car il) 'c-else)
             (begin
+                (int->spaces lvl out)
                 (display "else {\n" out)
                 (il->c (cdr il) (+ lvl 1) out)
                 (int->spaces lvl out)
                 (display "}\n" out))
         (eq? (car il) 'c-return)
             (begin
+                (int->spaces lvl out)
                 (display "return " out)
                 (il->c (cadr il) 0 out)
                 (display ";\n" out))
