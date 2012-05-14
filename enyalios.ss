@@ -60,10 +60,6 @@
     #f)
 
 (define (int->spaces lvl out)
-    (display "in int->spaces\n")
-    (display "int->spaces lvl == ")
-    (display lvl)
-    (newline)
     (if (< lvl 1)
         #v
         (begin
@@ -71,16 +67,15 @@
             (int->spaces (- lvl 1) out))))
 
 (define (il->c il lvl out)
-    (display "in il->c\n")
-    (display "il: ")
-    (display il)
-    (newline)
-    (display lvl)
-    (newline)
     (cond
         (null? il) #v
         (void? il) #v
         (integer? il) (display (format "makeinteger(~n)" il) out)
+        (real? il) (display (format "makereal(~a)" il) out)
+        (rational? il) (display (format "makerational(~n,~n)" (numerator il) (denomenator il)) out)
+        (complex? il) (display (format "makecomplex(~r,~r)" (real-part il) (imag-part il)) out)
+        (string? il) (display (format "makestring(~s)" il) out)
+        (char? il) (display (format "makechar(~c)" il) out)
         (pair? (car il))
             (foreach-proc (fn (x) (il->c x lvl out)) il)
         (eq? (car il) 'c-if)
