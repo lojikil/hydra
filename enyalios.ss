@@ -114,14 +114,15 @@
             (begin
                 (display "SExp *\n" out)
                 (display (cadr il) out) ;; should be a call to MUNG here...
+                (display "(" out)
                 (display
                     (string-join
                         (map (fn (x) (format "SExp *~a" x))
                             (caddr il))
                         ", ")
                     out)
-                (display "{\n" out)
-                (foreach-proc (fn (x) (il->c x (+ lvl 1) out)) (cddr il))
+                (display "){\n" out)
+                (foreach-proc (fn (x) (il->c x (+ lvl 1) out)) (cadddr il))
                 (display "\n}\n" out))
         (eq? (car il) 'c-eq)
             (begin
