@@ -45,6 +45,8 @@
 ;;    ...
 ;; }
 
+(define *procedures* {})
+
 (define (generate-literal lit)
     (cond
         (void? lit) SVOID
@@ -55,6 +57,26 @@
         (pair? lit) #f ;; used for '(pair)
         (vector? lit) #f
         (dict? lit) #f))
+
+(define (compile-if block name)
+    " compiles an if statement into IL.
+      PARAMETERS:
+      block : scheme code
+      name : current function name, to support TCO
+
+      RETURNS:
+      (AST RECURSE?)
+    "
+    #f)
+
+(define (compile-cond block name)
+    #f)
+
+(define (compile-begin block name)
+    #f)
+
+(define (compile-let block name)
+    #f)
 
 (define (generate-code c)
     #f)
@@ -71,7 +93,7 @@
         (null? il) #v
         (void? il) (display "SVOID" out)
         (eof-object? il) (display "SEOF" out)
-        (boolean? il) (if il (display "STRUE" out) (display "SFALSE" out))
+        (bool? il) (if il (display "STRUE" out) (display "SFALSE" out))
         (goal? il) (if il (display "SSUCC" out) (display "SUNSUCC" out))
         (integer? il) (display (format "makeinteger(~n)" il) out)
         (real? il) (display (format "makereal(~a)" il) out)
@@ -132,7 +154,7 @@
                     out)
                 (display "){\n" out)
                 (foreach-proc (fn (x) (il->c x (+ lvl 1) out)) (cadddr il))
-                (display "\n}\n" out))
+                (display "}\n" out))
         (eq? (car il) 'c-eq)
             (begin
                 ;; this is a dummy for now; I would like to
