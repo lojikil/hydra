@@ -70,6 +70,9 @@
     (cond
         (null? il) #v
         (void? il) (display "SVOID" out)
+        (eof-object? il) (display "SEOF" out)
+        (boolean? il) (if il (display "STRUE" out) (display "SFALSE" out))
+        (goal? il) (if il (display "SSUCC" out) (display "SUNSUCC" out))
         (integer? il) (display (format "makeinteger(~n)" il) out)
         (real? il) (display (format "makereal(~a)" il) out)
         (rational? il) (display (format "makerational(~n,~n)" (numerator il) (denomenator il)) out)
@@ -103,6 +106,12 @@
                 (display "else {\n" out)
                 (il->c (cdr il) (+ lvl 1) out)
                 (int->spaces lvl out)
+                (display "}\n" out))
+        (eq? (car il) 'c-loop)
+            (begin
+                (int->spaces lvl out)
+                (display "while(1) {\n" out)
+                (il->c (cadr il) (+ lvl 1) out)
                 (display "}\n" out))
         (eq? (car il) 'c-return)
             (begin
