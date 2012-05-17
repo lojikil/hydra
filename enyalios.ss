@@ -45,8 +45,18 @@
 ;;    ...
 ;; }
 
-(define *procedures* {})
-(define *primitives* {})
+(define *procedures* {
+    ;; negative numbers mean "N or less"
+    :display ["fprinc" -2]
+    :newline ["fnewline" -1]
+})
+(define *primitives* {
+    :< ["flt" #f 0]
+    :> ["fgt" #f 0]
+    :<= ["flte" #f 0]
+    :>= ["fgte" #f 0]
+    := ["fnumeq" #f 0]
+})
 (define *ulambdas* {})
 
 (define (enyalios@primitive? o)
@@ -69,6 +79,24 @@
         (vector? lit) #f
         (dict? lit) #f))
 
+(define (compile-primitive block)
+    (let ((prim (nth *primitive* (car block)))
+          (args (cdr block)))
+        (cond
+            (= (nth prim 2) 0)
+                (if (= (length args) 0)
+                    (list 
+                        (list 'c-primitive (nth prim 0) '()) #f)
+                    (list
+                        (list 'c-primitive (nth prim 0)
+                            (map (fn (x) (generate-code x '() #f)) args)) #f))
+            (= (nth prim 2) (length args))
+                (list
+                    (list 'c-primitive (nth prim 0)
+                        (map (fn (x) (generate-code x '() #f)) args)) #f)
+            else
+                (error (format "incorrect arity for primitive ~a" (car block))))))
+                
 (define (compile-if block name tail?)
     " compiles an if statement into IL.
       PARAMETERS:
