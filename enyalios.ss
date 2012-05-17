@@ -46,6 +46,17 @@
 ;; }
 
 (define *procedures* {})
+(define *primitives* {})
+(define *ulambdas* {})
+
+(define (enyalios@primitive? o)
+    (dict-has? *primitives* o))
+
+(define (enyalios@procedure? o)
+    (dict-has? *procedures* o))
+
+(define (enyalios@ulambda? o)
+    (dict-has? *ulambdas* o))
 
 (define (generate-literal lit)
     (cond
@@ -58,7 +69,7 @@
         (vector? lit) #f
         (dict? lit) #f))
 
-(define (compile-if block name)
+(define (compile-if block name tail?)
     " compiles an if statement into IL.
       PARAMETERS:
       block : scheme code
@@ -67,19 +78,65 @@
       RETURNS:
       (AST RECURSE?)
     "
+    (let* ((<cond> (generate-code (car block) name #f))
+          (<then> (generate-code (cadr block) name tail?))
+          (<else> (generate-code (caddr block) name tail?))
+          (<result> (list
+                        (list 'c-if <cond> <then>)
+                        (list 'c-else <else>))))
+        (if (and tail? (or (cadr <then>)
+                            (cadr <else>)))
+            (list <result> #t)
+            (list <result> #f))))
+
+(define (compile-cond block name tail?)
     #f)
 
-(define (compile-cond block name)
+(define (compile-begin block name tail?)
     #f)
 
-(define (compile-begin block name)
+(define (compile-let block name tail?)
     #f)
 
-(define (compile-let block name)
-    #f)
-
-(define (generate-code c)
-    #f)
+(define (generate-code c name tail?)
+    " Generates IL code for a given
+      preDigamma code. The tail? parameter
+      is used in code that doesn't need to
+      tail call optimize, like the <cond>
+      portion of an if block, non-tail members
+      of a begin, &c.
+      @params:
+        c : preDigamma code
+        name : lambda name for generating tail calls
+        tail? : boolean to determine whether or not to tail call optimize
+      @returns:
+        (PAIR-OF-ATOMS RECURSE?)
+    "
+    (cond
+        (null? c) '()
+        (or (vector? c)
+            (dict? c)
+            (goal? c)
+            (bool? c)
+            (char? c)
+            (string? c)
+            (number? c)
+            (void? c)
+            (symbol? c) ;; not exactly sure about this one...
+            (eof-object? c)) c
+        (eq? (car c) 'if) (compile-if (cdr c) name tail?)
+        (eq? (car c) 'quote) (list 'c-quote (cdr c))
+        (eq? (car c) 'cond) (compile-cond (cdr c) name tail?)
+        (eq? (car c) 'define) #t
+        (eq? (car c) 'let) #t
+        (eq? (car c) 'let*) #t
+        (eq? (car c) 'letrec) #t
+        (eq? (car c) 'with) #t ; transform this into let, run same code
+        (eq? (car c) 'set!) #t
+        (enyalios@primitive? (car c)) #t ; all other primitive forms
+        (enyalios@procedure? (car c)) #t ; primitive procs, like display
+        (enyalios@ulambda? (car c)) #t   ; user-defined lambda?
+        else (error (format "unknown form: ~a" c))))
 
 (define (int->spaces lvl out)
     (if (< lvl 1)
@@ -104,6 +161,8 @@
         (symbol? il) (display il out)
         (pair? (car il))
             (foreach-proc (fn (x) (il->c x lvl out)) il)
+        (eq? (car il) 'c-quote)
+            #f
         (eq? (car il) 'c-if)
             (begin
                 (int->spaces lvl out)
@@ -155,6 +214,14 @@
                 (display "){\n" out)
                 (foreach-proc (fn (x) (il->c x (+ lvl 1) out)) (cadddr il))
                 (display "}\n" out))
+        (eq? (car il) 'c-docstring)
+            (begin
+                (int->spaces lvl out)
+                (display "/* " out)
+                (display (cadr il) out)
+                (newline out)
+                (int->spaces lvl out)
+                (display " */\n" out))
         (eq? (car il) 'c-eq)
             (begin
                 ;; this is a dummy for now; I would like to
