@@ -86,7 +86,7 @@
             (= (nth prim 2) 0)
                 (if (= (length args) 0)
                     (list 
-                        (list 'c-primitive (nth prim 0) '()) #f)
+                        (list 'c-primitive (nth prim 0) (list 'c-nil)) #f)
                     (list
                         (list 'c-primitive (nth prim 0)
                             (map (fn (x) (generate-code x '() #f)) args)) #f))
@@ -153,7 +153,10 @@
             (symbol? c) ;; not exactly sure about this one...
             (eof-object? c)) c
         (eq? (car c) 'if) (compile-if (cdr c) name tail?)
-        (eq? (car c) 'quote) (list 'c-quote (cdr c))
+        (eq? (car c) 'quote)
+            (if (null? (cadr c))
+                '(c-nil)
+                (list 'c-quote (cdr c)))
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail?)
         (eq? (car c) 'define) #t
         (eq? (car c) 'let) #t
@@ -161,7 +164,8 @@
         (eq? (car c) 'letrec) #t
         (eq? (car c) 'with) #t ; transform this into let, run same code
         (eq? (car c) 'set!) #t
-        (enyalios@primitive? (car c)) #t ; all other primitive forms
+        (eq? (car c) 'begin) #t
+        (enyalios@primitive? (car c)) (compile-primitive c name tail?) ; all other primitive forms
         (enyalios@procedure? (car c)) #t ; primitive procs, like display
         (enyalios@ulambda? (car c)) #t   ; user-defined lambda?
         else (error (format "unknown form: ~a" c))))
