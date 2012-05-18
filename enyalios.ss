@@ -56,6 +56,10 @@
     :<= ["flte" #f 0]
     :>= ["fgte" #f 0]
     := ["fnumeq" #f 0]
+    :+ ["fplus" #f 0]
+    :* ["fmult" #f 0]
+    :/ ["fdivi" #f 0]
+    :- ["fsubt" #f 0]
 })
 (define *ulambdas* {})
 
@@ -80,7 +84,7 @@
         (dict? lit) #f))
 
 (define (compile-primitive block)
-    (let ((prim (nth *primitive* (car block)))
+    (let ((prim (nth *primitives* (car block)))
           (args (cdr block)))
         (cond
             (= (nth prim 2) 0)
@@ -96,7 +100,10 @@
                         (map (fn (x) (generate-code x '() #f)) args)) #f)
             else
                 (error (format "incorrect arity for primitive ~a" (car block))))))
-                
+
+(define (compile-lambda block name tail?)
+    #f)
+
 (define (compile-if block name tail?)
     " compiles an if statement into IL.
       PARAMETERS:
@@ -106,12 +113,12 @@
       RETURNS:
       (AST RECURSE?)
     "
-    (let* ((<cond> (generate-code (car block) name #f))
+    (let* ((<cond> (car (generate-code (car block) name #f)))
           (<then> (generate-code (cadr block) name tail?))
           (<else> (generate-code (caddr block) name tail?))
           (<result> (list
-                        (list 'c-if <cond> <then>)
-                        (list 'c-else <else>))))
+                        (list 'c-if <cond> (car <then>))
+                        (list 'c-else (car <else>)))))
         (if (and tail? (or (cadr <then>)
                             (cadr <else>)))
             (list <result> #t)
@@ -151,12 +158,15 @@
             (number? c)
             (void? c)
             (symbol? c) ;; not exactly sure about this one...
-            (eof-object? c)) c
+            (eof-object? c)) 
+                (if tail?
+                    (list (list 'c-return c) #f)
+                    (list c))
         (eq? (car c) 'if) (compile-if (cdr c) name tail?)
         (eq? (car c) 'quote)
             (if (null? (cadr c))
-                '(c-nil)
-                (list 'c-quote (cdr c)))
+                '((c-nil) #f)
+                (list (list 'c-quote (cdr c)) #f))
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail?)
         (eq? (car c) 'define) #t
         (eq? (car c) 'let) #t
@@ -267,4 +277,5 @@
                 (display ")" out))
         (eq? (car il) 'c-primitive)
             (display "#primitive#" out)
-        else (display "###" out)))
+        else
+            (display "###" out)))
