@@ -90,7 +90,7 @@
             (= (nth prim 2) 0)
                 (if (= (length args) 0)
                     (list 
-                        (list 'c-primitive (nth prim 0) (list 'c-nil)) #f)
+                        (list 'c-primitive (nth prim 0) '())) #f)
                     (list
                         (list 'c-primitive (nth prim 0)
                             (map (fn (x) (generate-code x '() #f)) args)) #f))
@@ -276,6 +276,29 @@
                 (il->c (caddr il) 0 out)
                 (display ")" out))
         (eq? (car il) 'c-primitive)
-            (display "#primitive#" out)
+            (begin
+                (display (cadr il) out)
+                (if (null? (caddr il))
+                    (display "(SNIL)" out)
+                    (begin
+                        (display "list(" out)
+                        (display (length (caddr il)) out)
+                        (display ",")
+                        (display (string-join
+                            (map
+                                (fn (x) (il->c x 0 out)) (caddr il))
+                                ",")
+                            out)
+                        (display "))"))))
+        (eq? (car il) 'c-primitive-fixed) ;; fixed arity primitive
+            (begin
+                (display (cadr il) out)
+                (display "(" out)
+                (display 
+                    (string-join
+                        (map
+                            (fn (x) (il->c x 0 out)) (caddr il))
+                        ",") out)
+                (display ")" out))
         else
             (display "###" out)))
