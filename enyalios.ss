@@ -92,10 +92,10 @@
             (= (nth prim 2) 0)
                 (if (= (length args) 0)
                     (list 
-                        (list 'c-primitive (nth prim 0) '())) #f)
+                        (list 'c-primitive (nth prim 0) '()) #f)
                     (list
                         (list 'c-primitive (nth prim 0)
-                            (map (fn (x) (generate-code x '() #f)) args)) #f)
+                            (map (fn (x) (generate-code x '() #f)) args)) #f))
             (= (nth prim 2) (length args))
                 (list
                     (list 'c-primitive-fixed (nth prim 0)
