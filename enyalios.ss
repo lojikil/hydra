@@ -205,10 +205,10 @@
                             (or
                                 (eq? (car (caddr c)) 'lambda)
                                 (eq? (car (caddr c)) 'fn)))
-                        #f
-                        #f)
+                        (compile-procedure (cdaddr c) (cadr c) #t)
+                        (list 'c-dec-var (cadr c) (car (generate-code (caddr c) '() #f))))
                 (pair? (cadr c))
-                    #f
+                    (compile-procedure (cons (cdadr c) (cddr c)) (caadr c) #t)
                 else (error "illegal define form; DEFINE (SYMBOL | PAIR) FORM*"))
         (eq? (car c) 'let) #t
         (eq? (car c) 'let*) #t
