@@ -60,6 +60,8 @@
     :* ["fmult" #f 0]
     :/ ["fdivi" #f 0]
     :- ["fsubt" #f 0]
+    :numerator ["fnumerator" #f 1]
+    :denomenator ["fdenomenator" #f 1]
 })
 (define *ulambdas* {})
 
@@ -102,6 +104,12 @@
                 (error (format "incorrect arity for primitive ~a" (car block))))))
 
 (define (compile-lambda block name tail?)
+    #f)
+
+(define (compile-procedure block name tail?)
+    " compile a top-level procedure, as opposed to
+      closure conversion of compile-lambda
+    "
     #f)
 
 (define (compile-if block name tail?)
@@ -168,7 +176,16 @@
                 '((c-nil) #f)
                 (list (list 'c-quote (cdr c)) #f))
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail?)
-        (eq? (car c) 'define) #t
+        (eq? (car c) 'define) 
+            (if (symbol? (cadr c))
+                (if (and
+                        (pair? (caddr c))
+                        (or
+                            (eq? (car (caddr c)) 'lambda)
+                            (eq? (car (caddr c)) 'fn)))
+                    #f
+                    #f)
+                #f)
         (eq? (car c) 'let) #t
         (eq? (car c) 'let*) #t
         (eq? (car c) 'letrec) #t
