@@ -127,10 +127,8 @@
           (<result> (list
                         (list 'c-if <cond> (car <then>))
                         (list 'c-else (car <else>)))))
-        (if (and tail? (or (cadr <then>)
-                            (cadr <else>)))
-            (list <result> #t)
-            (list <result> #f))))
+        (list <result> (and tail? (or (cadr <then>)
+                            (cadr <else>))))))
 
 (define (compile-cond block name tail?)
     #f)
