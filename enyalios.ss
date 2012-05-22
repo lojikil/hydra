@@ -109,8 +109,18 @@
 (define (compile-procedure block name tail?)
     " compile a top-level procedure, as opposed to
       closure conversion of compile-lambda
+      May need to switch away from using compile-begin,
+      because procedures have some special cases, wrt
+      lambda lifting (although, thinking about it, so do
+      let blocks). Have to masticate on this more, but 
+      this is a decent first start.
     "
-    #f)
+    (let ((body (compile-begin (cdr block) name #t))
+          (params (car block)))
+        (if (cadr body) ;; body contains a tail-call
+            (list 'c-dec name params
+                (list 'c-loop (car body)))
+            (list 'c-dec name params (car body)))))
 
 (define (compile-if block name tail?)
     " compiles an if statement into IL.
@@ -134,7 +144,20 @@
     #f)
 
 (define (compile-begin block name tail?)
-    #f)
+    (if tail?
+        (let* ((b (map
+                      (fn (x) (car (generate-code x '() #f)))
+                      (cslice block 0 (- (length block 1)))))
+              (e (generate-code
+                    (cslice block (- (length block) 1) (length block))
+                    name
+                    tail?)))
+            (list
+                (append b (list (car e)))
+                (cadr e)))
+        (list
+            (map (fn (x) (car (generate-code x '() #f))) block)
+            #f)))
 
 (define (compile-let block name tail?)
     #f)
@@ -175,21 +198,24 @@
                 (list (list 'c-quote (cdr c)) #f))
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail?)
         (eq? (car c) 'define) 
-            (if (symbol? (cadr c))
-                (if (and
-                        (pair? (caddr c))
-                        (or
-                            (eq? (car (caddr c)) 'lambda)
-                            (eq? (car (caddr c)) 'fn)))
+            (cond
+                (symbol? (cadr c))
+                    (if (and
+                            (pair? (caddr c))
+                            (or
+                                (eq? (car (caddr c)) 'lambda)
+                                (eq? (car (caddr c)) 'fn)))
+                        #f
+                        #f)
+                (pair? (cadr c))
                     #f
-                    #f)
-                #f)
+                else (error "illegal define form; DEFINE (SYMBOL | PAIR) FORM*"))
         (eq? (car c) 'let) #t
         (eq? (car c) 'let*) #t
         (eq? (car c) 'letrec) #t
         (eq? (car c) 'with) #t ; transform this into let, run same code
         (eq? (car c) 'set!) #t
-        (eq? (car c) 'begin) #t
+        (eq? (car c) 'begin) (compile-begin (cdr c) name tail?)
         (enyalios@primitive? (car c)) (compile-primitive c name tail?) ; all other primitive forms
         (enyalios@procedure? (car c)) #t ; primitive procs, like display
         (enyalios@ulambda? (car c)) #t   ; user-defined lambda?
