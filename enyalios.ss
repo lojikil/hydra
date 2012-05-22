@@ -95,11 +95,11 @@
                         (list 'c-primitive (nth prim 0) '()) #f)
                     (list
                         (list 'c-primitive (nth prim 0)
-                            (map (fn (x) (generate-code x '() #f)) args)) #f))
+                            (map (fn (x) (car (generate-code x '() #f))) args)) #f))
             (= (nth prim 2) (length args))
                 (list
                     (list 'c-primitive-fixed (nth prim 0)
-                        (map (fn (x) (generate-code x '() #f)) args)) #f)
+                        (map (fn (x) (car (generate-code x '() #f))) args)) #f)
             else
                 (error (format "incorrect arity for primitive ~a" (car block))))))
 
