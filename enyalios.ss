@@ -244,6 +244,8 @@
         (symbol? il) (display il out)
         (pair? (car il))
             (foreach-proc (fn (x) (il->c x lvl out)) il)
+        (eq? (car il) 'c-nil)
+            (display "SNIL" out)
         (eq? (car il) 'c-quote)
             #f
         (eq? (car il) 'c-if)
