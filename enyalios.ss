@@ -51,6 +51,10 @@
     :newline ["fnewline" -1]
 })
 (define *primitives* {
+    :car ["car" #f 1]
+    :cdr ["cdr" #f 1]
+    :cons ["cons" #f 2]
+    :eq? ["eqp" #f 2] 
     :< ["flt" #f 0]
     :> ["fgt" #f 0]
     :<= ["flte" #f 0]
