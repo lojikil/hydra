@@ -220,9 +220,26 @@
         (eq? (car c) 'with) #t ; transform this into let, run same code
         (eq? (car c) 'set!) #t
         (eq? (car c) 'begin) (compile-begin (cdr c) name tail?)
+        (eq? (car c) name) ;; tail-call?
+            (list
+                (list
+                    'c-tailcall
+                    name
+                    (map
+                        (fn (x) (generate-code x '() #f))
+                        (cdr c)))
+                #t)
         (enyalios@primitive? (car c)) (compile-primitive c name tail?) ; all other primitive forms
         (enyalios@procedure? (car c)) #t ; primitive procs, like display
-        (enyalios@ulambda? (car c)) #t   ; user-defined lambda?
+        (enyalios@ulambda? (car c)) ; user-defined lambda?
+            (list
+                (list
+                    'c-call
+                    (car c)
+                    (map
+                        (fn (x) (generate-code x '() #f))
+                        (cdr c)))
+                #t)
         else (error (format "unknown form: ~a" c))))
 
 (define (int->spaces lvl out)
