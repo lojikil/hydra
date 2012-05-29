@@ -149,16 +149,18 @@
 
 (define (compile-begin block name tail?)
     (if tail?
-        (let* ((b (map
+        (if (= (length block) 1)
+                (generate-code (car block) name #t)
+            (let* ((b (map
                       (fn (x) (car (generate-code x '() #f)))
                       (cslice block 0 (- (length block 1)))))
-              (e (generate-code
-                    (cslice block (- (length block) 1) (length block))
-                    name
-                    tail?)))
-            (list
-                (append b (list (car e)))
-                (cadr e)))
+                   (e (generate-code
+                        (cslice block (- (length block) 1) (length block))
+                        name
+                        tail?)))
+                (list
+                    (append b (list (car e)))
+                    (cadr e))))
         (list
             (map (fn (x) (car (generate-code x '() #f))) block)
             #f)))
@@ -226,7 +228,7 @@
                     'c-tailcall
                     name
                     (map
-                        (fn (x) (generate-code x '() #f))
+                        (fn (x) (car (generate-code x '() #f)))
                         (cdr c)))
                 #t)
         (enyalios@primitive? (car c)) (compile-primitive c name tail?) ; all other primitive forms
@@ -237,7 +239,7 @@
                     'c-call
                     (car c)
                     (map
-                        (fn (x) (generate-code x '() #f))
+                        (fn (x) (car (generate-code x '() #f)))
                         (cdr c)))
                 #t)
         else (error (format "unknown form: ~a" c))))
