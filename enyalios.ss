@@ -257,6 +257,14 @@
             (display "    " out)
             (int->spaces (- lvl 1) out))))
 
+(define (comma-separated-c ill out)
+    (if (null? (cdr ill))
+        (il->c (car ill) 0 out)
+        (begin
+            (il->c (car ill) 0 out)
+            (display ", " out)
+            (comma-separated-c (cdr ill) out))))
+
 (define (il->c il lvl out)
     (cond
         (null? il) #v
@@ -353,40 +361,30 @@
                 (if (null? (caddr il))
                     (display "(SNIL)" out)
                     (begin
-                        (display "list(" out)
+                        (display "(list(" out)
                         (display (length (caddr il)) out)
-                        (display ",")
-                        (display (string-join
-                            (map
-                                (fn (x) (il->c x 0 out)) (caddr il))
-                                ",")
-                            out)
-                        (display "))"))))
+                        (display "," out)
+                        (comma-separated-c (caddr il) out)
+                        (display "))" out))))
         (eq? (car il) 'c-primitive-fixed) ;; fixed arity primitive
             (begin
                 (display (cadr il) out)
                 (display "(" out)
-                (display 
-                    (string-join
-                        (map
-                            (fn (x) (il->c x 0 out)) (caddr il))
-                        ",") out)
+                (comma-separated-c (caddr il) out)
                 (display ")" out))
         (eq? (car il) 'c-tailcall)
             #f
         (eq? (car il) 'c-call)
             (let ((proc-data (nth *ulambdas* (cadr il))))
-                (if (< (caddr il) (nth proc-data 2))
+                (display "proc-data: ")
+                (display proc-data)
+                (newline)
+                (if (< (length (caddr il)) (nth proc-data 2))
                     (error "Incorrect arity for user-defined lambda")
                     (begin
                         (display (cadr il) out)
                         (display "(" out)
-                        (display
-                            (string-join
-                                (map
-                                    (fn (x) (il->c x 0 out)) (caddr il))
-                                ",")
-                            out)
+                        (comma-separated-c (caddr il) out)
                         (display ")" out))))
         else
             (display "###" out)))

@@ -1,0 +1,10 @@
+#!/usr/bin/env vesta
+(load 'enyalios.ss)
+(define f (open "test0.c" :write))
+(set-arity! "foo" '(x y))
+(set-arity! "bar" '(z))
+(define c-foo (generate-code '(define (foo x y) (if (< y 10) (+ x (bar (+ y 1))) x)) '() #f))
+(define c-bar (generate-code '(define (bar z) (foo (+ z 1) z)) '() #f))
+(il->c c-foo 0 f)
+(il->c c-bar 0 f)
+(close f)
