@@ -145,28 +145,26 @@
       name : current function name, to support TCO
 
       RETURNS:
-      (AST RECURSE?)
+      (RECURSE? AST+)
     "
     (let* ((<cond> (car (generate-code (car block) name #f)))
           (<then> (generate-code (cadr block) name tail?))
-          (<else> (generate-code (caddr block) name tail?))
-          (<result> (list
-                        (list 'c-if <cond> (car <then>))
-                        (list 'c-else (car <else>)))))
+          (<else> (generate-code (caddr block) name tail?)))
         ;; need to check tail? here, and, if it is true,
         ;; add 'c-returns to each of (<then> <else>)
-        (list <result> (and tail? (or (cadr <then>)
-                            (cadr <else>))))))
+        (show (list (and tail? (or (car <then>) (car <else>)))
+                    (list 'c-if <cond> (cdr <then>))
+                    (list 'c-else (cdr <else>))))))
 
 (define (compile-begin block name tail?)
     (if tail?
         (if (= (length block) 1)
             (let ((x (generate-code (car block) name #t)))
-                (show (list 'c-begin
-                    (list (car x))
-                    (cadr x))))
+                    (show 
+                        (list (car x)
+                            (cons 'c-begin (cdr x)))))
             (let* ((b (map
-                      (fn (x) (car (generate-code x '() #f)))
+                      (fn (x) (cdr (generate-code x '() #f)))
                       (cslice block 0 (- (length block 1)))))
                    (e (generate-code
                         (cslice block (- (length block) 1) (length block))
@@ -174,11 +172,11 @@
                         tail?)))
                 (list
                     'c-begin
-                    (append b (list (car e)))
-                    (cadr e))))
+                    (append b (cdr e))
+                    (car e))))
         (list
-            'c-begin
-            (map (fn (x) (car (generate-code x '() #f))) block)
+            (cons 'c-begin
+                (map (fn (x) (car (generate-code x '() #f))) block))
             #f)))
 
 (define (compile-let block name tail?)
@@ -210,14 +208,12 @@
             (void? c)
             (symbol? c) ;; not exactly sure about this one...
             (eof-object? c)) 
-                (if tail?
-                    (list (list 'c-return c) #f)
-                    (list c))
+                    (list #f (list 'c-return c))
         (eq? (car c) 'if) (compile-if (cdr c) name tail?)
         (eq? (car c) 'quote)
             (if (null? (cadr c))
-                '((c-nil) #f)
-                (list (list 'c-quote (cdr c)) #f))
+                '(#f (c-nil))
+                (list #f (list 'c-quote (cdr c)) ))
         (eq? (car c) 'define) 
             (cond
                 (symbol? (cadr c))
@@ -227,7 +223,7 @@
                                 (eq? (car (caddr c)) 'lambda)
                                 (eq? (car (caddr c)) 'fn)))
                         (compile-procedure (cdaddr c) (cadr c) #t)
-                        (list 'c-dec-var (cadr c) (car (generate-code (caddr c) '() #f))))
+                        (list #f (list 'c-dec-var (cadr c) (car (generate-code (caddr c) '() #f)))))
                 (pair? (cadr c))
                     (compile-procedure (cons (cdadr c) (cddr c)) (caadr c) #t)
                 else (error "illegal define form; DEFINE (SYMBOL | PAIR) FORM*"))
@@ -239,24 +235,24 @@
         (eq? (car c) 'begin) (compile-begin (cdr c) name tail?)
         (eq? (car c) name) ;; tail-call?
             (list
+                #t
                 (list
                     'c-tailcall
                     name
                     (map
                         (fn (x) (car (generate-code x '() #f)))
-                        (cdr c)))
-                #t)
+                        (cdr c))))
         (enyalios@primitive? (car c)) (compile-primitive c name tail?) ; all other primitive forms
         (enyalios@procedure? (car c)) #t ; primitive procs, like display
         (enyalios@ulambda? (car c)) ; user-defined lambda?
             (list
+                #f
                 (list
                     'c-call
                     (car c)
                     (map
                         (fn (x) (car (generate-code x '() #f)))
-                        (cdr c)))
-                #f)
+                        (cdr c))))
         else (error (format "unknown form: ~a" c))))
 
 (define (int->spaces lvl out)
