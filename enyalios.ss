@@ -50,6 +50,7 @@
     :display ["fprinc" -2]
     :newline ["fnewline" -1]
 })
+
 (define *primitives* {
     :car ["car" #f 1]
     :cdr ["cdr" #f 1]
@@ -67,6 +68,7 @@
     :numerator ["fnumerator" #f 1]
     :denomenator ["fdenomenator" #f 1]
 })
+
 (define *ulambdas* {})
 
 (define (enyalios@primitive? o)
@@ -78,16 +80,20 @@
 (define (enyalios@ulambda? o)
     (dict-has? *ulambdas* o))
 
-(define (generate-literal lit)
+(define (count-arities p req opt)
     (cond
-        (void? lit) SVOID
-        (eof-object? lit) SEOF
-        (number? lit) #f
-        (boolean? lit) (if lit STRUE SFALSE)
-        (string? lit) #f
-        (pair? lit) #f ;; used for '(pair)
-        (vector? lit) #f
-        (dict? lit) #f))
+        (null? p) (list req opt)
+        (symbol? (car p)) (count-arities (cdr p) (+ 1 req) opt)
+        (pair? (car p)) (count-arities (cdr p) req (+ 1 opt))))
+
+(define (set-arity! name params)
+    (let ((arities (count-arities params 0 0)))
+        (cset! *ulambdas* name
+            (vector
+                name
+                params
+                (car arities)
+                (cadr arities)))))
 
 (define (compile-primitive block)
     (let ((prim (nth *primitives* (car block)))
@@ -366,5 +372,9 @@
                             (fn (x) (il->c x 0 out)) (caddr il))
                         ",") out)
                 (display ")" out))
+        (eq? (car il) 'c-tailcall)
+            #f
+        (eq? (car il) 'c-call)
+            #f
         else
             (display "###" out)))
