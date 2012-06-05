@@ -158,9 +158,6 @@
         (list <result> (and tail? (or (cadr <then>)
                             (cadr <else>))))))
 
-(define (compile-cond block name tail?)
-    #f)
-
 (define (compile-begin block name tail?)
     (if tail?
         (if (= (length block) 1)
@@ -221,7 +218,6 @@
             (if (null? (cadr c))
                 '((c-nil) #f)
                 (list (list 'c-quote (cdr c)) #f))
-        (eq? (car c) 'cond) (compile-cond (cdr c) name tail?)
         (eq? (car c) 'define) 
             (cond
                 (symbol? (cadr c))
