@@ -164,7 +164,10 @@
 (define (compile-begin block name tail?)
     (if tail?
         (if (= (length block) 1)
-                (generate-code (car block) name #t)
+            (let ((x (generate-code (car block) name #t)))
+                (list
+                    (list (car x))
+                    (cadr x)))
             (let* ((b (map
                       (fn (x) (car (generate-code x '() #f)))
                       (cslice block 0 (- (length block 1)))))
@@ -371,7 +374,7 @@
                     (begin
                         (display "(list(" out)
                         (display (length (caddr il)) out)
-                        (display "," out)
+                        (display ", " out)
                         (comma-separated-c (caddr il) out)
                         (display "))" out))))
         (eq? (car il) 'c-primitive-fixed) ;; fixed arity primitive
