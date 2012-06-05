@@ -147,6 +147,8 @@
           (<result> (list
                         (list 'c-if <cond> (car <then>))
                         (list 'c-else (car <else>)))))
+        ;; need to check tail? here, and, if it is true,
+        ;; add 'c-returns to each of (<then> <else>)
         (list <result> (and tail? (or (cadr <then>)
                             (cadr <else>))))))
 
