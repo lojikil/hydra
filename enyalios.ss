@@ -165,9 +165,9 @@
     (if tail?
         (if (= (length block) 1)
             (let ((x (generate-code (car block) name #t)))
-                (list
+                (show (list 'c-begin
                     (list (car x))
-                    (cadr x)))
+                    (cadr x))))
             (let* ((b (map
                       (fn (x) (car (generate-code x '() #f)))
                       (cslice block 0 (- (length block 1)))))
@@ -176,9 +176,11 @@
                         name
                         tail?)))
                 (list
+                    'c-begin
                     (append b (list (car e)))
                     (cadr e))))
         (list
+            'c-begin
             (map (fn (x) (car (generate-code x '() #f))) block)
             #f)))
 
@@ -331,8 +333,7 @@
             (begin
                 (int->spaces lvl out)
                 (display "return " out)
-                (il->c (cadr il) 0 out)
-                (display ";\n" out))
+                (il->c (cadr il) 0 out))
         (eq? (car il) 'c-dec) ;; function declaration
             (begin
                 (display "SExp *\n" out)
@@ -345,7 +346,9 @@
                         ", ")
                     out)
                 (display "){\n" out)
-                (foreach-proc (fn (x) (il->c x (+ lvl 1) out)) (cadddr il))
+                (display (cdddr il))
+                (newline)
+                (il->c (cadddr il) (+ lvl 1) out)
                 (display "}\n" out))
         (eq? (car il) 'c-docstring)
             (begin
@@ -383,6 +386,16 @@
                 (display "(" out)
                 (comma-separated-c (caddr il) out)
                 (display ")" out))
+        (eq? (car il) 'c-begin)
+            (begin
+                (display il)
+                (newline)
+            (foreach-proc
+                (fn (x)
+                    (int->spaces lvl)
+                    (il->c x 0 out)
+                    (display ";\n" out))
+                (cdr il)))
         (eq? (car il) 'c-tailcall)
             #f
         (eq? (car il) 'c-call)
