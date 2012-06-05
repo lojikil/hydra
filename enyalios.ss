@@ -71,6 +71,12 @@
 
 (define *ulambdas* {})
 
+(define (show x)
+    (display "x: ")
+    (write x)
+    (newline)
+    x)
+
 (define (enyalios@primitive? o)
     (dict-has? *primitives* o))
 
@@ -249,7 +255,7 @@
                     (map
                         (fn (x) (car (generate-code x '() #f)))
                         (cdr c)))
-                #t)
+                #f)
         else (error (format "unknown form: ~a" c))))
 
 (define (int->spaces lvl out)
@@ -378,9 +384,6 @@
             #f
         (eq? (car il) 'c-call)
             (let ((proc-data (nth *ulambdas* (cadr il))))
-                (display "proc-data: ")
-                (display proc-data)
-                (newline)
                 (if (< (length (caddr il)) (nth proc-data 2))
                     (error "Incorrect arity for user-defined lambda")
                     (begin
