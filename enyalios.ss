@@ -375,6 +375,18 @@
         (eq? (car il) 'c-tailcall)
             #f
         (eq? (car il) 'c-call)
-            #f
+            (let ((proc-data (nth *ulambdas* (cadr il))))
+                (if (< (caddr il) (nth proc-data 2))
+                    (error "Incorrect arity for user-defined lambda")
+                    (begin
+                        (display (cadr il) out)
+                        (display "(" out)
+                        (display
+                            (string-join
+                                (map
+                                    (fn (x) (il->c x 0 out)) (caddr il))
+                                ",")
+                            out)
+                        (display ")" out))))
         else
             (display "###" out)))
