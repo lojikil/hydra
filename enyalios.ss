@@ -163,7 +163,23 @@
     (display "ilsyntax c:")
     (display c)
     (newline)
-    #t)
+    (cond
+        (pair? (car c)) 
+            (il-syntax? (car c))
+        (or
+            (eq? (car c) 'c-if)
+            (eq? (car c) 'c-elif)
+            (eq? (car c) 'c-else)
+            (eq? (car c) 'c-begin)
+            (eq? (car c) 'c-set!)
+            (eq? (car c) 'c-return)
+            (eq? (car c) 'c-while)
+            (eq? (car c) 'c-for)
+            (eq? (car c) 'c-loop))
+            #t
+        else
+            #f))
+    
 
 (define (returnable c tail?)
     (if (and tail?
