@@ -208,7 +208,9 @@
             (void? c)
             (symbol? c) ;; not exactly sure about this one...
             (eof-object? c)) 
+                (if tail?
                     (list #f (list 'c-return c))
+                    (list #f c))
         (eq? (car c) 'if) (compile-if (cdr c) name tail?)
         (eq? (car c) 'quote)
             (if (null? (cadr c))
