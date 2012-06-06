@@ -155,14 +155,11 @@
           (<else> (generate-code (caddr block) name tail?)))
         ;; need to check tail? here, and, if it is true,
         ;; add 'c-returns to each of (<then> <else>)
-        (show (list (and tail? (or (car <then>) (car <else>)))
-                    (list 'c-if <cond> (cdr <then>))
-                    (list 'c-else (cdr <else>))))))
+        (list (and tail? (or (car <then>) (car <else>)))
+                    (list 'c-if <cond> (returnable (cdr <then>) tail?))
+                    (list 'c-else (returnable (cdr <else>) tail?)))))
 
 (define (il-syntax? c)
-    (display "ilsyntax c:")
-    (display c)
-    (newline)
     (cond
         (pair? (car c)) 
             (il-syntax? (car c))
@@ -191,9 +188,8 @@
     (if tail?
         (if (= (length block) 1)
             (let ((x (generate-code (car block) name #t)))
-                    (show 
-                        (list (car x)
-                            (cons 'c-begin (returnable (cdr x) tail?)))))
+                    (list (car x)
+                        (cons 'c-begin (returnable (cdr x) tail?))))
             (let* ((b (map
                       (fn (x) (cdr (generate-code x '() #f)))
                       (cslice block 0 (- (length block 1)))))
@@ -204,7 +200,7 @@
                 (list
                     (car e)
                     (cons 'c-begin
-                        (append b (cdr e))))))
+                        (append b (returnable (cdr e)))))))
         (list
             #f
             (cons 'c-begin
@@ -414,15 +410,15 @@
                 (comma-separated-c (caddr il) out)
                 (display ")" out))
         (eq? (car il) 'c-begin)
-            (begin
-                (display il)
-                (newline)
             (foreach-proc
                 (fn (x)
                     (int->spaces lvl out)
-                    (il->c x 0 out)
-                    (display ";\n" out))
-                (cdr il)))
+                    (if (il-syntax? x)
+                        (il->c x 0 out)
+                        (begin
+                            (il->c x 0 out)
+                            (display ";\n" out))))
+                (cdr il))
         (eq? (car il) 'c-tailcall)
             #f
         (eq? (car il) 'c-call)
