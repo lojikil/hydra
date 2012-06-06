@@ -108,14 +108,17 @@
             (= (nth prim 2) 0)
                 (if (= (length args) 0)
                     (list 
-                        (list 'c-primitive (nth prim 0) '()) #f)
+                        #f
+                        (list 'c-primitive (nth prim 0) '()))
                     (list
+                        #f
                         (list 'c-primitive (nth prim 0)
-                            (map (fn (x) (cadr (generate-code x '() #f))) args)) #f))
+                            (map (fn (x) (cadr (generate-code x '() #f))) args))))
             (= (nth prim 2) (length args))
                 (list
+                    #f
                     (list 'c-primitive-fixed (nth prim 0)
-                        (map (fn (x) (car (generate-code x '() #f))) args)) #f)
+                        (map (fn (x) (car (generate-code x '() #f))) args)))
             else
                 (error (format "incorrect arity for primitive ~a" (car block))))))
 
@@ -135,8 +138,8 @@
           (params (car block)))
         (if (cadr body) ;; body contains a tail-call
             (list 'c-dec name params
-                (list 'c-loop (car body)))
-            (list 'c-dec name params (car body)))))
+                (list 'c-loop (cadr body)))
+            (list 'c-dec name params (cadr body)))))
 
 (define (compile-if block name tail?)
     " compiles an if statement into IL.
@@ -147,7 +150,7 @@
       RETURNS:
       (RECURSE? AST+)
     "
-    (let* ((<cond> (car (generate-code (car block) name #f)))
+    (let* ((<cond> (cadr (generate-code (car block) name #f)))
           (<then> (generate-code (cadr block) name tail?))
           (<else> (generate-code (caddr block) name tail?)))
         ;; need to check tail? here, and, if it is true,
@@ -156,13 +159,25 @@
                     (list 'c-if <cond> (cdr <then>))
                     (list 'c-else (cdr <else>))))))
 
+(define (il-syntax? c)
+    (display "ilsyntax c:")
+    (display c)
+    (newline)
+    #t)
+
+(define (returnable c tail?)
+    (if (and tail?
+            (not (il-syntax? c)))
+        (list (cons 'c-return c))
+        c))
+
 (define (compile-begin block name tail?)
     (if tail?
         (if (= (length block) 1)
             (let ((x (generate-code (car block) name #t)))
                     (show 
                         (list (car x)
-                            (cons 'c-begin (cdr x)))))
+                            (cons 'c-begin (returnable (cdr x) tail?)))))
             (let* ((b (map
                       (fn (x) (cdr (generate-code x '() #f)))
                       (cslice block 0 (- (length block 1)))))
@@ -171,13 +186,13 @@
                         name
                         tail?)))
                 (list
-                    'c-begin
-                    (append b (cdr e))
-                    (car e))))
+                    (car e)
+                    (cons 'c-begin
+                        (append b (cdr e))))))
         (list
+            #f
             (cons 'c-begin
-                (map (fn (x) (car (generate-code x '() #f))) block))
-            #f)))
+                (map (fn (x) (car (generate-code x '() #f))) block)))))
 
 (define (compile-let block name tail?)
     #f)
@@ -253,7 +268,7 @@
                     'c-call
                     (car c)
                     (map
-                        (fn (x) (car (generate-code x '() #f)))
+                        (fn (x) (cadr (generate-code x '() #f)))
                         (cdr c))))
         else (error (format "unknown form: ~a" c))))
 
@@ -322,12 +337,14 @@
                 (int->spaces lvl out)
                 (display "while(1) {\n" out)
                 (il->c (cadr il) (+ lvl 1) out)
+                (int->spaces lvl out)
                 (display "}\n" out))
         (eq? (car il) 'c-return)
             (begin
                 (int->spaces lvl out)
                 (display "return " out)
-                (il->c (cadr il) 0 out))
+                (il->c (cadr il) 0 out)
+                (display ";\n" out))
         (eq? (car il) 'c-dec) ;; function declaration
             (begin
                 (display "SExp *\n" out)
@@ -386,7 +403,7 @@
                 (newline)
             (foreach-proc
                 (fn (x)
-                    (int->spaces lvl)
+                    (int->spaces lvl out)
                     (il->c x 0 out)
                     (display ";\n" out))
                 (cdr il)))
