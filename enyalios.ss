@@ -412,11 +412,10 @@
         (eq? (car il) 'c-begin)
             (foreach-proc
                 (fn (x)
-                    (int->spaces lvl out)
                     (if (il-syntax? x)
-                        (il->c x 0 out)
+                        (il->c x lvl out)
                         (begin
-                            (il->c x 0 out)
+                            (il->c x lvl out)
                             (display ";\n" out))))
                 (cdr il))
         (eq? (car il) 'c-tailcall)
