@@ -176,7 +176,6 @@
             #t
         else
             #f))
-    
 
 (define (returnable c tail?)
     (if (and tail?
@@ -369,8 +368,6 @@
                         ", ")
                     out)
                 (display "){\n" out)
-                (display (cdddr il))
-                (newline)
                 (il->c (cadddr il) (+ lvl 1) out)
                 (display "}\n" out))
         (eq? (car il) 'c-docstring)
