@@ -307,8 +307,18 @@
         (goal? il) (if il (display "SSUCC" out) (display "SUNSUCC" out))
         (integer? il) (display (format "makeinteger(~n)" il) out)
         (real? il) (display (format "makereal(~a)" il) out)
-        (rational? il) (display (format "makerational(~n,~n)" (numerator il) (denomenator il)) out)
-        (complex? il) (display (format "makecomplex(~r,~r)" (real-part il) (imag-part il)) out)
+        (rational? il)
+            (display
+                (format "makerational(~n,~n)"
+                    (numerator il)
+                    (denomenator il))
+                out)
+        (complex? il)
+            (display
+                (format "makecomplex(~r,~r)"
+                    (real-part il)
+                    (imag-part il))
+                out)
         (string? il) (display (format "makestring(~s)" il) out)
         (char? il) (display (format "makechar(~c)" il) out)
         (symbol? il) (display il out)
