@@ -92,6 +92,21 @@
         (symbol? (car p)) (count-arities (cdr p) (+ 1 req) opt)
         (pair? (car p)) (count-arities (cdr p) req (+ 1 opt))))
 
+(define (shadow-params params d)
+    (if (null? params)
+        d
+        (begin
+            (if (pair? (car params))
+                (cset!
+                    d
+                    (caar params)
+                    (gensym (caar params)))
+                (cset!
+                    d
+                    (car params)
+                    (gensym (car params))))
+            (shadow-params! (cdr params) d))))
+
 (define (set-arity! name params)
     (let ((arities (count-arities params 0 0)))
         (cset! *ulambdas* name
@@ -99,7 +114,8 @@
                 name
                 params
                 (car arities)
-                (cadr arities)))))
+                (cadr arities)
+                (shadow-params params {})))))
 
 (define (compile-primitive block)
     (let ((prim (nth *primitives* (car block)))
