@@ -95,17 +95,17 @@
 (define (shadow-params params d)
     (if (null? params)
         d
-        (begin
-            (if (pair? (car params))
-                (cset!
+        (if (pair? (car params))
+            (shadow-params
+                (cdr params)
+                (append
                     d
-                    (caar params)
-                    (gensym (caar params)))
-                (cset!
+                    (gensym (caar params))))
+            (shadow-params
+                (cdr params)
+                (append
                     d
-                    (car params)
-                    (gensym (car params))))
-            (shadow-params! (cdr params) d))))
+                    (gensym (car params))))))
 
 (define (set-arity! name params)
     (let ((arities (count-arities params 0 0)))
@@ -115,7 +115,7 @@
                 params
                 (car arities)
                 (cadr arities)
-                (shadow-params params {})))))
+                (shadow-params params '())))))
 
 (define (compile-primitive block)
     (let ((prim (nth *primitives* (car block)))
@@ -152,7 +152,7 @@
     "
     (let ((body (compile-begin (cdr block) name #t))
           (params (car block)))
-        (if (cadr body) ;; body contains a tail-call
+        (if (car body) ;; body contains a tail-call
             (list 'c-dec name params
                 (list 'c-loop (cadr body)))
             (list 'c-dec name params (cadr body)))))
@@ -432,7 +432,39 @@
                             (display ";\n" out))))
                 (cdr il))
         (eq? (car il) 'c-tailcall)
-            #f
+            (let ((proc-data (nth *ulambdas* (cadr il))))
+                (if (< (length (caddr il)) (nth proc-data 2))
+                    (error "Incorrect arity for user-defined lambda")
+                    (begin
+                        ;; set shadow params to value of each
+                        ;; parameters:
+                        ;; x1 = (+ x 1)
+                        ;; y2 = (* y 3)
+                        (foreach-proc
+                            (fn (x)
+                                (int->spaces lvl out)
+                                (display
+                                    (format "~a = ~a;~%"
+                                        (car x)
+                                        (cadr x))
+                                    out))
+                            (zip 
+                                (nth proc-data 4) ;; shadow params
+                                (caddr il)))
+                        ;; set each parameter to the shadow's value:
+                        ;; x = x1
+                        ;; y = y2
+                        (foreach-proc
+                            (fn (x)
+                                (int->spaces lvl out)
+                                (display
+                                    (format "~a = ~a; ~%" 
+                                        (car x)
+                                        (cadr x))
+                                    out))
+                            (zip
+                                (nth proc-data 1)
+                                (nth proc-data 4))))))
         (eq? (car il) 'c-call)
             (let ((proc-data (nth *ulambdas* (cadr il))))
                 (if (< (length (caddr il)) (nth proc-data 2))
