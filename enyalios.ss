@@ -105,7 +105,7 @@
                 (cdr params)
                 (append
                     d
-                    (gensym (car params))))))
+                    (gensym (car params)))))))
 
 (define (set-arity! name params)
     (let ((arities (count-arities params 0 0)))
@@ -134,7 +134,7 @@
                 (list
                     #f
                     (list 'c-primitive-fixed (nth prim 0)
-                        (map (fn (x) (car (generate-code x '() #f))) args)))
+                        (map (fn (x) (cadr (generate-code x '() #f))) args)))
             else
                 (error (format "incorrect arity for primitive ~a" (car block))))))
 
@@ -196,8 +196,8 @@
 (define (returnable c tail?)
     (if (and tail?
             (not (il-syntax? c)))
-        (list (cons 'c-return c))
-        c))
+        (cons 'c-return c))
+        c)
 
 (define (compile-begin block name tail?)
     (if tail?
@@ -284,7 +284,7 @@
                     'c-tailcall
                     name
                     (map
-                        (fn (x) (car (generate-code x '() #f)))
+                        (fn (x) (cadr (generate-code x '() #f)))
                         (cdr c))))
         (enyalios@primitive? (car c)) (compile-primitive c name tail?) ; all other primitive forms
         (enyalios@procedure? (car c)) #t ; primitive procs, like display
