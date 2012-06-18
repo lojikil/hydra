@@ -179,6 +179,8 @@
 
 (define (il-syntax? c)
     (cond
+        (not (pair? c))
+            #f
         (pair? (car c)) 
             (il-syntax? (car c))
         (or
@@ -190,6 +192,7 @@
             (eq? (car c) 'c-return)
             (eq? (car c) 'c-while)
             (eq? (car c) 'c-for)
+            (eq? (car c) 'c-shadow-params)
             (eq? (car c) 'c-loop))
             #t
         else
@@ -398,6 +401,13 @@
                 (display "){\n" out)
                 (il->c (cadddr il) (+ lvl 1) out)
                 (display "}\n" out))
+        (eq? (car il) 'c-shadow-params)
+            (let ((proc-data (nth *ulambdas* (cadr il))))
+                (foreach-proc
+                    (fn (x)
+                        (int->spaces lvl out)
+                        (format "SExp ~a = SNIL;~%" x))
+                    (nth proc-data 4)))
         (eq? (car il) 'c-docstring)
             (begin
                 (int->spaces lvl out)
