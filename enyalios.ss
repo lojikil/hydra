@@ -100,12 +100,12 @@
                 (cdr params)
                 (append
                     d
-                    (gensym (caar params))))
+                    (list (gensym (caar params)))))
             (shadow-params
                 (cdr params)
                 (append
                     d
-                    (gensym (car params)))))))
+                    (list (gensym (car params))))))))
 
 (define (set-arity! name params)
     (let ((arities (count-arities params 0 0)))
@@ -154,7 +154,9 @@
           (params (car block)))
         (if (car body) ;; body contains a tail-call
             (list 'c-dec name params
-                (list 'c-loop (cadr body)))
+                (list 'c-begin
+                    (list 'c-shadow-params name)
+                    (list 'c-loop (cadr body))))
             (list 'c-dec name params (cadr body)))))
 
 (define (compile-if block name tail?)
