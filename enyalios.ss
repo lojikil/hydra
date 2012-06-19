@@ -174,7 +174,7 @@
         ;; need to check tail? here, and, if it is true,
         ;; add 'c-returns to each of (<then> <else>)
         (list (and tail? (or (car <then>) (car <else>)))
-                    (list 'c-if <cond> (returnable (show (cdr <then>)) tail?))
+                    (list 'c-if <cond> (returnable (cdr <then>) tail?))
                     (list 'c-else (returnable (cdr <else>) tail?)))))
 
 (define (il-syntax? c)
@@ -201,15 +201,15 @@
 (define (returnable c tail?)
     (if (and tail?
             (not (il-syntax? c)))
-        (cons 'c-return c))
-        c)
+        (list 'c-return c)
+        c))
 
 (define (compile-begin block name tail?)
     (if tail?
         (if (= (length block) 1)
             (let ((x (generate-code (car block) name #t)))
                     (list (car x)
-                        (cons 'c-begin (returnable (show (cdr x)) tail?))))
+                        (list 'c-begin (returnable (cdr x) tail?))))
             (let* ((b (map
                       (fn (x) (cdr (generate-code x '() #f)))
                       (cslice block 0 (- (length block 1)))))
@@ -220,7 +220,7 @@
                 (list
                     (car e)
                     (cons 'c-begin
-                        (append b (returnable (cdr e)))))))
+                        (append b (returnable (cadr e) tail?))))))
         (list
             #f
             (cons 'c-begin
