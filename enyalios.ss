@@ -141,7 +141,7 @@
 (define (compile-lambda block name tail?)
     #f)
 
-(define (compile-procedure block name tail?)
+(define (compile-procedure block name tail? rewrites)
     " compile a top-level procedure, as opposed to
       closure conversion of compile-lambda
       May need to switch away from using compile-begin,
@@ -150,7 +150,7 @@
       let blocks). Have to masticate on this more, but 
       this is a decent first start.
     "
-    (let ((body (compile-begin (cdr block) name #t))
+    (let ((body (compile-begin (cdr block) name #t rewrites))
           (params (car block)))
         (if (car body) ;; body contains a tail-call
             (list 'c-dec name params
@@ -159,7 +159,7 @@
                     (list 'c-loop (cadr body))))
             (list 'c-dec name params (cadr body)))))
 
-(define (compile-if block name tail?)
+(define (compile-if block name tail? rewrites)
     " compiles an if statement into IL.
       PARAMETERS:
       block : scheme code
@@ -168,9 +168,9 @@
       RETURNS:
       (RECURSE? AST+)
     "
-    (let* ((<cond> (cadr (generate-code (car block) name #f)))
-          (<then> (generate-code (cadr block) name tail?))
-          (<else> (generate-code (caddr block) name tail?)))
+    (let* ((<cond> (cadr (generate-code (car block) name #f rewrites)))
+          (<then> (generate-code (cadr block) name tail? rewrites))
+          (<else> (generate-code (caddr block) name tail? rewrites)))
         ;; need to check tail? here, and, if it is true,
         ;; add 'c-returns to each of (<then> <else>)
         (list (and tail? (or (car <then>) (car <else>)))
@@ -204,19 +204,20 @@
         (list 'c-return c)
         c))
 
-(define (compile-begin block name tail?)
+(define (compile-begin block name tail? rewrites)
     (if tail?
         (if (= (length block) 1)
-            (let ((x (generate-code (car block) name #t)))
+            (let ((x (generate-code (car block) name #t rewrites)))
                     (list (car x)
                         (list 'c-begin (returnable (cdr x) tail?))))
             (let* ((b (map
-                      (fn (x) (cdr (generate-code x '() #f)))
+                      (fn (x) (cdr (generate-code x '() #f rewrites)))
                       (cslice block 0 (- (length block 1)))))
                    (e (generate-code
                         (cslice block (- (length block) 1) (length block))
                         name
-                        tail?)))
+                        tail?
+                        rewrites)))
                 (list
                     (car e)
                     (cons 'c-begin
@@ -224,12 +225,12 @@
         (list
             #f
             (cons 'c-begin
-                (map (fn (x) (car (generate-code x '() #f))) block)))))
+                (map (fn (x) (car (generate-code x '() #f rewrites))) block)))))
 
-(define (compile-let block name tail?)
+(define (compile-let block name tail? rewrites)
     #f)
 
-(define (generate-code c name tail?)
+(define (generate-code c name tail? rewrites)
     " Generates IL code for a given
       preDigamma code. The tail? parameter
       is used in code that doesn't need to
@@ -253,11 +254,14 @@
             (string? c)
             (number? c)
             (void? c)
-            (symbol? c) ;; not exactly sure about this one...
             (eof-object? c)) 
                 (if tail?
                     (list #f (list 'c-return c))
                     (list #f c))
+        (symbol? c)
+            (if (dict-has? rewrites c)
+                (list #f (returnable (nth rewrites c) tail?))
+                (list #f (returnable c tail?)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail?)
         (eq? (car c) 'quote)
             (if (null? (cadr c))
@@ -276,10 +280,18 @@
                 (pair? (cadr c))
                     (compile-procedure (cons (cdadr c) (cddr c)) (caadr c) #t)
                 else (error "illegal define form; DEFINE (SYMBOL | PAIR) FORM*"))
-        (eq? (car c) 'let) #t
-        (eq? (car c) 'let*) #t
+        (eq? (car c) 'let) (compile-let (cdr c) name tail? rewrites)
+        (eq? (car c) 'let*) (compile-let (cdr c) name tail? rewrites) ;; no difference in PreF
         (eq? (car c) 'letrec) #t
-        (eq? (car c) 'with) #t ; transform this into let, run same code
+        ; transform this into let, run same code
+        (eq? (car c) 'with) 
+            (compile-let
+                (cons
+                    (list (list (cadr c) (caddr c)))
+                    (cdddr c))
+                name
+                tail?
+                rewrites)
         (eq? (car c) 'set!) #t
         (eq? (car c) 'begin) (compile-begin (cdr c) name tail?)
         (eq? (car c) name) ;; tail-call?
