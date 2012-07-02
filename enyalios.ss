@@ -129,12 +129,12 @@
                     (list
                         #f
                         (list 'c-primitive (nth prim 0)
-                            (map (fn (x) (cadr (generate-code x '() #f))) args))))
+                            (map (fn (x) (cadr (generate-code x '() #f rewrites))) args))))
             (= (nth prim 2) (length args))
                 (list
                     #f
                     (list 'c-primitive-fixed (nth prim 0)
-                        (map (fn (x) (cadr (generate-code x '() #f))) args)))
+                        (map (fn (x) (cadr (generate-code x '() #f rewrites))) args)))
             else
                 (error (format "incorrect arity for primitive ~a" (car block))))))
 
