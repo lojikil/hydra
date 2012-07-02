@@ -117,7 +117,7 @@
                 (cadr arities)
                 (shadow-params params '())))))
 
-(define (compile-primitive block)
+(define (compile-primitive block rewrites)
     (let ((prim (nth *primitives* (car block)))
           (args (cdr block)))
         (cond
@@ -138,10 +138,10 @@
             else
                 (error (format "incorrect arity for primitive ~a" (car block))))))
 
-(define (compile-lambda block name tail?)
+(define (compile-lambda block name tail? rewrites)
     #f)
 
-(define (compile-procedure block name tail?)
+(define (compile-procedure block name tail? rewrites)
     " compile a top-level procedure, as opposed to
       closure conversion of compile-lambda
       May need to switch away from using compile-begin,
@@ -159,7 +159,7 @@
                     (list 'c-loop (cadr body))))
             (list 'c-dec name params (cadr body)))))
 
-(define (compile-if block name tail?)
+(define (compile-if block name tail? rewrites)
     " compiles an if statement into IL.
       PARAMETERS:
       block : scheme code
@@ -168,9 +168,9 @@
       RETURNS:
       (RECURSE? AST+)
     "
-    (let* ((<cond> (cadr (generate-code (car block) name #f)))
-          (<then> (generate-code (cadr block) name tail?))
-          (<else> (generate-code (caddr block) name tail?)))
+    (let* ((<cond> (cadr (generate-code (car block) name #f rewrites)))
+          (<then> (generate-code (cadr block) name tail? rewrites))
+          (<else> (generate-code (caddr block) name tail? rewrites)))
         ;; need to check tail? here, and, if it is true,
         ;; add 'c-returns to each of (<then> <else>)
         (list (and tail? (or (car <then>) (car <else>)))
@@ -204,19 +204,20 @@
         (list 'c-return c)
         c))
 
-(define (compile-begin block name tail?)
+(define (compile-begin block name tail? rewrites)
     (if tail?
         (if (= (length block) 1)
-            (let ((x (generate-code (car block) name #t)))
+            (let ((x (generate-code (car block) name #t rewrites)))
                     (list (car x)
                         (list 'c-begin (returnable (cdr x) tail?))))
             (let* ((b (map
-                      (fn (x) (cdr (generate-code x '() #f)))
+                      (fn (x) (cdr (generate-code x '() #f rewrites)))
                       (cslice block 0 (- (length block 1)))))
                    (e (generate-code
                         (cslice block (- (length block) 1) (length block))
                         name
-                        tail?)))
+                        tail?
+                        rewrites)))
                 (list
                     (car e)
                     (cons 'c-begin
@@ -224,12 +225,30 @@
         (list
             #f
             (cons 'c-begin
-                (map (fn (x) (car (generate-code x '() #f))) block)))))
+                (map (fn (x) (car (generate-code x '() #f rewrites))) block)))))
 
-(define (compile-let block name tail?)
+(define (generate-let-temps names d)
+    " generates temporary names for let
+      variables:
+      (let ((x 10) (y 30) (z 20))
+        (+ x y z))
+
+      SExp *tmp0 = 10, *tmp1 = 30, *tmp2 = 20;
+      return fplus(list(3,tmp0,tmp1,tmp2));
+    "
+    (if (null? names)
+        d
+        (begin
+            (cset! d (car names) (gensym 'tmp))
+            (generate-let-temps (cdr names d)))))
+
+(define (compile-let block name tail? rewrites)
     #f)
 
-(define (generate-code c name tail?)
+(define (compile-let* block name tail? rewrites)
+    #f)
+
+(define (generate-code c name tail? rewrites)
     " Generates IL code for a given
       preDigamma code. The tail? parameter
       is used in code that doesn't need to
@@ -253,11 +272,18 @@
             (string? c)
             (number? c)
             (void? c)
-            (symbol? c) ;; not exactly sure about this one...
             (eof-object? c)) 
                 (if tail?
                     (list #f (list 'c-return c))
                     (list #f c))
+        (symbol? c)
+            (if (dict-has? rewrites c)
+                (if tail?
+                    (list #f (list 'c-return (nth rewrites c)))
+                    (list #f (nth rewrites c)))
+                (if tail?
+                    (list #f (list 'c-return c))
+                    (list #f c)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail?)
         (eq? (car c) 'quote)
             (if (null? (cadr c))
