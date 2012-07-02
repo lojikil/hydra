@@ -150,7 +150,7 @@
       let blocks). Have to masticate on this more, but 
       this is a decent first start.
     "
-    (let ((body (compile-begin (cdr block) name #t))
+    (let ((body (compile-begin (cdr block) name #t rewrites))
           (params (car block)))
         (if (car body) ;; body contains a tail-call
             (list 'c-dec name params
@@ -302,10 +302,18 @@
                 (pair? (cadr c))
                     (compile-procedure (cons (cdadr c) (cddr c)) (caadr c) #t)
                 else (error "illegal define form; DEFINE (SYMBOL | PAIR) FORM*"))
-        (eq? (car c) 'let) #t
-        (eq? (car c) 'let*) #t
+        (eq? (car c) 'let) (compile-let (cdr c) name tail? rewrites)
+        (eq? (car c) 'let*) (compile-let (cdr c) name tail? rewrites) ;; no difference in PreF
         (eq? (car c) 'letrec) #t
-        (eq? (car c) 'with) #t ; transform this into let, run same code
+        ; transform this into let, run same code
+        (eq? (car c) 'with) 
+            (compile-let
+                (cons
+                    (list (list (cadr c) (caddr c)))
+                    (cdddr c))
+                name
+                tail?
+                rewrites)
         (eq? (car c) 'set!) #t
         (eq? (car c) 'begin) (compile-begin (cdr c) name tail?)
         (eq? (car c) name) ;; tail-call?
