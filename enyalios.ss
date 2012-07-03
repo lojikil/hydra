@@ -242,8 +242,28 @@
             (cset! d (car names) (gensym 'tmp))
             (generate-let-temps (cdr names d)))))
 
+(define (dict-copy k dict new-dict)
+    "shallow copy a dictionary"
+    (if (null? k)
+        new-dict
+        (begin
+            (cset! new-dict (car k) (nth dict (car k)))
+            (dict-copy (cdr k) dict new-dict))))
+
 (define (compile-let block name tail? rewrites)
-    #f)
+    " uses dict-copy to merge rewrites into the new
+      generated list of let temporaries; new let bindings
+      shadow their higher-level counterparts
+    "
+    (let* ((vals (unzip (car block)))
+           (vars (car vals))
+           (data (cadr vals))
+           (var-temps (generate-let-temps
+                        var
+                        (dict-copy
+                            (keys rewrites)
+                            rewrites {}))))
+        #f))
 
 (define (compile-let* block name tail? rewrites)
     #f)
