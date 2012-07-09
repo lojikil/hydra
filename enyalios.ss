@@ -262,8 +262,17 @@
                         var
                         (dict-copy
                             (keys rewrites)
-                            rewrites {}))))
-        #f))
+                            rewrites {})))
+           (body (compile-begin (cdr block) name tail? var-temps)))
+        (cons
+            'c-begin
+            (append
+                (map 
+                    (fn (x) (list 'c-dec
+                                (nth var-temps (car x))
+                                (generate-code (cadr x) name #f rewrites)))
+                    vals)
+                body))))
 
 (define (compile-let* block name tail? rewrites)
     #f)
