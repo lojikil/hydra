@@ -225,7 +225,7 @@
         (list
             #f
             (cons 'c-begin
-                (map (fn (x) (car (generate-code x '() #f rewrites))) block)))))
+                (map (fn (x) (cadr (generate-code x '() #f rewrites))) block)))))
 
 (define (generate-let-temps names d)
     " generates temporary names for let
@@ -240,7 +240,7 @@
         d
         (begin
             (cset! d (car names) (gensym 'tmp))
-            (generate-let-temps (cdr names d)))))
+            (generate-let-temps (cdr names) d))))
 
 (define (dict-copy k dict new-dict)
     "shallow copy a dictionary"
@@ -259,19 +259,19 @@
            (vars (car vals))
            (data (cadr vals))
            (var-temps (generate-let-temps
-                        var
+                        vars
                         (dict-copy
                             (keys rewrites)
                             rewrites {})))
-           (body (compile-begin (cdr block) name tail? var-temps)))
+           (body (cdadr (compile-begin (cdr block) name tail? var-temps))))
         (cons
             'c-begin
             (append
                 (map 
                     (fn (x) (list 'c-dec
                                 (nth var-temps (car x))
-                                (generate-code (cadr x) name #f rewrites)))
-                    vals)
+                                (cadr (generate-code (cadr x) name #f rewrites))))
+                    (car block)) 
                 body))))
 
 (define (compile-let* block name tail? rewrites)
@@ -306,7 +306,7 @@
                     (list #f (list 'c-return c))
                     (list #f c))
         (symbol? c)
-            (if (dict-has? rewrites c)
+            (if (and (dict? rewrites) (dict-has? rewrites c))
                 (if tail?
                     (list #f (list 'c-return (nth rewrites c)))
                     (list #f (nth rewrites c)))
