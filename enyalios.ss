@@ -366,7 +366,7 @@
             'c-begin
             (append
                 (map 
-                    (fn (x) (list 'c-dec
+                    (fn (x) (list 'c-var
                                 (nth var-temps (car x))
                                 (cadr (generate-code (cadr x) name #f rewrites))))
                     (car block)) 
@@ -411,11 +411,11 @@
                 (if tail?
                     (list #f (list 'c-return c))
                     (list #f c)))
-        (eq? (car c) 'if) (compile-if (cdr c) name tail?)
+        (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites)
         (eq? (car c) 'quote)
             (if (null? (cadr c))
                 '(#f (c-nil))
-                (list #f (list 'c-quote (cdr c)) ))
+                (list #f (list 'c-quote (cdr c))))
         (eq? (car c) 'define) 
             (cond
                 (symbol? (cadr c))
@@ -424,10 +424,10 @@
                             (or
                                 (eq? (car (caddr c)) 'lambda)
                                 (eq? (car (caddr c)) 'fn)))
-                        (compile-procedure (cdaddr c) (cadr c) #t)
-                        (list #f (list 'c-dec-var (cadr c) (car (generate-code (caddr c) '() #f)))))
+                        (compile-procedure (cdaddr c) (cadr c) #t rewrites)
+                        (list #f (list 'c-dec-var (cadr c) (car (generate-code (caddr c) '() #f rewrites)))))
                 (pair? (cadr c))
-                    (compile-procedure (cons (cdadr c) (cddr c)) (caadr c) #t)
+                    (compile-procedure (cons (cdadr c) (cddr c)) (caadr c) #t rewrites)
                 else (error "illegal define form; DEFINE (SYMBOL | PAIR) FORM*"))
         (eq? (car c) 'let) (compile-let (cdr c) name tail? rewrites)
         (eq? (car c) 'let*) (compile-let (cdr c) name tail? rewrites) ;; no difference in PreF
@@ -437,12 +437,13 @@
             (compile-let
                 (cons
                     (list (list (cadr c) (caddr c)))
-                    (cdddr c))
+                    (cdddr c)
+                    rewrites)
                 name
                 tail?
                 rewrites)
         (eq? (car c) 'set!) #t
-        (eq? (car c) 'begin) (compile-begin (cdr c) name tail?)
+        (eq? (car c) 'begin) (compile-begin (cdr c) name tail? rewrites)
         (eq? (car c) name) ;; tail-call?
             (list
                 #t
@@ -450,7 +451,7 @@
                     'c-tailcall
                     name
                     (map
-                        (fn (x) (cadr (generate-code x '() #f)))
+                        (fn (x) (cadr (generate-code x '() #f rewrites)))
                         (cdr c))))
         (enyalios@primitive? (car c)) (compile-primitive c name tail?) ; all other primitive forms
         (enyalios@procedure? (car c)) #t ; primitive procs, like display
@@ -461,7 +462,7 @@
                     'c-call
                     (car c)
                     (map
-                        (fn (x) (cadr (generate-code x '() #f)))
+                        (fn (x) (cadr (generate-code x '() #f rewrites)))
                         (cdr c))))
         else (error (format "unknown form: ~a" c))))
 
@@ -547,6 +548,14 @@
                 (int->spaces lvl out)
                 (display "return " out)
                 (il->c (cadr il) 0 out)
+                (display ";\n" out))
+        (eq? (car il) 'c-var) ;; variable declaration
+            (begin
+                (int->spaces lvl out)
+                (display "SExp *" out)
+                (display (cadr il) out)
+                (display " = " out)
+                (il->c (cadr il))
                 (display ";\n" out))
         (eq? (car il) 'c-dec) ;; function declaration
             (begin
