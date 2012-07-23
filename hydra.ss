@@ -1299,18 +1299,19 @@
 
 (define (hydra@load src-file env)
     "an implementation of the primitive procedure load"
-    (with f (open src-file :read)
-        (with-exception-handler
-            (fn (x) (display (format "An error occured while loading ~S: ~a\n" src-file x)) (close f))
-            (fn ()
-                (letrec ((loop (fn (expr)
-                                    (if (eq? expr #e)
-                                        #v
-                                        (begin
-                                            (hydra@eval expr env)
-                                            (loop (read f)))))))
-                    (loop (read f)))
-                (close f)))))
+    ;(with f (open src-file :read)
+    ;    (with-exception-handler
+    ;        (fn (x) (display (format "An error occured while loading ~S: ~a\n" src-file x)) (close f))
+    ;        (fn ()
+    ;            (letrec ((loop (fn (expr)
+    ;                                (if (eq? expr #e)
+    ;                                    #v
+    ;                                    (begin
+    ;                                        (hydra@eval expr env)
+    ;                                        (loop (read f)))))))
+    ;                (loop (read f)))
+    ;            (close f)))))
+    #f)
                                     
 (define (hydra@repl)
     (display "h; ")

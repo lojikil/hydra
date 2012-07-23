@@ -425,7 +425,7 @@
                                 (eq? (car (caddr c)) 'lambda)
                                 (eq? (car (caddr c)) 'fn)))
                         (compile-procedure (cdaddr c) (cadr c) #t rewrites)
-                        (list #f (list 'c-dec-var (cadr c) (car (generate-code (caddr c) '() #f rewrites)))))
+                        (list #f (list 'c-var (cadr c) (car (generate-code (caddr c) '() #f rewrites)))))
                 (pair? (cadr c))
                     (compile-procedure (cons (cdadr c) (cddr c)) (caadr c) #t rewrites)
                 else (error "illegal define form; DEFINE (SYMBOL | PAIR) FORM*"))
