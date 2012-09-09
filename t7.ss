@@ -8,7 +8,7 @@
                 (if (and
                         (pair? o)
                         (eq? (car o) 'define))
-                    (display (format "~a~%" (cadr o)))
+                    (display (format "COMPILING: ~a~%" (cadr o)))
                     #v)
                 (il->c
                     (generate-code o '() #f {})
