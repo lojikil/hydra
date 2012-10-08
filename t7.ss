@@ -1,3 +1,5 @@
+#!/usr/bin/env vesta
+
 (load 'enyalios.ss)
 
 (define (enyalios@loop in out)
@@ -8,7 +10,7 @@
                 (if (and
                         (pair? o)
                         (eq? (car o) 'define))
-                    (display (format "COMPILING: ~a~%" (cadr o)))
+                    (display (format "COMPILING: ~a~%" (caadr o)))
                     #v)
                 (il->c
                     (generate-code o '() #f {})

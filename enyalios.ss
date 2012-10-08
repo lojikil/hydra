@@ -47,10 +47,8 @@
 
 (define *procedures* {
     ;; negative numbers mean "N or less"
-    :display ["fprinc" 0]
-    :newline ["fnewline" 0]
-    :display ["f_princ" 0]
-    :newline ["newline" 0]
+    :display ["f_princ" 1]
+    :newline ["newline" 1]
     :read ["f_read" 0]
     :write ["f_write" 0]
     :format ["format" 0]
@@ -215,7 +213,7 @@
                 (cadr arities)
                 (shadow-params params '())))))
 
-(define (compile-primitive block rewrites)
+(define (compile-primitive block name tail? rewrites)
     (let ((prim (nth *primitives* (car block)))
           (args (cdr block)))
         (cond
@@ -235,6 +233,16 @@
                         (map (fn (x) (cadr (generate-code x '() #f rewrites))) args)))
             else
                 (error (format "incorrect arity for primitive ~a" (car block))))))
+
+(define (compile-primitive-procedure block name tail? rewrites)
+    (let ((proc (nth *procedures* (car block)))
+          (args (cdr block)))
+        (if (= (nth proc 1) (length args))
+            (list
+                #f
+                (list 'c-procedure (nth proc 0)
+                    (map (fn (x) (cadr (generate-code x '() #f rewrites))) args)))
+            (error (format "incorrect arity for primitive-procedure ~a" (car block))))))
 
 (define (compile-lambda block name tail? rewrites)
     #f)
@@ -306,20 +314,20 @@
     (if tail?
         (if (= (length block) 1)
             (let ((x (generate-code (car block) name #t rewrites)))
-                    (list (car x)
-                        (list 'c-begin (returnable (cdr x) tail?))))
+                (list (car x)
+                    (list 'c-begin (returnable (cdr x) tail?))))
             (let* ((b (map
                       (fn (x) (cdr (generate-code x '() #f rewrites)))
-                      (cslice block 0 (- (length block 1)))))
+                      (cslice block 0 (- (length block) 1))))
                    (e (generate-code
-                        (cslice block (- (length block) 1) (length block))
+                        (car (cslice block (- (length block) 1) (length block)))
                         name
                         tail?
                         rewrites)))
                 (list
                     (car e)
                     (cons 'c-begin
-                        (append b (returnable (cadr e) tail?))))))
+                        (append b (list (returnable (cadr e) tail?)))))))
         (list
             #f
             (cons 'c-begin
@@ -453,8 +461,8 @@
                     (map
                         (fn (x) (cadr (generate-code x '() #f rewrites)))
                         (cdr c))))
-        (enyalios@primitive? (car c)) (compile-primitive c name tail?) ; all other primitive forms
-        (enyalios@procedure? (car c)) #t ; primitive procs, like display
+        (enyalios@primitive? (car c)) (compile-primitive c name tail? rewrites) ; all other primitive forms
+        (enyalios@procedure? (car c)) (compile-primitive-procedure c name tail? rewrites) ; primitive procs, like display
         (enyalios@ulambda? (car c)) ; user-defined lambda?
             (list
                 #f
@@ -474,12 +482,15 @@
             (int->spaces (- lvl 1) out))))
 
 (define (comma-separated-c ill out)
-    (if (null? (cdr ill))
-        (il->c (car ill) 0 out)
-        (begin
+    (cond
+        (null? ill) #v
+        (null? (cdr ill))
             (il->c (car ill) 0 out)
-            (display ", " out)
-            (comma-separated-c (cdr ill) out))))
+        else
+            (begin
+                (il->c (car ill) 0 out)
+                (display ", " out)
+                (comma-separated-c (cdr ill) out))))
 
 (define (il->c il lvl out)
     (cond
@@ -502,7 +513,11 @@
                     (real-part il)
                     (imag-part il))
                 out)
-        (string? il) (display (format "makestring(~s)" il) out)
+        (string? il)
+            (begin
+                (display "makestring(" out)
+                (write il out)
+                (display ")" out))
         (char? il) (display (format "makechar(~c)" il) out)
         (symbol? il) (display il out)
         (pair? (car il))
@@ -562,12 +577,14 @@
                 (display "SExp *\n" out)
                 (display (cadr il) out) ;; should be a call to MUNG here...
                 (display "(" out)
-                (display
-                    (string-join
-                        (map (fn (x) (format "SExp *~a" x))
-                            (caddr il))
-                        ", ")
-                    out)
+                (if (null? (caddr il))
+                    #v
+                    (display
+                        (string-join
+                            (map (fn (x) (format "SExp *~a" x))
+                                (caddr il))
+                            ", ")
+                        out))
                 (display "){\n" out)
                 (il->c (cadddr il) (+ lvl 1) out)
                 (display "}\n" out))
@@ -620,6 +637,7 @@
                     (if (il-syntax? x)
                         (il->c x lvl out)
                         (begin
+                            (int->spaces lvl out) 
                             (il->c x lvl out)
                             (display ";\n" out))))
                 (cdr il))
@@ -666,5 +684,11 @@
                         (display "(" out)
                         (comma-separated-c (caddr il) out)
                         (display ")" out))))
+        (eq? (car il) 'c-procedure)
+            (begin
+                (display (cadr il) out)
+                (display "(" out)
+                (comma-separated-c (caddr il) out)
+                (display ")" out))
         else
             (display "###" out)))
