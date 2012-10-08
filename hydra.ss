@@ -110,10 +110,10 @@
 (define (goal? n) (eq? (type n) "Goal"))
 (define (not x)
         (cond
-                (eq? x #s) #u
-                (eq? x #f) #t
-                (eq? x #u) #s
-                else #f))
+            (eq? x #s) #u
+            (eq? x #f) #t
+            (eq? x #u) #s
+            else #f))
 (define (zero? n) (= n 0))
 (define (eof-object? n) (eq? n #e))
 (define (void? x) (eq? x #v))

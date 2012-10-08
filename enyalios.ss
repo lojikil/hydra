@@ -86,7 +86,7 @@
     :rationalize ["frationalize" #f 2]
     :numerator ["fnum" #f 1]
     :denomenator ["fden" #f 1]
-    ;;:type ["ftype"]
+    :type ["ftype" #f 1]
     :gcd ["fgcd" #f 2]
     :lcm ["flcm" #f 2]
     :ceil ["fceil" #f 1]
@@ -282,6 +282,19 @@
         (list (and tail? (or (car <then>) (car <else>)))
                     (list 'c-if <cond> (returnable (cdr <then>) tail?))
                     (list 'c-else (returnable (cdr <else>) tail?)))))
+
+(define (compile-cond block name tail? rewrites)
+    " compiles a cond statement into IL.
+      PARAMETERS:
+      block: scheme code
+      name : current function name in TCO
+      tail? : boolean for tail calls
+      rewrites : any let renames.
+
+      RETURNS : 
+      (RECURSE? AST+)
+    "
+    #f)
 
 (define (il-syntax? c)
     (cond
