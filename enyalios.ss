@@ -304,18 +304,21 @@
                     'c-else
                     (returnable (cadr (generate-code (cadr block) name tail? rewrites)) tail?)))
         else 
-            (with cond-type 'c-elif
-                (if init?
-                    (set! cond-type 'c-if)
-                    #v)        
-                (display (format "in compile-cond; init? = ~a, cond-type = ~a~%" init? cond-type))
-                (show (cons 
+            (if init?
+                (cons 'c-begin
+                    (cons 
+                        (list
+                            'c-if
+                            (cadr (generate-code (car block) name #f rewrites))
+                            (returnable (cadr (generate-code (cadr block) name tail? rewrites)) tail?))
+                        (compile-cond (cddr block) name tail? rewrites #f)))
+                (cons 
                     (list
-                        cond-type
+                        'c-elif
                         (cadr (generate-code (car block) name #f rewrites))
                         (returnable (cadr (generate-code (cadr block) name tail? rewrites)) tail?))
-                    (compile-cond (cddr block) name tail? rewrites #f))))))
-
+                    (compile-cond (cddr block) name tail? rewrites #f)))))
+                    
 (define (il-syntax? c)
     (cond
         (not (pair? c))
