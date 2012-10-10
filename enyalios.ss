@@ -283,18 +283,38 @@
                     (list 'c-if <cond> (returnable (cdr <then>) tail?))
                     (list 'c-else (returnable (cdr <else>) tail?)))))
 
-(define (compile-cond block name tail? rewrites)
+(define (compile-cond block name tail? rewrites init?)
     " compiles a cond statement into IL.
       PARAMETERS:
       block: scheme code
       name : current function name in TCO
       tail? : boolean for tail calls
       rewrites : any let renames.
+      init? : is this the first time compile-cond is being called?
 
       RETURNS : 
       (RECURSE? AST+)
     "
-    #f)
+    (cond
+        (null? block) '()
+        (null? (cdr block)) (error "incorrectly formatted COND block")
+        (eq? (car block) 'else)
+            (list
+                (list
+                    'c-else
+                    (returnable (cadr (generate-code (cadr block) name tail? rewrites)) tail?)))
+        else 
+            (with cond-type 'c-elif
+                (if init?
+                    (set! cond-type 'c-if)
+                    #v)        
+                (display (format "in compile-cond; init? = ~a, cond-type = ~a~%" init? cond-type))
+                (show (cons 
+                    (list
+                        cond-type
+                        (cadr (generate-code (car block) name #f rewrites))
+                        (returnable (cadr (generate-code (cadr block) name tail? rewrites)) tail?))
+                    (compile-cond (cddr block) name tail? rewrites #f))))))
 
 (define (il-syntax? c)
     (cond
@@ -318,7 +338,8 @@
             #f))
 
 (define (returnable c tail?)
-    (if (and tail?
+    (if (and
+            tail?
             (not (il-syntax? c)))
         (list 'c-return c)
         c))
@@ -433,6 +454,7 @@
                     (list #f (list 'c-return c))
                     (list #f c)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites)
+        (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites #t)
         (eq? (car c) 'quote)
             (if (null? (cadr c))
                 '(#f (c-nil))
