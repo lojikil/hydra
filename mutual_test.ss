@@ -8,4 +8,4 @@
         x))
 
 (display (bar 20))
-(newline) 
+(display "\n")
