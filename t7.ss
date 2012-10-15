@@ -4,33 +4,31 @@
 
 (define (enyalios@load in)
     (with r (read in)
-        (cond
-            (eof-object? r) '()
-            (and
-                (pair? r)
-                (eq? (car r) 'define)
-                (pair? (cadr r)))
-                (begin
-                    (set-arity! (caadr r) (cdadr r))
-                    (cons
-                        r
-                        (enyalios@load in)))
-            (and
-                (pair? r)
-                (eq? (car r) 'define)
-                (pair? (cddr r))
-                (or
-                    (eq? (caddr r) 'fn)
-                    (eq? (caddr r) 'lambda)))
-                (begin
-                    (set-arity! (cadr r) (car (cdaddr r)))
-                    (cons
-                        r
-                        (enyalios@load in)))
-            else
+        (if (eof-object? r)
+            '()
+            (begin
+                (cond
+                    (and
+                        (pair? r)
+                        (or
+                            (eq? (car r) 'define)
+                            (eq? (car r) 'def))
+                        (pair? (cadr r)))
+                        (set-arity! (caadr r) (cdadr r))
+                    (and
+                        (pair? r)
+                        (or
+                            (eq? (car r) 'define)
+                            (eq? (car r) 'def))
+                        (pair? (cddr r))
+                        (or
+                            (eq? (caaddr r) 'fn)
+                            (eq? (caaddr r) 'lambda)))
+                        (set-arity! (cadr r) (car (cdaddr r)))
+                    else #v)
                 (cons
                     r
-                    (enyalios@load in)))))
+                    (enyalios@load in))))))
 
 (define (enyalios@loop code out)
     (if (null? code)
@@ -38,7 +36,8 @@
         (let ((o (car code)))
             (if (and
                     (pair? o)
-                    (eq? (car o) 'define))
+                    (or (eq? (car o) 'define)
+                        (eq? (car o) 'def)))
                 (display (format "COMPILING: ~a~%" (caadr o)))
                 #v)
             (il->c

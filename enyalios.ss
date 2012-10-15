@@ -462,7 +462,9 @@
             (if (null? (cadr c))
                 '(#f (c-nil))
                 (list #f (list 'c-quote (cdr c))))
-        (eq? (car c) 'define) 
+        (or
+            (eq? (car c) 'define) 
+            (eq? (car c) 'def)) ;; quite a bit of legacy F code uses def
             (cond
                 (symbol? (cadr c))
                     (if (and
