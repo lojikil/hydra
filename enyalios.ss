@@ -60,6 +60,13 @@
     :write-string #t
 })
 
+(define *varprimitives* {
+    :list "list"
+    :vector "vector"
+    :dict "dict"
+    :string "string"
+})
+
 (define *primitives* {
     :car ["car" #f 1]
     :cdr ["cdr" #f 1]
@@ -182,6 +189,13 @@
 (define (enyalios@ulambda? o)
     (dict-has? *ulambdas* o))
 
+(define (enyalios@var-prim? o)
+    (or
+        (eq? o 'list)
+        (eq? o 'vector)
+        (eq? o 'dict)
+        (eq? o 'string)))
+
 (define (count-arities p req opt)
     (cond
         (null? p) (list req opt)
@@ -243,6 +257,14 @@
                 (list 'c-procedure (nth proc 0)
                     (map (fn (x) (cadr (generate-code x '() #f rewrites))) args)))
             (error (format "incorrect arity for primitive-procedure ~a" (car block))))))
+
+(define (compile-variable-primitive block name tail? rewrites)
+    (let ((hd (car block))
+          (args (cdr block)))
+        (list
+            #f
+            (list 'c-variable-primitive hd
+                (map (fn (x) (cadr (generate-code  x '() #f rewrites))) args)))))
 
 (define (compile-lambda block name tail? rewrites)
     #f)
@@ -503,6 +525,7 @@
                         (cdr c))))
         (enyalios@primitive? (car c)) (compile-primitive c name tail? rewrites) ; all other primitive forms
         (enyalios@procedure? (car c)) (compile-primitive-procedure c name tail? rewrites) ; primitive procs, like display
+        (enyalios@var-prim? (car c)) (compile-variable-primitive c name tail? rewrites) ; list & friends
         (enyalios@ulambda? (car c)) ; user-defined lambda?
             (list
                 #f
@@ -724,6 +747,13 @@
                         (display "(" out)
                         (comma-separated-c (caddr il) out)
                         (display ")" out))))
+        (eq? (car il) 'c-variable-primitive)
+            (let ((name (nth *varprimitives* (cadr il))))
+                (begin
+                    (display name out)
+                    (display (format "(~n, " (length (caddr il))) out)
+                    (comma-separated-c (caddr il) out)
+                    (display ")" out)))
         (eq? (car il) 'c-procedure)
             (begin
                 (display (cadr il) out)

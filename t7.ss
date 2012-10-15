@@ -38,7 +38,7 @@
                     (pair? o)
                     (or (eq? (car o) 'define)
                         (eq? (car o) 'def)))
-                (display (format "COMPILING: ~a~%" (caadr o)))
+                (display (format "COMPILING: ~a~%" (cadr o)))
                 #v)
             (il->c
                 (generate-code o '() #f {})
