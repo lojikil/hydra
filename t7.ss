@@ -41,7 +41,7 @@
                 (display (format "COMPILING: ~a~%" (cadr o)))
                 #v)
             (il->c
-                (generate-code o '() #f {})
+                (generate-code o '() #f {} '())
                 0
                 out)
                 (enyalios@loop (cdr code) out))))

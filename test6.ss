@@ -1,0 +1,5 @@
+(define (foo f x)
+    (display "foo: ")
+    (display x)
+    (display "\n")
+    (f x))

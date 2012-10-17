@@ -174,6 +174,11 @@
 
 (define *ulambdas* {})
 
+;; Out-of-Bounds lambdas
+;; these are lambdas that are defined
+;; somewhere in the code, and need to be lifted.
+(define *ooblambdas* {})
+
 (define (show x)
     (display "x: ")
     (write x)
@@ -227,7 +232,7 @@
                 (cadr arities)
                 (shadow-params params '())))))
 
-(define (compile-primitive block name tail? rewrites)
+(define (compile-primitive block name tail? rewrites lparams)
     (let ((prim (nth *primitives* (car block)))
           (args (cdr block)))
         (cond
@@ -239,37 +244,37 @@
                     (list
                         #f
                         (list 'c-primitive (nth prim 0)
-                            (map (fn (x) (cadr (generate-code x '() #f rewrites))) args))))
+                            (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args))))
             (= (nth prim 2) (length args))
                 (list
                     #f
                     (list 'c-primitive-fixed (nth prim 0)
-                        (map (fn (x) (cadr (generate-code x '() #f rewrites))) args)))
+                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)))
             else
                 (error (format "incorrect arity for primitive ~a" (car block))))))
 
-(define (compile-primitive-procedure block name tail? rewrites)
+(define (compile-primitive-procedure block name tail? rewrites lparams)
     (let ((proc (nth *procedures* (car block)))
           (args (cdr block)))
         (if (= (nth proc 1) (length args))
             (list
                 #f
                 (list 'c-procedure (nth proc 0)
-                    (map (fn (x) (cadr (generate-code x '() #f rewrites))) args)))
+                    (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)))
             (error (format "incorrect arity for primitive-procedure ~a" (car block))))))
 
-(define (compile-variable-primitive block name tail? rewrites)
+(define (compile-variable-primitive block name tail? rewrites lparams)
     (let ((hd (car block))
           (args (cdr block)))
         (list
             #f
             (list 'c-variable-primitive hd
-                (map (fn (x) (cadr (generate-code  x '() #f rewrites))) args)))))
+                (map (fn (x) (cadr (generate-code  x '() #f rewrites lparams))) args)))))
 
-(define (compile-lambda block name tail? rewrites)
+(define (compile-lambda block name tail? rewrites lparams)
     #f)
 
-(define (compile-procedure block name tail? rewrites)
+(define (compile-procedure block name tail? rewrites lparams)
     " compile a top-level procedure, as opposed to
       closure conversion of compile-lambda
       May need to switch away from using compile-begin,
@@ -278,8 +283,8 @@
       let blocks). Have to masticate on this more, but 
       this is a decent first start.
     "
-    (let ((body (compile-begin (cdr block) name #t rewrites))
-          (params (car block)))
+    (let* ((params (car block))
+          (body (compile-begin (cdr block) name #t rewrites params)))
         (if (car body) ;; body contains a tail-call
             (list 'c-dec name params
                 (list 'c-begin
@@ -287,7 +292,7 @@
                     (list 'c-loop (cadr body))))
             (list 'c-dec name params (cadr body)))))
 
-(define (compile-if block name tail? rewrites)
+(define (compile-if block name tail? rewrites lparams)
     " compiles an if statement into IL.
       PARAMETERS:
       block : scheme code
@@ -296,16 +301,16 @@
       RETURNS:
       (RECURSE? AST+)
     "
-    (let* ((<cond> (cadr (generate-code (car block) name #f rewrites)))
-          (<then> (generate-code (cadr block) name tail? rewrites))
-          (<else> (generate-code (caddr block) name tail? rewrites)))
+    (let* ((<cond> (cadr (generate-code (car block) name #f rewrites lparams)))
+          (<then> (generate-code (cadr block) name tail? rewrites lparams))
+          (<else> (generate-code (caddr block) name tail? rewrites lparams)))
         ;; need to check tail? here, and, if it is true,
         ;; add 'c-returns to each of (<then> <else>)
         (list (and tail? (or (car <then>) (car <else>)))
                     (list 'c-if <cond> (returnable (cdr <then>) tail?))
                     (list 'c-else (returnable (cdr <else>) tail?)))))
 
-(define (compile-cond block name tail? rewrites init?)
+(define (compile-cond block name tail? rewrites init? lparams)
     " compiles a cond statement into IL.
       PARAMETERS:
       block: scheme code
@@ -324,22 +329,22 @@
             (list
                 (list
                     'c-else
-                    (returnable (cadr (generate-code (cadr block) name tail? rewrites)) tail?)))
+                    (returnable (cadr (generate-code (cadr block) name tail? rewrites lparams)) tail?)))
         else 
             (if init?
                 (cons 'c-begin
                     (cons 
                         (list
                             'c-if
-                            (cadr (generate-code (car block) name #f rewrites))
-                            (returnable (cadr (generate-code (cadr block) name tail? rewrites)) tail?))
-                        (compile-cond (cddr block) name tail? rewrites #f)))
+                            (cadr (generate-code (car block) name #f rewrites lparams))
+                            (returnable (cadr (generate-code (cadr block) name tail? rewrites lparams)) tail?))
+                        (compile-cond (cddr block) name tail? rewrites #f lparams)))
                 (cons 
                     (list
                         'c-elif
-                        (cadr (generate-code (car block) name #f rewrites))
-                        (returnable (cadr (generate-code (cadr block) name tail? rewrites)) tail?))
-                    (compile-cond (cddr block) name tail? rewrites #f)))))
+                        (cadr (generate-code (car block) name #f rewrites lparams))
+                        (returnable (cadr (generate-code (cadr block) name tail? rewrites lparams)) tail?))
+                    (compile-cond (cddr block) name tail? rewrites #f lparams)))))
                     
 (define (il-syntax? c)
     (cond
@@ -369,20 +374,20 @@
         (list 'c-return c)
         c))
 
-(define (compile-begin block name tail? rewrites)
+(define (compile-begin block name tail? rewrites lparams)
     (if tail?
         (if (= (length block) 1)
-            (let ((x (generate-code (car block) name #t rewrites)))
+            (let ((x (generate-code (car block) name #t rewrites lparams)))
                 (list (car x)
                     (list 'c-begin (returnable (cdr x) tail?))))
             (let* ((b (map
-                      (fn (x) (cdr (generate-code x '() #f rewrites)))
+                      (fn (x) (cdr (generate-code x '() #f rewrites lparams)))
                       (cslice block 0 (- (length block) 1))))
                    (e (generate-code
                         (car (cslice block (- (length block) 1) (length block)))
                         name
                         tail?
-                        rewrites)))
+                        rewrites lparams)))
                 (list
                     (car e)
                     (cons 'c-begin
@@ -390,7 +395,7 @@
         (list
             #f
             (cons 'c-begin
-                (map (fn (x) (cadr (generate-code x '() #f rewrites))) block)))))
+                (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) block)))))
 
 (define (generate-let-temps names d)
     " generates temporary names for let
@@ -415,7 +420,7 @@
             (cset! new-dict (car k) (nth dict (car k)))
             (dict-copy (cdr k) dict new-dict))))
 
-(define (compile-let block name tail? rewrites)
+(define (compile-let block name tail? rewrites lparams)
     " uses dict-copy to merge rewrites into the new
       generated list of let temporaries; new let bindings
       shadow their higher-level counterparts
@@ -428,21 +433,21 @@
                         (dict-copy
                             (keys rewrites)
                             rewrites {})))
-           (body (cdadr (compile-begin (cdr block) name tail? var-temps))))
+           (body (cdadr (compile-begin (cdr block) name tail? var-temps lparams))))
         (cons
             'c-begin
             (append
                 (map 
                     (fn (x) (list 'c-var
                                 (nth var-temps (car x))
-                                (cadr (generate-code (cadr x) name #f rewrites))))
+                                (cadr (generate-code (cadr x) name #f rewrites lparams))))
                     (car block)) 
                 body))))
 
-(define (compile-let* block name tail? rewrites)
+(define (compile-let* block name tail? rewrites lparams)
     #f)
 
-(define (generate-code c name tail? rewrites)
+(define (generate-code c name tail? rewrites lparams)
     " Generates IL code for a given
       preDigamma code. The tail? parameter
       is used in code that doesn't need to
@@ -478,8 +483,8 @@
                 (if tail?
                     (list #f (list 'c-return c))
                     (list #f c)))
-        (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites)
-        (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites #t)
+        (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
+        (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites #t lparams)
         (eq? (car c) 'quote)
             (if (null? (cadr c))
                 '(#f (c-nil))
@@ -494,13 +499,13 @@
                             (or
                                 (eq? (car (caddr c)) 'lambda)
                                 (eq? (car (caddr c)) 'fn)))
-                        (compile-procedure (cdaddr c) (cadr c) #t rewrites)
-                        (list #f (list 'c-var (cadr c) (car (generate-code (caddr c) '() #f rewrites)))))
+                        (compile-procedure (cdaddr c) (cadr c) #t rewrites lparams)
+                        (list #f (list 'c-var (cadr c) (car (generate-code (caddr c) '() #f rewrites lparams)))))
                 (pair? (cadr c))
-                    (compile-procedure (cons (cdadr c) (cddr c)) (caadr c) #t rewrites)
+                    (compile-procedure (cons (cdadr c) (cddr c)) (caadr c) #t rewrites lparams)
                 else (error "illegal define form; DEFINE (SYMBOL | PAIR) FORM*"))
-        (eq? (car c) 'let) (compile-let (cdr c) name tail? rewrites)
-        (eq? (car c) 'let*) (compile-let (cdr c) name tail? rewrites) ;; no difference in PreF
+        (eq? (car c) 'let) (compile-let (cdr c) name tail? rewrites lparams)
+        (eq? (car c) 'let*) (compile-let (cdr c) name tail? rewrites lparams) ;; no difference in PreF
         (eq? (car c) 'letrec) #t
         ; transform this into let, run same code
         (eq? (car c) 'with) 
@@ -511,9 +516,9 @@
                     rewrites)
                 name
                 tail?
-                rewrites)
+                rewrites lparams)
         (eq? (car c) 'set!) #t
-        (eq? (car c) 'begin) (compile-begin (cdr c) name tail? rewrites)
+        (eq? (car c) 'begin) (compile-begin (cdr c) name tail? rewrites lparams)
         (eq? (car c) name) ;; tail-call?
             (list
                 #t
@@ -521,11 +526,20 @@
                     'c-tailcall
                     name
                     (map
-                        (fn (x) (cadr (generate-code x '() #f rewrites)))
+                        (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
                         (cdr c))))
-        (enyalios@primitive? (car c)) (compile-primitive c name tail? rewrites) ; all other primitive forms
-        (enyalios@procedure? (car c)) (compile-primitive-procedure c name tail? rewrites) ; primitive procs, like display
-        (enyalios@var-prim? (car c)) (compile-variable-primitive c name tail? rewrites) ; list & friends
+        (enyalios@primitive? (car c)) (compile-primitive c name tail? rewrites lparams) ; all other primitive forms
+        (enyalios@procedure? (car c)) (compile-primitive-procedure c name tail? rewrites lparams) ; primitive procs, like display
+        (enyalios@var-prim? (car c)) (compile-variable-primitive c name tail? rewrites lparams) ; list & friends
+        (not (eq? (memq (car c) lparams) #f)) ;; are we attempting to call a paramter?
+            (list
+                #f
+                (list
+                    'c-call-variable
+                    (car c)
+                    (map
+                        (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
+                        (cdr c))))
         (enyalios@ulambda? (car c)) ; user-defined lambda?
             (list
                 #f
@@ -533,7 +547,7 @@
                     'c-call
                     (car c)
                     (map
-                        (fn (x) (cadr (generate-code x '() #f rewrites)))
+                        (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
                         (cdr c))))
         else (error (format "unknown form: ~a" c))))
 
@@ -747,6 +761,12 @@
                         (display "(" out)
                         (comma-separated-c (caddr il) out)
                         (display ")" out))))
+        (eq? (car il) 'c-call-variable)
+            (begin
+                (display (cadr il) out)
+                (display "(" out)
+                (comma-separated-c (caddr il) out)
+                (display ")" out))
         (eq? (car il) 'c-variable-primitive)
             (let ((name (nth *varprimitives* (cadr il))))
                 (begin
