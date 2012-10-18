@@ -30,9 +30,23 @@
                     r
                     (enyalios@load in))))))
 
+(define (enyalios@dump-lambdas lams out)
+    (if (null? lams)
+        #v
+        (begin
+            (il->c
+                (car lams)
+                0
+                out)
+                (enyalios@dump-lambdas (cdr lams) out))))
+
 (define (enyalios@loop code out)
     (if (null? code)
-        (display "\nfinished compiling\n")
+        (begin
+            (if (not (null? *ooblambdas*))
+                (enyalios@dump-lambdas *ooblambdas* out)
+                #v)
+            (display "\nfinished compiling\n"))
         (let ((o (car code)))
             (if (and
                     (pair? o)

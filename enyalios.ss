@@ -177,7 +177,7 @@
 ;; Out-of-Bounds lambdas
 ;; these are lambdas that are defined
 ;; somewhere in the code, and need to be lifted.
-(define *ooblambdas* {})
+(define *ooblambdas* '())
 
 (define (show x)
     (display "x: ")
@@ -275,8 +275,10 @@
     (let* ((params (car block))
            (body (compile-begin (cdr block) name #f rewrites params))
            (name (gensym 'fun_)))
-        (cset! *ooblambda* name 
-            (list 'c-dec name params (cadr body)))
+        (set! *ooblambdas*
+            (cons 
+                (list 'c-dec name params (cadr body))
+                *ooblambdas*))
         (list #f name)))
                 
 (define (compile-procedure block name tail? rewrites lparams)
@@ -515,6 +517,9 @@
                 (pair? (cadr c))
                     (compile-procedure (cons (cdadr c) (cddr c)) (caadr c) #t rewrites lparams)
                 else (error "illegal define form; DEFINE (SYMBOL | PAIR) FORM*"))
+        (or (eq? (car c) 'lambda)
+            (eq? (car c) 'fn))
+            (compile-lambda (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'let) (compile-let (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'let*) (compile-let (cdr c) name tail? rewrites lparams) ;; no difference in PreF
         (eq? (car c) 'letrec) #t
