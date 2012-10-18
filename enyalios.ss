@@ -272,8 +272,13 @@
                 (map (fn (x) (cadr (generate-code  x '() #f rewrites lparams))) args)))))
 
 (define (compile-lambda block name tail? rewrites lparams)
-    #f)
-
+    (let* ((params (car block))
+           (body (compile-begin (cdr block) name #f rewrites params))
+           (name (gensym 'fun_)))
+        (cset! *ooblambda* name 
+            (list 'c-dec name params (cadr body)))
+        (list #f name)))
+                
 (define (compile-procedure block name tail? rewrites lparams)
     " compile a top-level procedure, as opposed to
       closure conversion of compile-lambda
@@ -282,6 +287,12 @@
       lambda lifting (although, thinking about it, so do
       let blocks). Have to masticate on this more, but 
       this is a decent first start.
+
+      - The above actually looks pretty good after testing. One
+        other thing now though is if function params that are them
+        selves functions (HOF) should be analyzed here or in the 
+        code generator. If it was handled here in some way, it would
+        make life a bit easier in the Code generator...
     "
     (let* ((params (car block))
           (body (compile-begin (cdr block) name #t rewrites params)))
