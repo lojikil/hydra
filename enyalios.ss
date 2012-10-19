@@ -273,12 +273,13 @@
 
 (define (compile-lambda block name tail? rewrites lparams)
     (let* ((params (car block))
-           (body (compile-begin (cdr block) name #f rewrites params))
+           (body (compile-begin (cdr block) name #t rewrites params))
            (name (gensym 'fun_)))
         (set! *ooblambdas*
             (cons 
                 (list 'c-dec name params (cadr body))
                 *ooblambdas*))
+        (set-arity! name params)
         (list #f name)))
                 
 (define (compile-procedure block name tail? rewrites lparams)

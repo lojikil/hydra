@@ -40,13 +40,11 @@
                 out)
                 (enyalios@dump-lambdas (cdr lams) out))))
 
-(define (enyalios@loop code out)
+(define (enyalios@compile-loop code)
     (if (null? code)
         (begin
-            (if (not (null? *ooblambdas*))
-                (enyalios@dump-lambdas *ooblambdas* out)
-                #v)
-            (display "\nfinished compiling\n"))
+            (display "\nfinished compiling\n")
+            '())
         (let ((o (car code)))
             (if (and
                     (pair? o)
@@ -54,17 +52,37 @@
                         (eq? (car o) 'def)))
                 (display (format "COMPILING: ~a~%" (cadr o)))
                 #v)
-            (il->c
+            (cons 
                 (generate-code o '() #f {} '())
-                0
-                out)
-                (enyalios@loop (cdr code) out))))
+                (enyalios@compile-loop (cdr code))))))
+
+(define (enyalios@dump-headers names d out)
+    (if (null? names)
+        #v
+        (let* ((name (car names))
+               (data (nth d name)))
+            (display "SExp *" out)
+            (display (car names) out)
+            (display "(" out)
+            (if (null? (nth data 1))
+                #v
+                (display
+                    (string-join 
+                        (map (fn (x) x "SExp *") (nth data 1))
+                        ", ")
+                    out))
+            (display ");\n" out)
+            (enyalios@dump-headers (cdr names) d out))))
 
 (define (enyalios in-file out-file init)
     (let* ((inf (open in-file :read))
           (outf (open out-file :write))
-          (code (enyalios@load inf)))
-        (display (format "LOADING: ~a~%" in-file))
-        (enyalios@loop code outf)
+          (code (enyalios@load inf))
+          (obj-code (enyalios@compile-loop code)))
+        (display (format "LOADED: ~a~%" in-file))
+        (enyalios@dump-headers (keys *ulambdas*) *ulambdas* outf)
+        (display "\n" outf)
+        (enyalios@dump-lambdas *ooblambdas* outf)
+        (enyalios@dump-lambdas obj-code outf)
         (close inf)
         (close outf)))
