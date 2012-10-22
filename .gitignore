@@ -1,2 +1,3 @@
 *.swp
 test*.c
+test*.ss.c
