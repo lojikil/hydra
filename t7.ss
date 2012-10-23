@@ -53,7 +53,7 @@
                 (display (format "COMPILING: ~a~%" (cadr o)))
                 #v)
             (cons 
-                (generate-code o '() #f {} '())
+                (generate-code o '() #f {} {})
                 (enyalios@compile-loop (cdr code))))))
 
 (define (enyalios@dump-headers names d out)

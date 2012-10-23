@@ -201,6 +201,9 @@
         (eq? o 'dict)
         (eq? o 'string)))
 
+(define (enyalios@parameter-call? o lparams)
+    (not (eq? (memq o (nth lparams "parameters" '())) #f)))
+
 (define (count-arities p req opt)
     (cond
         (null? p) (list req opt)
@@ -281,6 +284,12 @@
                 *ooblambdas*))
         (set-arity! name params)
         (list #f name)))
+
+(define (merge-parameters lparams params)
+    (with ret (dict-copy (keys lparams) lparams {})
+        (cset! ret "parameters"
+            (append params (nth lparams "parameters" '())))
+        ret))
                 
 (define (compile-procedure block name tail? rewrites lparams)
     " compile a top-level procedure, as opposed to
@@ -298,7 +307,9 @@
         make life a bit easier in the Code generator...
     "
     (let* ((params (car block))
-          (body (compile-begin (cdr block) name #t rewrites params)))
+          (nulparams (merge-parameters lparams params))
+          (body (compile-begin (cdr block) name #t rewrites nulparams)))
+        (cset! nulparams "parameters" (append params (nth lparams "parameters" '())))
         (if (car body) ;; body contains a tail-call
             (list 'c-dec name params
                 (list 'c-begin
@@ -447,14 +458,16 @@
                         (dict-copy
                             (keys rewrites)
                             rewrites {})))
-           (body (cdadr (compile-begin (cdr block) name tail? var-temps lparams))))
+           (body (cdadr (compile-begin (cdr block) name tail? var-temps lparams)))
+           (nulparams (dict-copy (keys lparams) lparams {})))
+        (cset! nulparams "letvals" (cons vars (nth lparams "letvals" '())))
         (cons
             'c-begin
             (append
                 (map 
                     (fn (x) (list 'c-var
                                 (nth var-temps (car x))
-                                (cadr (generate-code (cadr x) name #f rewrites lparams))))
+                                (cadr (generate-code (cadr x) name #f rewrites nulparams))))
                     (car block)) 
                 body))))
 
@@ -548,7 +561,7 @@
         (enyalios@primitive? (car c)) (compile-primitive c name tail? rewrites lparams) ; all other primitive forms
         (enyalios@procedure? (car c)) (compile-primitive-procedure c name tail? rewrites lparams) ; primitive procs, like display
         (enyalios@var-prim? (car c)) (compile-variable-primitive c name tail? rewrites lparams) ; list & friends
-        (not (eq? (memq (car c) lparams) #f)) ;; are we attempting to call a paramter?
+        (enyalios@parameter-call? (car c) lparams) ;; are we attempting to call a paramter?
             (list
                 #f
                 (list
