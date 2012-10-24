@@ -276,8 +276,9 @@
 
 (define (compile-lambda block name tail? rewrites lparams)
     (let* ((params (car block))
-           (body (compile-begin (cdr block) name #t rewrites params))
-           (name (gensym 'fun_)))
+           (name (gensym 'fun_))
+           (nulparams (dict "params" params "name" name))
+           (body (compile-begin (cdr block) name #t rewrites nulparams)))
         (set! *ooblambdas*
             (cons 
                 (list 'c-dec name params (cadr body))
@@ -310,6 +311,7 @@
           (nulparams (merge-parameters lparams params))
           (body (compile-begin (cdr block) name #t rewrites nulparams)))
         (cset! nulparams "parameters" (append params (nth lparams "parameters" '())))
+        (cset! nulparams "name" name)
         (if (car body) ;; body contains a tail-call
             (list 'c-dec name params
                 (list 'c-begin
