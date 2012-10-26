@@ -233,7 +233,8 @@
                 params
                 (car arities)
                 (cadr arities)
-                (shadow-params params '())))))
+                (shadow-params params '())
+                '()))))
 
 (define (compile-primitive block name tail? rewrites lparams)
     (let ((prim (nth *primitives* (car block)))
@@ -564,14 +565,21 @@
         (enyalios@procedure? (car c)) (compile-primitive-procedure c name tail? rewrites lparams) ; primitive procs, like display
         (enyalios@var-prim? (car c)) (compile-variable-primitive c name tail? rewrites lparams) ; list & friends
         (enyalios@parameter-call? (car c) lparams) ;; are we attempting to call a paramter?
-            (list
-                #f
+            (let ((name (nth lparams "name")))
+                (cset!
+                    (nth *ulambdas* name)
+                    5
+                    (cons
+                        (list (car c) (- 1 (length c)))
+                        (nth *ulambdas* name)))
                 (list
-                    'c-call-variable
-                    (car c)
-                    (map
-                        (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
-                        (cdr c))))
+                    #f
+                    (list
+                        'c-call-variable
+                        (car c)
+                        (map
+                            (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
+                            (cdr c)))))
         (enyalios@ulambda? (car c)) ; user-defined lambda?
             (list
                 #f
@@ -600,6 +608,9 @@
                 (il->c (car ill) 0 out)
                 (display ", " out)
                 (comma-separated-c (cdr ill) out))))
+
+(define (params->c name params param-data)
+    #f)
 
 (define (il->c il lvl out)
     (cond
