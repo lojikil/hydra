@@ -609,8 +609,24 @@
                 (display ", " out)
                 (comma-separated-c (cdr ill) out))))
 
-(define (params->c name params param-data)
-    #f)
+(define (params->c params param-data)
+    (if (null? params)
+        '()
+        (let* ((cur (car params))
+               (data (nth param-data cur)))
+            (if (not (eq? (assq cur data) #f))
+                (cons
+                    (format
+                        "SExp *(*~a)(~s)"
+                        cur
+                        (string-join 
+                            (generate-sexps (cadr data))
+                            ", "))
+                    (params->c (cdr params) param-data))
+                (cons
+                    (format "SExp *~a" cur)
+                    (params->c (cdr params) param-data))))))
+                    
 
 (define (il->c il lvl out)
     (cond
@@ -699,7 +715,7 @@
                 (display "(" out)
                 (if (null? (caddr il))
                     #v
-                    (display
+                    (display ;; can soon switch this to params->c
                         (string-join
                             (map (fn (x) (format "SExp *~a" x))
                                 (caddr il))
