@@ -339,8 +339,10 @@
         ;; need to check tail? here, and, if it is true,
         ;; add 'c-returns to each of (<then> <else>)
         (list (and tail? (or (car <then>) (car <else>)))
+            (list
+                'c-begin
                     (list 'c-if <cond> (returnable (cadr <then>) tail?))
-                    (list 'c-else (returnable (cadr <else>) tail?)))))
+                    (list 'c-else (returnable (cadr <else>) tail?))))))
 
 (define (compile-cond block name tail? rewrites init? lparams)
     " compiles a cond statement into IL.
