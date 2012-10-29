@@ -1,0 +1,6 @@
+(define (foo x)
+    (define _foo 0)
+    (if (> x _foo)
+        (set! _foo x)
+        #v)
+    _foo)

@@ -530,7 +530,7 @@
                                 (eq? (car (caddr c)) 'lambda)
                                 (eq? (car (caddr c)) 'fn)))
                         (compile-procedure (cdaddr c) (cadr c) #t rewrites lparams)
-                        (list #f (list 'c-var (cadr c) (car (generate-code (caddr c) '() #f rewrites lparams)))))
+                        (list #f (list 'c-var (cadr c) (cadr (generate-code (caddr c) '() #f rewrites lparams)))))
                 (pair? (cadr c))
                     (compile-procedure (cons (cdadr c) (cddr c)) (caadr c) #t rewrites lparams)
                 else (error "illegal define form; DEFINE (SYMBOL | PAIR) FORM*"))
@@ -550,7 +550,12 @@
                 name
                 tail?
                 rewrites lparams)
-        (eq? (car c) 'set!) #t
+        (eq? (car c) 'set!)
+            (list
+                #f
+                'c-set!
+                (cadr c)
+                (cadr (generate-code (caddr c) name #f rewrites lparams)))
         (eq? (car c) 'begin) (compile-begin (cdr c) name tail? rewrites lparams)
         (eq? (car c) name) ;; tail-call?
             (list
@@ -702,11 +707,17 @@
                 (display ";\n" out))
         (eq? (car il) 'c-var) ;; variable declaration
             (begin
-                (int->spaces lvl out)
                 (display "SExp *" out)
                 (display (cadr il) out)
                 (display " = " out)
-                (il->c (cadr il))
+                (il->c (caddr il) 0 out)
+                (display ";\n" out))
+        (eq? (car il) 'c-set!) 
+            (begin
+                (int->spaces lvl out)
+                (display (cadr il) out)
+                (display " = " out)
+                (il->c (caddr il) 0 out)
                 (display ";\n" out))
         (eq? (car il) 'c-dec) ;; function declaration
             (begin
