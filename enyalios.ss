@@ -335,14 +335,22 @@
     "
     (let* ((<cond> (cadr (generate-code (car block) name #f rewrites lparams)))
           (<then> (generate-code (cadr block) name tail? rewrites lparams))
-          (<else> (generate-code (caddr block) name tail? rewrites lparams)))
+          (<else> (generate-code (caddr block) name tail? rewrites lparams))
+          (<tail-check> (and tail? (or (car <then>) (car <else>)))))
         ;; need to check tail? here, and, if it is true,
         ;; add 'c-returns to each of (<then> <else>)
-        (list (and tail? (or (car <then>) (car <else>)))
+        ;; this check for #v should be extended to all non-function calls...
+        ;; all literals?
+        (if (eq? (cadr <else>) #v)
             (list
-                'c-begin
-                    (list 'c-if <cond> (returnable (cadr <then>) tail?))
-                    (list 'c-else (returnable (cadr <else>) tail?))))))
+                <tail-check>
+                (list 'c-if <cond> (returnable (cadr <then>) tail?)))
+            (list 
+                <tail-check>
+                (list
+                    'c-begin
+                        (list 'c-if <cond> (returnable (cadr <then>) tail?))
+                        (list 'c-else (returnable (cadr <else>) tail?)))))))
 
 (define (compile-cond block name tail? rewrites init? lparams)
     " compiles a cond statement into IL.
@@ -396,6 +404,8 @@
             (eq? (car c) 'c-while)
             (eq? (car c) 'c-for)
             (eq? (car c) 'c-shadow-params)
+            (eq? (car c) 'c-var)
+            (eq? (car c) 'c-dec)
             (eq? (car c) 'c-loop))
             #t
         else
@@ -714,6 +724,7 @@
                 (display ";\n" out))
         (eq? (car il) 'c-var) ;; variable declaration
             (begin
+                (int->spaces lvl out)
                 (display "SExp *" out)
                 (display (cadr il) out)
                 (display " = " out)

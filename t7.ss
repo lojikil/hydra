@@ -22,7 +22,7 @@
                                 (set-arity! (caadr r) (cdadr r))
                                 #v)
                         (pair? (cadr r))
-                            (set-arity! (caadr r) (car (cdaddr r)))
+                            (set-arity! (caadr r) (cdadr r))
                         else #v)
                     #v)
                 (cons
