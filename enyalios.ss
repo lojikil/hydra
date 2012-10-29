@@ -314,11 +314,15 @@
         (cset! nulparams "parameters" (append params (nth lparams "parameters" '())))
         (cset! nulparams "name" name)
         (if (car body) ;; body contains a tail-call
-            (list 'c-dec name params
-                (list 'c-begin
-                    (list 'c-shadow-params name)
-                    (list 'c-loop (cadr body))))
-            (list 'c-dec name params (cadr body)))))
+            (list 
+                #f
+                (list 'c-dec name params
+                    (list 'c-begin
+                        (list 'c-shadow-params name)
+                        (list 'c-loop (cadr body)))))
+            (list
+                #f
+                (list 'c-dec name params (cadr body))))))
 
 (define (compile-if block name tail? rewrites lparams)
     " compiles an if statement into IL.
@@ -335,8 +339,8 @@
         ;; need to check tail? here, and, if it is true,
         ;; add 'c-returns to each of (<then> <else>)
         (list (and tail? (or (car <then>) (car <else>)))
-                    (list 'c-if <cond> (returnable (cdr <then>) tail?))
-                    (list 'c-else (returnable (cdr <else>) tail?)))))
+                    (list 'c-if <cond> (returnable (cadr <then>) tail?))
+                    (list 'c-else (returnable (cadr <else>) tail?)))))
 
 (define (compile-cond block name tail? rewrites init? lparams)
     " compiles a cond statement into IL.
@@ -553,9 +557,10 @@
         (eq? (car c) 'set!)
             (list
                 #f
-                'c-set!
-                (cadr c)
-                (cadr (generate-code (caddr c) name #f rewrites lparams)))
+                (list
+                    'c-set!
+                    (cadr c)
+                    (cadr (generate-code (caddr c) name #f rewrites lparams))))
         (eq? (car c) 'begin) (compile-begin (cdr c) name tail? rewrites lparams)
         (eq? (car c) name) ;; tail-call?
             (list

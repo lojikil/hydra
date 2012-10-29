@@ -7,25 +7,24 @@
         (if (eof-object? r)
             '()
             (begin
-                (cond
-                    (and
+                (if (and
                         (pair? r)
                         (or
                             (eq? (car r) 'define)
-                            (eq? (car r) 'def))
-                        (pair? (cadr r)))
-                        (set-arity! (caadr r) (cdadr r))
-                    (and
-                        (pair? r)
-                        (or
-                            (eq? (car r) 'define)
-                            (eq? (car r) 'def))
-                        (pair? (cddr r))
-                        (or
-                            (eq? (caaddr r) 'fn)
-                            (eq? (caaddr r) 'lambda)))
-                        (set-arity! (cadr r) (car (cdaddr r)))
-                    else #v)
+                            (eq? (car r) 'def)))
+                    (cond
+                        (symbol? (cadr r))
+                            (if (and
+                                (pair? (caddr r))
+                                (or
+                                    (eq? (car (caddr r)) 'lambda)
+                                    (eq? (car (caddr r)) 'fn)))
+                                (set-arity! (caadr r) (cdadr r))
+                                #v)
+                        (pair? (cadr r))
+                            (set-arity! (caadr r) (car (cdaddr r)))
+                        else #v)
+                    #v)
                 (cons
                     r
                     (enyalios@load in))))))
@@ -53,7 +52,7 @@
                 (display (format "COMPILING: ~a~%" (cadr o)))
                 #v)
             (cons 
-                (generate-code o '() #f {} {})
+                (cadr (generate-code o '() #f {} {}))
                 (enyalios@compile-loop (cdr code))))))
 
 (define (enyalios@dump-headers names d out)
