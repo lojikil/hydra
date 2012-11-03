@@ -360,10 +360,17 @@
       tail? : boolean for tail calls
       rewrites : any let renames.
       init? : is this the first time compile-cond is being called?
+      lparams : dict containing function information (used outside of compile-cond)
 
       RETURNS : 
       (RECURSE? AST+)
     "
+    (let* ((seps (unzip block))
+           (init-cond (caar seps))
+           (init-then (caadr seps))
+           (cond-list (cdar seps))
+           (then-list (cdadr seps)))
+        #t)
     (cond
         (null? block) '()
         (null? (cdr block)) (error "incorrectly formatted COND block")
