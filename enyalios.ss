@@ -352,48 +352,72 @@
                         (list 'c-if <cond> (returnable (cadr <then>) tail?))
                         (list 'c-else (returnable (cadr <else>) tail?)))))))
 
-(define (compile-cond block name tail? rewrites init? lparams)
+(define (cond-unzip block conds thens)
+    (cond
+        (null? block) (list (tconc->pair conds) (tconc->pair thens))
+        (null? (cdr block)) (error "incorrectly formated COND block")
+        else
+            (begin
+                (tconc! conds (car block))
+                (tconc! thens (cadr block))
+                (cond-unzip (cddr block) conds thens))))
+
+(define (compile-cond block name tail? rewrites lparams)
     " compiles a cond statement into IL.
       PARAMETERS:
       block: scheme code
       name : current function name in TCO
       tail? : boolean for tail calls
       rewrites : any let renames.
-      init? : is this the first time compile-cond is being called?
       lparams : dict containing function information (used outside of compile-cond)
 
       RETURNS : 
       (RECURSE? AST+)
     "
-    (let* ((seps (unzip block))
-           (init-cond (caar seps))
-           (init-then (caadr seps))
+    ;; this is pretty low-level; should clean this up a bit.
+    ;; especially the cond-list/then-list stuff. Actually, the 
+    ;; whole thing. Clean it up.
+    ;; possiblity: pass (cddr block) into a "helper" lambda that
+    ;; does the jobs of the below with less mess?
+    ;; save on interation too; a helper could iterate through once,
+    ;; whereas here we're iterating through several times...
+    (let* ((seps (cond-unzip block (make-tconc '()) (make-tconc '())))
+           (init-cond (generate-code (caar seps) name #f rewrites lparams))
+           (init-then (generate-code (caadr seps) name tail? rewrites lparams))
            (cond-list (cdar seps))
-           (then-list (cdadr seps)))
-        #t)
-    (cond
-        (null? block) '()
-        (null? (cdr block)) (error "incorrectly formatted COND block")
-        (eq? (car block) 'else)
-            (list
+           (then-list (cdadr seps))
+           (tail-rec? #f))
+       (if (car init-then)
+            (set! tail-rec? #t)
+            #v)
+       (set! cond-list
+            (map
+                (fn (x)
+                    (if (eq? x 'else)
+                        x
+                        (cadr (generate-code x name #f rewrites lparams))))
+                cond-list))
+        (set! then-list
+            (map
+                (fn (x)
+                    (with res (generate-code x name tail? rewrites lparams)
+                        (if (car res)
+                            (set! then-list #t)
+                            #v)
+                        (cadr res)))
+                then-list))
+        (list
+           tail-rec?
+           (append
                 (list
-                    'c-else
-                    (returnable (cadr (generate-code (cadr block) name tail? rewrites lparams)) tail?)))
-        else 
-            (if init?
-                (cons 'c-begin
-                    (cons 
-                        (list
-                            'c-if
-                            (cadr (generate-code (car block) name #f rewrites lparams))
-                            (returnable (cadr (generate-code (cadr block) name tail? rewrites lparams)) tail?))
-                        (compile-cond (cddr block) name tail? rewrites #f lparams)))
-                (cons 
-                    (list
-                        'c-elif
-                        (cadr (generate-code (car block) name #f rewrites lparams))
-                        (returnable (cadr (generate-code (cadr block) name tail? rewrites lparams)) tail?))
-                    (compile-cond (cddr block) name tail? rewrites #f lparams)))))
+                    'c-begin
+                    (cons 'c-if (list (cadr init-cond) (cadr init-then))))
+                (map
+                    (fn (x)
+                        (if (eq? (car x) 'else)
+                            (list 'c-else (cadr x))
+                            (cons 'c-elif x)))
+                    (zip cond-list then-list))))))
                     
 (define (il-syntax? c)
     (cond
@@ -537,7 +561,7 @@
                     (list #f (list 'c-return c))
                     (list #f c)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
-        (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites #t lparams)
+        (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'quote)
             (if (null? (cadr c))
                 '(#f (c-nil))
