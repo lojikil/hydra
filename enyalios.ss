@@ -404,14 +404,14 @@
                         (if (car res)
                             (set! then-list #t)
                             #v)
-                        (cadr res)))
+                        (returnable (cadr res) tail?)))
                 then-list))
         (list
            tail-rec?
            (append
                 (list
                     'c-begin
-                    (cons 'c-if (list (cadr init-cond) (cadr init-then))))
+                    (cons 'c-if (list (cadr init-cond) (returnable (cadr init-then) tail?))))
                 (map
                     (fn (x)
                         (if (eq? (car x) 'else)
