@@ -285,7 +285,9 @@
                 (list 'c-dec name params (cadr body))
                 *ooblambdas*))
         (set-arity! name params)
-        (list #f name)))
+        (if tail?
+            (list #f (list 'c-function-reference name (length params)))
+            (list #f name))))
 
 (define (merge-parameters lparams params)
     (with ret (dict-copy (keys lparams) lparams {})
@@ -560,6 +562,18 @@
                 (if tail?
                     (list #f (list 'c-return c))
                     (list #f c)))
+        (pair? (car c)) ;; lambda or the like?
+            (let ((proc-name (generate-code (car c) name #f rewrites lparams)))
+                (if (or (not (string? proc-name)) (not (symbol? proc-name)))
+                    (error "Enyalios currently only supports lambda's in CAR position")
+                    (list
+                        #f
+                        (list
+                            'c-call
+                            proc-name
+                            (map
+                                (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
+                                (cdr c))))))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'quote)
@@ -680,6 +694,40 @@
                     (format "SExp *~a" cur)
                     (params->c (cdr params) param-data))))))
                     
+(define (generate-vector x)
+    (let ((n (length x)) (p (coerce x 'pair)))
+        (string-append (format "vector(~n," n) (string-join (map generate-quoted-literal p) ",") ")")))
+
+(define (generate-pair x)
+    (let ((n (length x)))
+        (string-append (format "list(~n," n) (string-join (map generate-quoted-literal x) ",") ")")))
+
+(define (generate-dict d)
+    (if (empty? (keys d)) ; have to update empty? to check keys automagically...
+        "makedict()"
+        (format "dict(~s)" (string-join)))) ; ... has to be the normal map dance
+
+(define (generate-number x)
+    (cond
+        (integer? x) (format "makeinteger(~n)" x)
+        (rational? x) (format "makerational(~n,~n)" (numerator x) (denomenator x))
+        (real? x) (format "makereal(~n)" x)
+        (complex? x) (format "makecomplex(~n,~n)" (real-part x) (imag-part x))
+        else (error "NaN")))
+
+(define (generate-quoted-literal x)
+    (cond
+        (vector? x) (generate-vector x)
+        (pair? x) (generate-pair x) ; really, need to tell what type of code to generate here...
+        (dict? x) (generate-dict x)
+        (symbol? x) (format "makeatom(\"~a\")" x)
+        (number? x) (generate-number x)
+        (goal? x) (if (eq? x #s) "SSUCC" "SUNSUCC")
+        (bool? x) (if x "STRUE" "SFALSE")
+        (string? x) (format "makestring(~S)" x)
+        (char? x) (format "makechar('~c')" x)
+        (key? x) (format "makekey(\"~a\")" x)
+        (null? x) "SNIL"))
 
 (define (il->c il lvl out)
     (cond
@@ -707,14 +755,14 @@
                 (display "makestring(" out)
                 (write il out)
                 (display ")" out))
-        (char? il) (display (format "makechar(~c)" il) out)
+        (char? il) (display (format "makechar('~c')" il) out)
         (symbol? il) (display il out)
         (pair? (car il))
             (foreach-proc (fn (x) (il->c x lvl out)) il)
         (eq? (car il) 'c-nil)
             (display "SNIL" out)
         (eq? (car il) 'c-quote)
-            #f
+            (display (generate-quoted-literal (cadr il)) out)
         (eq? (car il) 'c-if)
             (begin
                 (int->spaces lvl out)

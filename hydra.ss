@@ -1321,6 +1321,7 @@
          (eq? (cadr inp) 'exit) (quit)
          (eq? (cadr inp) 'q) (quit)
          (eq? (cadr inp) 'quit) (quit)
+         (eq? (cadr inp) 'bye) (quit)
          (eq? (cadr inp) 'dribble) (begin (hydra@repl))
          (eq? (cadr inp) 'save) (begin (hydra@repl))
          (eq? (cadr inp) 'save-and-die) (begin (hydra@repl))
