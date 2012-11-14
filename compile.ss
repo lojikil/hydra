@@ -1,7 +1,7 @@
 #!/usr/bin/env vesta
 (load 'Eprime.ss)
 (load 'enyalios.ss)
-(load 't7.ss)
+(load "./experiments/t7.ss")
 
 (if (< (length *command-line*) 1)
     (display "usage: compile.ss infile [(+|-)e] [outfile] [init_name]\n")
