@@ -68,6 +68,7 @@
 ;; - SRFIs to be added: 9, 22, 34, 35, 36, 57, 60, 89, 88 (already done, via Vesta's run time)
 
 ;; mini-prelude
+;; should be removed once Enyalios supports load better...
 
 (define (caar x) (car (car x)))
 (define (cadr x) (car (cdr x)))
@@ -133,6 +134,26 @@
 
 (define (cadddar x) (car (cdddar x)))
 
+;; naieve map, foreach, append-map
+(define (map proc c)
+    (if (empty? c)
+        c
+        (ccons (proc (first c)) (map proc (rest c)))))
+
+(define (foreach proc c)
+    (if (empty? c)
+        #v
+        (begin
+            (proc (first c))
+            (foreach proc (rest c)))))
+
+(define (append-map f x)
+    (if (null? x)
+        x
+        (append (f (car x)) (append-map f (cdr x)))))
+
+;; end mini-prelude.
+
 (define (hydra@instruction c)
     (car c))
 
@@ -153,10 +174,10 @@
             (if (= lp 0)
                 (list (cons nu-env environment) (cdr stack))
                 (begin 
-                    (foreach-proc
-                      (lambda (x)
-                      (cset! nu-env (car x) (cadr x)))
-                    (zip params (cslice stack 0 lp)))
+                    (foreach
+                        (lambda (x)
+                            (cset! nu-env (car x) (cadr x)))
+                        (zip params (cslice stack 0 lp)))
                     (list (cons nu-env environment) (cslice stack lp ls)))))))
 
 (define (copy-code code ip offset)
@@ -337,12 +358,12 @@
                         (hydra@vm code
                                   env
                                   (+ ip 1)
-                                  (cons (gcd (car stack)) (cdr stack)) dump)
+                                  (cons (gcd (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 23) ;; lcm
                         (hydra@vm code
                                   env
                                   (+ ip 1)
-                                  (cons (lcm (car stack)) (cdr stack)) dump)
+                                  (cons (lcm (car stack) (cadr stack)) (cddr stack)) dump)
                   (eq? instr 24) ;; numerator 
                         (hydra@vm code
                                   env
@@ -389,7 +410,7 @@
                                 (begin
                                     (display "in hydra@primitive\n\t")
                                     (display (car stack))
-                                    (newline)
+                                    (display "\n")
                                     #t)
                             ;;(hydra@procedure? (car stack))
                             ;;    #t
@@ -1044,7 +1065,7 @@
         (null? (cdr x)) (car x)
         else (append (reverse-append (cddr x)) (cadr x) (car x))))
 
-(define (show x) (display "show: ") (display x) (newline) x)
+(define (show x) (display "show: ") (display x) (display "\n") x)
 
 (define (hydra@error msg)
     "simple, hydra specific errors"
@@ -1331,14 +1352,14 @@
                 (hydra@repl)
                 (begin
                     (top-level-print (hydra@lookup inp *tlenv*))
-                    (newline)
+                    (display "\n")
                     (hydra@repl)))
             (with r (hydra@eval inp *tlenv*) 
                 (if (eq? r #v)
                  (hydra@repl)
                  (begin
                     (top-level-print r)
-                    (newline)
+                    (display "\n")
                     (hydra@repl))))))))
 
 (define (hydra@main)

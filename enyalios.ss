@@ -119,7 +119,7 @@
     :nth ["fnth" #f 0]
     :keys ["fkeys" #f 1] 
     :partial-key? ["fpartial_key" #f 2]
-    :cset! ["fcset" #f 2]
+    :cset! ["fcset" #f 3]
     :string ["fstring" #f 0]
     :empty? ["fempty" #f 1]
     :gensym ["gensym" 0] 

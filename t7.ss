@@ -19,7 +19,7 @@
                                 (or
                                     (eq? (car (caddr r)) 'lambda)
                                     (eq? (car (caddr r)) 'fn)))
-                                (set-arity! (caadr r) (cdadr r))
+                                (set-arity! (cadr r) (car (cdaddr r)))
                                 #v)
                         (pair? (cadr r))
                             (set-arity! (caadr r) (cdadr r))
