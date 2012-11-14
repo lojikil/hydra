@@ -1,5 +1,5 @@
 #!/usr/bin/env vesta
-(load 'enyalios.ss)
+(load "../enyalios.ss")
 
 (define (sample-compiler l out)
     (if (null? l)

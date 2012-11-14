@@ -1,5 +1,5 @@
 #!/usr/bin/env vesta
-(load 'enyalios.ss)
+(load "../enyalios.ss")
 (let ((kod (generate-code '(cond (< 3 4) "foo" (> 5 4) "bar" else "wut?") '() #t {} {}))
       (k0d (generate-code '(if (< 3 4) "foo" "wut?") '() #t {} {}))
       (fdout (open "8test.c" :write)))

@@ -1,4 +1,4 @@
-(load 'enyalios.ss)
+(load "../enyalios.ss")
 (define x '(define (member? x lst)
     (if (eq? lst '())
         #f

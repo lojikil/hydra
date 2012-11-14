@@ -1,5 +1,5 @@
 #!/usr/bin/env vesta
-(load 'enyalios.ss)
+(load "../enyalios.ss")
 (define f (open "test0.c" :write))
 (set-arity! "foo" '(x y))
 (set-arity! "bar" '(z))

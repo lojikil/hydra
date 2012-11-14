@@ -1,6 +1,6 @@
 #!/usr/bin/env vesta
 
-(load 'enyalios.ss)
+(load "../enyalios.ss")
 
 (define (enyalios@load in)
     (with r (read in)
