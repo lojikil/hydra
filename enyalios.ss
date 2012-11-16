@@ -456,7 +456,7 @@
         (if (= (length block) 1)
             (let ((x (generate-code (car block) name #t rewrites lparams)))
                 (list (car x)
-                    (list 'c-begin (returnable (cdr x) tail?))))
+                    (list 'c-begin (list (returnable (cdr x) tail?)))))
             (let* ((b (map
                       (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
                       (cslice block 0 (- (length block) 1))))
@@ -468,11 +468,11 @@
                 (list
                     (car e)
                     (cons 'c-begin
-                        (append b (list (returnable (cadr e) tail?)))))))
+                        (list (append b (list (returnable (cadr e) tail?))))))))
         (list
             #f
             (cons 'c-begin
-                (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) block)))))
+                (list (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) block))))))
 
 (define (generate-let-temps names d)
     " generates temporary names for let
