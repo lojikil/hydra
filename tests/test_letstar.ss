@@ -2,4 +2,7 @@
     (let* ((x 13)
           (y (+ x 1))
           (z (+ y 1)))
+        (display "w: ")
+        (display w)
+        (display "\n")
         (+ w x y z)))
