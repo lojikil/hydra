@@ -502,6 +502,9 @@
       generated list of let temporaries; new let bindings
       shadow their higher-level counterparts
     "
+    (display "tail?: ")
+    (display tail?)
+    (display "\n")
     (let* ((vals (unzip (car block)))
            (vars (car vals))
            (data (cadr vals))
@@ -606,8 +609,7 @@
             (compile-let
                 (cons
                     (list (list (cadr c) (caddr c)))
-                    (cdddr c)
-                    rewrites)
+                    (cdddr c))
                 name
                 tail?
                 rewrites lparams)
