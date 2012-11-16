@@ -452,6 +452,9 @@
         c))
 
 (define (compile-begin block name tail? rewrites lparams)
+    (display "compile-begin tail?: ")
+    (display tail?)
+    (display "\n")
     (if tail?
         (if (= (length block) 1)
             (let ((x (generate-code (car block) name #t rewrites lparams)))
@@ -465,10 +468,10 @@
                         name
                         tail?
                         rewrites lparams)))
-                (list
+                (show (list
                     (car e)
                     (cons 'c-begin
-                        (append b (list (returnable (cadr e) tail?)))))))
+                        (append b (list (returnable (cadr e) tail?))))))))
         (list
             #f
             (cons 'c-begin
