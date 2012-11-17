@@ -351,8 +351,9 @@
                 <tail-check>
                 (list
                     'c-begin
-                        (list 'c-if <cond> (returnable (cadr <then>) tail?))
-                        (list 'c-else (returnable (cadr <else>) tail?)))))))
+                        (list
+                            (list 'c-if <cond> (returnable (cadr <then>) tail?))
+                            (list 'c-else (returnable (cadr <else>) tail?))))))))
 
 (define (cond-unzip block conds thens)
     (cond
@@ -409,17 +410,18 @@
                         (returnable (cadr res) tail?)))
                 then-list))
         (list
-           tail-rec?
-           (append
+            tail-rec?
+            (list
+                'c-begin
                 (list
-                    'c-begin
-                    (cons 'c-if (list (cadr init-cond) (returnable (cadr init-then) tail?))))
-                (map
-                    (fn (x)
-                        (if (eq? (car x) 'else)
-                            (list 'c-else (cadr x))
-                            (cons 'c-elif x)))
-                    (zip cond-list then-list))))))
+                    (cons 
+                        (cons 'c-if (list (cadr init-cond) (returnable (cadr init-then) tail?)))
+                        (map
+                            (fn (x)
+                                (if (eq? (car x) 'else)
+                                    (list 'c-else (cadr x))
+                                    (cons 'c-elif x)))
+                            (zip cond-list then-list))))))))
                     
 (define (il-syntax? c)
     (cond
