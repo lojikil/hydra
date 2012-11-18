@@ -476,6 +476,61 @@
             (cons 'c-begin
                 (list (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) block))))))
 
+(define (logic-type t)
+    (cond
+        (eq? t 'and) 'c-and
+        (eq? t 'or) 'c-or
+        (eq? t 'not) 'c-not
+        else (error "invalid logic operation lookup attempt")))
+
+(define (compile-logic block name tail? rewrites lparams type)
+    " compile-logic: handle compilation of and/or/not syntax.
+      this is a somewhat-complicated generation scheme here, and I'm
+      not sure I like it. What's happening is that it binds the 
+      individual operations of the form to temporaries, and then
+      returns a c-begin block with c-var declarations for each,
+      with a c-and/c-or/c-not IR. so:
+      (and (> x y) (< x z))
+      becomes:
+      (c-begin
+        (c-var it2 (c-primitive \"flt\" ( x y )))
+        (c-var it3 (c-primitive \"fgt\" (x z)))
+        (c-and it2 it3))
+      which makes if/cond kinda complicated (if less-so than
+      instances c-elif instances for cond). I'm thinking that something
+      like just returning (c-and form0 form1 ... formN) and having the
+      IR output:
+      if(((it = flt(x,y)) && it->type == BOOL && it->object.c) && ...)
+      which is much less complicated than the previous scheme, but relies
+      on destructive update within an if form, which is kinda yucky.
+    (let ((vals (map
+                    (fn (x)
+                        (list
+                            'c-var
+                            (gen-sym 'it)
+                            (generate-code x '() #f rewrites lparams)))
+                    block))
+          (ir-type (logic-type type)))
+        (list
+            #f
+            (cons
+                'c-begin
+                    (list
+                        (cons
+                            ir-type
+                            vals))))))
+    actually, thinking about it further, I do like the method expounded
+    previously, so I'm commenting out the above & just running with it."
+    ;; need to do a "tail?" check here, and if so, check if the last
+    ;; member is a tail call. Would be weird in an and/or block, but 
+    ;; kinda-sorta makes sense. Also, needs to use "returnable" anyway...
+    (let ((ir-type (logic-type type)))
+        (cons
+            ir-type
+            (map
+                (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
+                block))))
+
 (define (generate-let-temps names d)
     " generates temporary names for let
       variables:
@@ -629,6 +684,10 @@
                     (map
                         (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
                         (cdr c))))
+        (or (eq? (car c) 'or)
+            (eq? (car c) 'and)
+            (eq? (car c) 'not))
+            (compile-logic (cdr c) name tail? rewrites lparams (car c))
         (enyalios@primitive? (car c)) (compile-primitive c name tail? rewrites lparams) ; all other primitive forms
         (enyalios@procedure? (car c)) (compile-primitive-procedure c name tail? rewrites lparams) ; primitive procs, like display
         (enyalios@var-prim? (car c)) (compile-variable-primitive c name tail? rewrites lparams) ; list & friends
