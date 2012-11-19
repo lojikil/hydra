@@ -45,6 +45,17 @@
 ;;    ...
 ;; }
 
+;; More cond/if and/or/not related notes:
+;; * if Cond used a nested approach, an item that needed vars could easily be supported
+;; - support both: if no and/or/not is detected, use linear cond expansion; if and/or/not is detected, use nested cond expansion 
+;; - make if support vars first
+;; - SSA?
+;; * Fix apply:
+;; ** don't use list with apply
+;; - (+ x y) -> fplus(list(2,x,y));
+;; - (apply + (some-fn)) -> fplus(some_fn());
+
+
 (define *procedures* {
     ;; negative numbers mean "N or less"
     :display ["f_princ" 1]
