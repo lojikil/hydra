@@ -525,11 +525,15 @@
     ;; member is a tail call. Would be weird in an and/or block, but 
     ;; kinda-sorta makes sense. Also, needs to use "returnable" anyway...
     (let ((ir-type (logic-type type)))
-        (cons
-            ir-type
-            (map
-                (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
-                block))))
+        (list #f
+            (cons
+                ir-type
+                (map
+                    (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
+                    block)))))
+
+(define (compile-apply block name tail? rewrites lparams)
+    #f)
 
 (define (generate-let-temps names d)
     " generates temporary names for let
@@ -674,6 +678,8 @@
                     'c-set!
                     (cadr c)
                     (cadr (generate-code (caddr c) name #f rewrites lparams))))
+        (eq? (car c) 'apply)
+            (compile-apply (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'begin) (compile-begin (cdr c) name tail? rewrites lparams)
         (eq? (car c) name) ;; tail-call?
             (list
