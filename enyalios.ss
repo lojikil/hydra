@@ -544,7 +544,20 @@
                     block)))))
 
 (define (compile-apply block name tail? rewrites lparams)
-    #f)
+    (cond
+        (enyalios@primitive? (car block))
+            (list
+                #f
+                (cons
+                    'c-apply-primitive
+                    (cons
+                        (nth *primitives* (car block))
+                        (map
+                            (fn (x)
+                                (cadr
+                                    (generate-code x '() #f rewrites lparams)))
+                            (cdr block)))))
+            else (error "enyalios does not support this type for use in APPLY")))
 
 (define (generate-let-temps names d)
     " generates temporary names for let

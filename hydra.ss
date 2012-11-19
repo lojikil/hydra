@@ -577,11 +577,11 @@
                             (cons (partial-key? (cadr stack) (car stack)) (cddr stack)) dump)
                   (eq? instr 58) ;; cset!
                         (begin
-                            (cset! (cadr stack) (car stack))
+                            (cset! (caddr stack) (cadr stack) (car stack))
                             (hydra@vm code
                                 env
                                 (+ ip 1)
-                                (cons #v (cddr stack)) dump))
+                                (cons #v (cdddr stack)) dump))
                   (eq? instr 59) ;; empty?
                         (hydra@vm code
                             env
