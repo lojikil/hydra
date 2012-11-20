@@ -66,6 +66,7 @@
     :read-char ["fread_char" 0]
     :write-char ["fwrite_char" 0]
     :read-buffer ["fread_buffer" 0]
+    :quit ["fquit" 0]
     :write-buffer #t
     :read-string #t
     :write-string #t
@@ -133,7 +134,7 @@
     :cset! ["fcset" #f 3]
     :string ["fstring" #f 0]
     :empty? ["fempty" #f 1]
-    :gensym ["gensym" 0] 
+    :gensym ["gensym" #f 0] 
     :imag-part ["fimag_part" #f 1]
     :real-part ["freal_part" #f 1] 
     :make-rectangular ["fmake_rect" #f 2]
@@ -271,12 +272,18 @@
 (define (compile-primitive-procedure block name tail? rewrites lparams)
     (let ((proc (nth *procedures* (car block)))
           (args (cdr block)))
-        (if (= (nth proc 1) (length args))
-            (list
-                #f
-                (list 'c-procedure (nth proc 0)
-                    (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)))
-            (error (format "incorrect arity for primitive-procedure ~a" (car block))))))
+        (cond
+            (= (nth proc 1) 0)
+                (list
+                    #f
+                    (list 'c-variable-procedure (nth proc 0)
+                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)))
+            (= (nth proc 1) (length args))
+                (list
+                    #f
+                    (list 'c-procedure (nth proc 0)
+                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)))
+            else (error (format "incorrect arity for primitive-procedure ~a" (car block))))))
 
 (define (compile-variable-primitive block name tail? rewrites lparams)
     (let ((hd (car block))
@@ -551,7 +558,7 @@
                 (cons
                     'c-apply-primitive
                     (cons
-                        (nth *primitives* (car block))
+                        (first (nth *primitives* (car block)))
                         (map
                             (fn (x)
                                 (cadr
