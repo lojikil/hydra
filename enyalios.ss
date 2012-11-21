@@ -369,9 +369,8 @@
                 <tail-check>
                 (list
                     'c-begin
-                        (list
-                            (list 'c-if <cond> (returnable (cadr <then>) tail?))
-                            (list 'c-else (returnable (cadr <else>) tail?))))))))
+                        (list 'c-if <cond> (returnable (cadr <then>) tail?))
+                        (list 'c-else (returnable (cadr <else>) tail?)))))))
 
 (define (cond-unzip block conds thens)
     (cond
@@ -459,6 +458,7 @@
             (eq? (car c) 'c-shadow-params)
             (eq? (car c) 'c-var)
             (eq? (car c) 'c-dec)
+            (eq? (car c) 'c-tailcall)
             (eq? (car c) 'c-loop))
             #t
         else
@@ -492,7 +492,7 @@
         (list
             #f
             (cons 'c-begin
-                (list (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) block))))))
+                (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) block)))))
 
 (define (logic-type t)
     (cond
@@ -602,7 +602,7 @@
                         (dict-copy
                             (keys rewrites)
                             rewrites {})))
-           (body (cdadr (compile-begin (cdr block) name tail? var-temps lparams)))
+           (body (cdadr (show (compile-begin (cdr block) name tail? var-temps lparams))))
            (nulparams (dict-copy (keys lparams) lparams {})))
         (cset! nulparams "letvals" (cons vars (nth lparams "letvals" '())))
         (cons
@@ -975,13 +975,15 @@
         (eq? (car il) 'c-begin)
             (foreach-proc
                 (fn (x)
+                    (write x)
+                    (display "\n")
                     (if (il-syntax? x)
                         (il->c x lvl out)
                         (begin
                             (int->spaces lvl out) 
                             (il->c x lvl out)
                             (display ";\n" out))))
-                (cadr il))
+                (cdr il))
         (eq? (car il) 'c-tailcall)
             (let ((proc-data (nth *ulambdas* (cadr il))))
                 (if (< (length (caddr il)) (nth proc-data 2))
@@ -995,10 +997,11 @@
                             (fn (x)
                                 (int->spaces lvl out)
                                 (display
-                                    (format "~a = ~a;~%"
-                                        (car x)
-                                        (cadr x))
-                                    out))
+                                    (format "~a = "
+                                        (car x))
+                                    out)
+                                (il->c (cadr x) 0 out)
+                                (display ";\n" out))
                             (zip 
                                 (nth proc-data 4) ;; shadow params
                                 (caddr il)))
