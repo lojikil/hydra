@@ -191,8 +191,8 @@
 ;; somewhere in the code, and need to be lifted.
 (define *ooblambdas* '())
 
-(define (show x)
-    (display "x: ")
+(define (show x (prefix "x: "))
+    (display prefix)
     (write x)
     (newline)
     x)
@@ -494,10 +494,10 @@
                         name
                         tail?
                         rewrites lparams)))
-                (list
+                (show (list
                     (car e)
                     (cons 'c-begin
-                        (append b (list (returnable (cadr e) tail?)))))))
+                        (append b (list (returnable (cadr e) tail?))))) "compile-begin" )))
         (list
             #f
             (cons 'c-begin

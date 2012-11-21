@@ -119,10 +119,10 @@
 (define (eof-object? n) (eq? n #e))
 (define (void? x) (eq? x #v))
 
-(def zip (fn (xs ys)
+(define (zip xs ys)
 	(if (null? xs)
 		'()
-		(cons (cons (car xs) (cons (car ys) '())) (zip (cdr xs) (cdr ys))))))
+		(cons (cons (car xs) (cons (car ys) '())) (zip (cdr xs) (cdr ys)))))
 
 (define (list-copy l)
     " really, should be included from SRFI-1, but this simply makes a copy
