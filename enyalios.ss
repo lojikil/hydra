@@ -482,9 +482,12 @@
         (if (= (length block) 1)
             (let ((x (generate-code (car block) name #t rewrites lparams)))
                 (list (car x)
-                    (list 'c-begin (list (returnable (cdr x) tail?)))))
+                    (list 'c-begin (returnable (cdr x) tail?))))
             (let* ((b (map
-                      (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
+                      (fn (x)
+                        (if (string? x) ;; just a random string?
+                            (list 'c-docstring x)
+                            (cadr (generate-code x '() #f rewrites lparams))))
                       (cslice block 0 (- (length block) 1))))
                    (e (generate-code
                         (car (cslice block (- (length block) 1) (length block)))
