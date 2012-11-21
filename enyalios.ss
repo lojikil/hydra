@@ -328,21 +328,27 @@
         code generator. If it was handled here in some way, it would
         make life a bit easier in the Code generator...
     "
+    (display (format "in compile-procedure; name == ~a, block == \n" name))
+    (write block)
+    (newline)
     (let* ((params (car block))
           (nulparams (merge-parameters lparams params))
           (body (compile-begin (cdr block) name #t rewrites nulparams)))
         (cset! nulparams "parameters" (append params (nth lparams "parameters" '())))
         (cset! nulparams "name" name)
+        (display "body == ")
+        (write body)
+        (newline)
         (if (car body) ;; body contains a tail-call
             (list 
                 #f
-                (list 'c-dec name params
+                (show (list 'c-dec name params
                     (list 'c-begin
                         (list 'c-shadow-params name)
-                        (list 'c-loop (cadr body)))))
-            (list
+                        (list 'c-loop (cadr body))))))
+            (show (list
                 #f
-                (list 'c-dec name params (cadr body))))))
+                (list 'c-dec name params (cadr body)))))))
 
 (define (compile-if block name tail? rewrites lparams)
     " compiles an if statement into IL.
@@ -488,7 +494,7 @@
                 (list
                     (car e)
                     (cons 'c-begin
-                        (list (append b (list (returnable (cadr e) tail?))))))))
+                        (append b (list (returnable (cadr e) tail?)))))))
         (list
             #f
             (cons 'c-begin
@@ -602,7 +608,7 @@
                         (dict-copy
                             (keys rewrites)
                             rewrites {})))
-           (body (cdadr (show (compile-begin (cdr block) name tail? var-temps lparams))))
+           (body (cdadr (compile-begin (cdr block) name tail? var-temps lparams)))
            (nulparams (dict-copy (keys lparams) lparams {})))
         (cset! nulparams "letvals" (cons vars (nth lparams "letvals" '())))
         (cons
@@ -887,7 +893,7 @@
                 (display "}\n" out))
         (eq? (car il) 'c-loop)
             (begin
-                (int->spaces lvl out)
+                ;(int->spaces lvl out)
                 (display "while(1) {\n" out)
                 (il->c (cadr il) (+ lvl 1) out)
                 (int->spaces lvl out)
