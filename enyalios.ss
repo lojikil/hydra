@@ -332,23 +332,26 @@
     (write block)
     (newline)
     (let* ((params (car block))
-          (nulparams (merge-parameters lparams params))
-          (body (compile-begin (cdr block) name #t rewrites nulparams)))
+          (nulparams (merge-parameters lparams params)))
         (cset! nulparams "parameters" (append params (nth lparams "parameters" '())))
         (cset! nulparams "name" name)
-        (display "body == ")
-        (write body)
+        (display "nulparams[\"name\"] = ")
+        (display (nth nulparams "name"))
         (newline)
-        (if (car body) ;; body contains a tail-call
-            (list 
-                #f
-                (show (list 'c-dec name params
-                    (list 'c-begin
-                        (list 'c-shadow-params name)
-                        (list 'c-loop (cadr body))))))
-            (show (list
-                #f
-                (list 'c-dec name params (cadr body)))))))
+        (let ((body (compile-begin (cdr block) name #t rewrites nulparams))) 
+            (display "body == ")
+            (write body)
+            (newline)
+            (if (car body) ;; body contains a tail-call
+                (list 
+                    #f
+                    (show (list 'c-dec name params
+                        (list 'c-begin
+                            (list 'c-shadow-params name)
+                            (list 'c-loop (cadr body))))))
+                (show (list
+                    #f
+                    (list 'c-dec name params (cadr body))))))))
 
 (define (compile-if block name tail? rewrites lparams)
     " compiles an if statement into IL.
