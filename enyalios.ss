@@ -468,6 +468,7 @@
             (eq? (car c) 'c-var)
             (eq? (car c) 'c-dec)
             (eq? (car c) 'c-tailcall)
+            (eq? (car c) 'c-docstring)
             (eq? (car c) 'c-loop))
             #t
         else
