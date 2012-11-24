@@ -335,8 +335,8 @@
           (nulparams (merge-parameters lparams params)))
         (cset! nulparams "parameters" (append params (nth lparams "parameters" '())))
         (cset! nulparams "name" name)
-        (display "nulparams[\"name\"] = ")
-        (display (nth nulparams "name"))
+        (display "block.rest == ")
+        (write (cdr block))
         (newline)
         (let ((body (compile-begin (cdr block) name #t rewrites nulparams))) 
             (display "body == ")
@@ -487,7 +487,7 @@
             (let ((x (generate-code (car block) name #t rewrites lparams)))
                 (list (car x)
                     (list 'c-begin (returnable (cdr x) tail?))))
-            (let* ((b (map
+            (let ((b (map
                       (fn (x)
                         (if (string? x) ;; just a random string?
                             (list 'c-docstring x)
@@ -498,10 +498,15 @@
                         name
                         tail?
                         rewrites lparams)))
+                (display "\n\nb == ")
+                (write b)
+                (display "\n\ne == ")
+                (write e)
+                (display "\n\n")
                 (show (list
                     (car e)
                     (cons 'c-begin
-                        (append b (list (returnable (cadr e) tail?))))) "compile-begin" )))
+                        (append b (list (returnable (cdr e) tail?))))) "compile-begin" )))
         (list
             #f
             (cons 'c-begin
