@@ -623,6 +623,9 @@
            (body (cdadr (compile-begin (cdr block) name tail? var-temps lparams)))
            (nulparams (dict-copy (keys lparams) lparams {})))
         (cset! nulparams "letvals" (cons vars (nth lparams "letvals" '())))
+        (display "\n\nlet.body == ")
+        (write body)
+        (newline)
         (cons
             'c-begin
             (append
