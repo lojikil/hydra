@@ -872,6 +872,7 @@
                 (display ")" out))
         (char? il) (display (format "makechar('~c')" il) out)
         (symbol? il) (display il out)
+        (dict? il) (display (generate-dict il) out)
         (pair? (car il))
             (foreach-proc (fn (x) (il->c x lvl out)) il)
         (eq? (car il) 'c-nil)
