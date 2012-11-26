@@ -370,6 +370,12 @@
         ;; add 'c-returns to each of (<then> <else>)
         ;; this check for #v should be extended to all non-function calls...
         ;; all literals?
+        (display "\n<then> == ")
+        (write <then>)
+        (newline)
+        (display "\n<else> == ")
+        (write <else>)
+        (newline)
         (if (eq? (cadr <else>) #v)
             (list
                 <tail-check>
@@ -620,21 +626,26 @@
                         (dict-copy
                             (keys rewrites)
                             rewrites {})))
-           (body (cdadr (compile-begin (cdr block) name tail? var-temps lparams)))
+           (body (compile-begin (cdr block) name tail? var-temps lparams))
            (nulparams (dict-copy (keys lparams) lparams {})))
         (cset! nulparams "letvals" (cons vars (nth lparams "letvals" '())))
         (display "\n\nlet.body == ")
         (write body)
         (newline)
-        (cons
-            'c-begin
-            (append
-                (map 
-                    (fn (x) (list 'c-var
+        (display "\n\nvars == ")
+        (write vars)
+        (display "\n")
+        (list
+            (car body)
+            (cons
+                'c-begin
+                (append
+                    (map 
+                        (fn (x) (list 'c-var
                                 (nth var-temps (car x))
                                 (cadr (generate-code (cadr x) name #f rewrites nulparams))))
-                    (car block)) 
-                body))))
+                        (car block)) 
+                    (cdr body))))))
 
 (define (compile-let* block name tail? rewrites lparams)
     #f)
