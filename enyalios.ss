@@ -788,6 +788,23 @@
                         (cdr c))))
         else (error (format "unknown form: ~a" c))))
 
+(define (ascii-acceptable? c)
+    (or
+        (and (char>=? c #\a) (char<=? c #\z))
+        (and (char>=? c #\A) (char<=? c #\Z))
+        (and (char>=? c #\0) (char<=? c #\9))
+        (eq? c #\_)))
+
+(define (cmung o)
+    (map
+        (fn (x)
+            (if (ascii-acceptable? x)
+                x
+                (if (eq? x #\?)
+                    #\p
+                    #\_)))
+            (coerce o 'string)))
+
 (define (int->spaces lvl out)
     (if (< lvl 1)
         #v
@@ -821,7 +838,7 @@
                             ", "))
                     (params->c (cdr params) param-data))
                 (cons
-                    (format "SExp *~a" cur)
+                    (format "SExp *~a" (cmung cur))
                     (params->c (cdr params) param-data))))))
                     
 (define (generate-vector x)
@@ -886,7 +903,7 @@
                 (write il out)
                 (display ")" out))
         (char? il) (display (format "makechar('~c')" il) out)
-        (symbol? il) (display il out)
+        (symbol? il) (display (cmung il) out)
         (dict? il) (display (generate-dict il) out)
         (pair? (car il))
             (foreach-proc (fn (x) (il->c x lvl out)) il)
@@ -936,27 +953,27 @@
             (begin
                 (int->spaces lvl out)
                 (display "SExp *" out)
-                (display (cadr il) out)
+                (display (cmung (cadr il)) out)
                 (display " = " out)
                 (il->c (caddr il) 0 out)
                 (display ";\n" out))
         (eq? (car il) 'c-set!) 
             (begin
                 (int->spaces lvl out)
-                (display (cadr il) out)
+                (display (cmung (cadr il)) out)
                 (display " = " out)
                 (il->c (caddr il) 0 out)
                 (display ";\n" out))
         (eq? (car il) 'c-dec) ;; function declaration
             (begin
                 (display "SExp *\n" out)
-                (display (cadr il) out) ;; should be a call to MUNG here...
+                (display (cmung (cadr il)) out) ;; should be a call to MUNG here...
                 (display "(" out)
                 (if (null? (caddr il))
                     #v
                     (display ;; can soon switch this to params->c
                         (string-join
-                            (map (fn (x) (format "SExp *~a" x))
+                            (map (fn (x) (format "SExp *~a" (cmung x)))
                                 (caddr il))
                             ", ")
                         out))
@@ -968,7 +985,7 @@
                 (foreach-proc
                     (fn (x)
                         (int->spaces lvl out)
-                        (format "SExp ~a = SNIL;~%" x))
+                        (format "SExp ~a = SNIL;~%" (cmung x)))
                     (nth proc-data 4)))
         (eq? (car il) 'c-docstring)
             (begin
@@ -1032,7 +1049,7 @@
                                 (int->spaces lvl out)
                                 (display
                                     (format "~a = "
-                                        (car x))
+                                        (cmung (car x)))
                                     out)
                                 (il->c (cadr x) 0 out)
                                 (display ";\n" out))
@@ -1047,8 +1064,8 @@
                                 (int->spaces lvl out)
                                 (display
                                     (format "~a = ~a; ~%" 
-                                        (car x)
-                                        (cadr x))
+                                        (cmung (car x))
+                                        (cmung (cadr x)))
                                     out))
                             (zip
                                 (nth proc-data 1)
@@ -1058,13 +1075,13 @@
                 (if (< (length (caddr il)) (nth proc-data 2))
                     (error "Incorrect arity for user-defined lambda")
                     (begin
-                        (display (cadr il) out)
+                        (display (cmung (cadr il)) out)
                         (display "(" out)
                         (comma-separated-c (caddr il) out)
                         (display ")" out))))
         (eq? (car il) 'c-call-variable)
             (begin
-                (display (cadr il) out)
+                (display (cmung (cadr il)) out)
                 (display "(" out)
                 (comma-separated-c (caddr il) out)
                 (display ")" out))

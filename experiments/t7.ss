@@ -59,7 +59,7 @@
         (let* ((name (car names))
                (data (nth d name)))
             (display "SExp *" out)
-            (display (car names) out)
+            (display (cmung (car names)) out)
             (display "(" out)
             (if (null? (nth data 1))
                 #v
