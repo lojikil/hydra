@@ -744,7 +744,8 @@
         (eq? (car c) 'apply)
             (compile-apply (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'begin) (compile-begin (cdr c) name tail? rewrites lparams)
-        (eq? (car c) name) ;; tail-call?
+        (and tail? ;; we don't want to check for tail-call in non-tail position
+            (eq? (car c) name)) ;; tail-call?
             (list
                 #t
                 (list
