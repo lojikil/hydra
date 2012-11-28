@@ -796,6 +796,7 @@
         (eq? c #\_)))
 
 (define (cmung o)
+    (show o "%%CMUNG-I-VALUE: ")
     (map
         (fn (x)
             (if (ascii-acceptable? x)
@@ -846,13 +847,32 @@
         (string-append (format "vector(~n," n) (string-join (map generate-quoted-literal p) ",") ")")))
 
 (define (generate-pair x)
+    (string-append
+        "cons("
+        (generate-quoted-literal (car x))
+        ", "
+        (generate-quoted-literal (cdr x))
+        ")"))
+
+(define (generate-list x)
+    (display "%%GENERATE-LIST: x ->")
+    (write x)
+    (newline)
     (let ((n (length x)))
         (string-append (format "list(~n," n) (string-join (map generate-quoted-literal x) ",") ")")))
 
 (define (generate-dict d)
+    (display "%%I-GENERATE-DICT: (keys d) -> ")
+    (write (keys d))
+    (newline)
     (if (empty? (keys d)) ; have to update empty? to check keys automagically...
         "makedict()"
-        (format "dict(~s)" (string-join)))) ; ... has to be the normal map dance
+        (format "fdict(~s)" 
+            (string-join
+                (map
+                    (fn (x) (format "\"~s\", ~s" x (generate-quoted-literal (nth d x))))
+                    (keys d))
+                ", "))))
 
 (define (generate-number x)
     (cond
@@ -865,7 +885,8 @@
 (define (generate-quoted-literal x)
     (cond
         (vector? x) (generate-vector x)
-        (pair? x) (generate-pair x) ; really, need to tell what type of code to generate here...
+        (list? x) (generate-list x) ; proper, non-dotted list
+        (pair? x) (generate-pair x) ; improper, dotted list
         (dict? x) (generate-dict x)
         (symbol? x) (format "makeatom(\"~a\")" x)
         (number? x) (generate-number x)
@@ -1038,7 +1059,7 @@
         (eq? (car il) 'c-tailcall)
             (let ((proc-data (nth *ulambdas* (cadr il))))
                 (if (< (length (caddr il)) (nth proc-data 2))
-                    (error "Incorrect arity for user-defined lambda")
+                    (error (format "Incorrect arity for user-defined lambda: ~a" (cadr il)))
                     (begin
                         ;; set shadow params to value of each
                         ;; parameters:

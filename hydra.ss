@@ -1088,9 +1088,9 @@
                 (list (list (cdr (hydra@lookup sym env)))))
             (hydra@compile-help sym (cdr iter-list) env))))
 
-(define (hydra@compile line env (thusfar '()))
+(define (hydra@compile line env)
     (if (null? line)
-        thusfar
+        '()
         (cond
             (vector? line) (list (list 3 line))
             (dict? line) (list (list 3 line) )
@@ -1231,7 +1231,7 @@
                                                     (reverse-append
                                                         (map (fn (x) (hydra@compile x env)) rst))
                                                     (list (list (cdr (hydra@lookup '%make-vector env)))))
-                                            else (hydra@compile "make-vector len : INTEGER (v : SEXPR) => VECTOR")))
+                                            else (hydra@error "make-vector len : INTEGER (v : SEXPR) => VECTOR")))
                                 (eq? (cdr v) 'primitive-syntax-makestring)
                                     (with l (length rst)
                                         (cond
@@ -1245,7 +1245,7 @@
                                                     (reverse-append
                                                         (map (fn (x) (hydra@compile x env)) rst))
                                                     (list (list (cdr (hydra@lookup '%make-string env)))))
-                                            else (hydra@compile "make-string len : INTEGER (c : CHAR) => STRING")))
+                                            else (hydra@error "make-string len : INTEGER (c : CHAR) => STRING")))
                                 (eq? (cdr v) 'primitive-syntax-if)
                                     ;; need to generate code for <cond>
                                     ;; add CMP instruction '(30)
