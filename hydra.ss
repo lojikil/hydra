@@ -1339,10 +1339,10 @@
     (with inp (read)
      (if (and (eq? (type inp) "Pair") (eq? (car inp) 'unquote))
         (cond
-         (eq? (cadr inp) 'exit) (quit)
-         (eq? (cadr inp) 'q) (quit)
-         (eq? (cadr inp) 'quit) (quit)
-         (eq? (cadr inp) 'bye) (quit)
+         (eq? (cadr inp) 'exit) #v
+         (eq? (cadr inp) 'q) #v
+         (eq? (cadr inp) 'quit) #v
+         (eq? (cadr inp) 'bye) #v
          (eq? (cadr inp) 'dribble) (begin (hydra@repl))
          (eq? (cadr inp) 'save) (begin (hydra@repl))
          (eq? (cadr inp) 'save-and-die) (begin (hydra@repl))

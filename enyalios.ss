@@ -512,7 +512,7 @@
                 (show (list
                     (car e)
                     (cons 'c-begin
-                        (append b (list (returnable (cdr e) tail?))))) "compile-begin" )))
+                        (append b (list (returnable (cadr e) tail?))))) "compile-begin" )))
         (list
             #f
             (cons 'c-begin
@@ -931,7 +931,7 @@
         (eq? (car il) 'c-nil)
             (display "SNIL" out)
         (eq? (car il) 'c-quote)
-            (display (generate-quoted-literal (cadr il)) out)
+            (display (generate-quoted-literal (caadr il)) out)
         (eq? (car il) 'c-if)
             (begin
                 (int->spaces lvl out)
@@ -1058,8 +1058,14 @@
                 (cdr il))
         (eq? (car il) 'c-tailcall)
             (let ((proc-data (nth *ulambdas* (cadr il))))
-                (if (< (length (caddr il)) (nth proc-data 2))
-                    (error (format "Incorrect arity for user-defined lambda: ~a" (cadr il)))
+                (cond
+                    (< (length (caddr il)) (nth proc-data 2))
+                        (error (format "Incorrect arity for user-defined lambda: ~a" (cadr il)))
+                    (= (length (caddr il)) 0)
+                        (begin
+                            (int->spaces lvl out)
+                            (display "continue;\n" out))
+                    else
                     (begin
                         ;; set shadow params to value of each
                         ;; parameters:

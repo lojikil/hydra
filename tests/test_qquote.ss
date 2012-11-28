@@ -1,0 +1,11 @@
+(define (quasiquote l e)
+    "lifted from Nyx, the original self-hosting test interpreter for Digamma."
+    (if (eq? (type l) "Pair")
+     (if (eq? (type (car l)) "Pair")
+      (if (eq? (car (car l)) 'unquote)
+       (cons (eval (car (cdr (car l))) e) (quasiquote (cdr l) e))
+       (if (eq? (car (car l)) 'unquote-splice)
+        (append (eval (car (cdr (car l))) e) (quasiquote (cdr l) e))          
+        (cons (quasiquote (car l) e) (quasiquote (cdr l) e))))
+      (cons (car l) (quasiquote (cdr l) e)))
+     l))

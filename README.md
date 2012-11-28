@@ -12,6 +12,7 @@ the digamma main repo.
 - mutual\_test.ss: another Eprime/Enyalios test case.
 - test\_enyalios.ss: original test driver for enyalios.
 - test\_hydra.ss: defines a simple test harness to check Hydra\'s VM compiler & execution.
+- tests/test\_qquote.ss: quasi-quote implementation.
 
 ## License
 
