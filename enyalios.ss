@@ -1016,6 +1016,11 @@
                 (newline out)
                 (int->spaces lvl out)
                 (display " */\n" out))
+        (eq? (car il) 'c-not)
+            (begin
+                (display "fnot(" out)
+                (il->c (cadr il) 0 out)
+                (display ")" out))
         (eq? (car il) 'c-eq)
             (begin
                 ;; this is a dummy for now; I would like to
