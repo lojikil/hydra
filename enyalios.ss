@@ -522,7 +522,6 @@
     (cond
         (eq? t 'and) 'c-and
         (eq? t 'or) 'c-or
-        (eq? t 'not) 'c-not
         else (error "invalid logic operation lookup attempt")))
 
 (define (compile-logic block name tail? rewrites lparams type)
@@ -755,8 +754,7 @@
                         (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
                         (cdr c))))
         (or (eq? (car c) 'or)
-            (eq? (car c) 'and)
-            (eq? (car c) 'not))
+            (eq? (car c) 'and))
             (compile-logic (cdr c) name tail? rewrites lparams (car c))
         (enyalios@primitive? (car c)) (compile-primitive c name tail? rewrites lparams) ; all other primitive forms
         (enyalios@procedure? (car c)) (compile-primitive-procedure c name tail? rewrites lparams) ; primitive procs, like display
@@ -1016,11 +1014,6 @@
                 (newline out)
                 (int->spaces lvl out)
                 (display " */\n" out))
-        (eq? (car il) 'c-not)
-            (begin
-                (display "fnot(" out)
-                (il->c (cadr il) 0 out)
-                (display ")" out))
         (eq? (car il) 'c-eq)
             (begin
                 ;; this is a dummy for now; I would like to
