@@ -895,6 +895,34 @@
         (key? x) (format "makekey(\"~a\")" x)
         (null? x) "SNIL"))
 
+(define (if-condition <cond> out)
+    ;; rewrite this to iterate over it's own pairs
+    ;; that way and/or can just become a simpler case...
+    ;; (if-condition '(and (foo? z) (bar? z)) out)
+    ;; (if-condition '(foo? z) out)
+    ;; (display " && " out)
+    ;; (if-condition '(bar? z) out)
+    (cond
+        (eq? (car <cond>) 'c-and) ;; need to rework this to properly conjoin with &&
+            (foreach 
+                (fn (x)
+                    (display "(" out)
+                    (il->c x 0 out)
+                    (display " == STRUE)" out))
+                (cdr <cond>))
+        (eq? (car <cond>) 'c-or)
+            (foreach 
+                (fn (x)
+                    (display "(" out)
+                    (il->c x 0 out)
+                    (display " == STRUE)" out))
+                (cdr <cond>))
+        else
+            (begin
+                (display "(" out)
+                (il->c <cond> 0 out)
+                (display " == STRUE)" out))))
+
 (define (il->c il lvl out)
     (cond
         (null? il) #v
@@ -934,7 +962,7 @@
             (begin
                 (int->spaces lvl out)
                 (display "if(" out)
-                (il->c (cadr il) 0 out)
+                (if-condition (cadr il) out)
                 (display "){\n" out)
                 (il->c (cddr il) (+ lvl 1) out)
                 (int->spaces lvl out)
@@ -943,7 +971,7 @@
             (begin
                 (int->spaces lvl out)
                 (display "else if(" out)
-                (il->c (cadr il) 0 out)
+                (if-condition (cadr il) out)
                 (display "){\n" out)
                 (il->c (cddr il) (+ lvl 1) out)
                 (int->spaces lvl out)
