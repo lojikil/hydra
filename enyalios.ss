@@ -895,28 +895,34 @@
         (key? x) (format "makekey(\"~a\")" x)
         (null? x) "SNIL"))
 
+(define (condition-connector c connector out)
+    " used by if-condition to map a connector
+      over a set of statements. so
+      (c-and (flt 3 4) (fgt 6 5))
+      should be joined as 
+      (flt(3,4) == STRUE) && (fgt(6,5) == STRUE)"
+    (if (null? (cdr c))
+        (if-condition (car c) out)
+        (begin
+            (if-condition (car c) out)
+            (display (format " ~s " connector) out)
+            (condition-connector (cdr c) connector out))))
+
 (define (if-condition <cond> out)
-    ;; rewrite this to iterate over it's own pairs
-    ;; that way and/or can just become a simpler case...
-    ;; (if-condition '(and (foo? z) (bar? z)) out)
-    ;; (if-condition '(foo? z) out)
-    ;; (display " && " out)
-    ;; (if-condition '(bar? z) out)
+    " if-condition handles processing of the <cond> portion of
+      c-if/c-elif. It handles c-and & c-or, and potentially handle
+      optimizations to if statements (like rewriting flt to flt_XX)"
     (cond
-        (eq? (car <cond>) 'c-and) ;; need to rework this to properly conjoin with &&
-            (foreach 
-                (fn (x)
-                    (display "(" out)
-                    (il->c x 0 out)
-                    (display " == STRUE)" out))
-                (cdr <cond>))
+        (eq? (car <cond>) 'c-and) 
+            (condition-connector
+                (cdr <cond>)
+                "&&"
+                out)
         (eq? (car <cond>) 'c-or)
-            (foreach 
-                (fn (x)
-                    (display "(" out)
-                    (il->c x 0 out)
-                    (display " == STRUE)" out))
-                (cdr <cond>))
+            (condition-connector
+                (cdr <cond>)
+                "||"
+                out)
         else
             (begin
                 (display "(" out)
