@@ -929,6 +929,24 @@
                 (il->c <cond> 0 out)
                 (display " == STRUE)" out))))
 
+(define (stand-alone-logic->c il lvl out connector)
+    (int->spaces lvl out)
+    (if (null? (cdr il))
+        (il->c (car il) 0 out)
+        (begin
+            (display "(" out)
+            (if-condition (car il) out)
+            (il->c (car il) 0 out)
+            (display " == STRUE) ? " out)
+            (if connector
+                (begin
+                    (stand-alone-logic->c (cdr il) lvl out connector)
+                    (display " : SFALSE" out))
+                (begin
+                    (display "STRUE : " out)
+                    (stand-alone-logic->c (cdr il) lvl out connector)))
+            (display ")" out))))
+
 (define (il->c il lvl out)
     (cond
         (null? il) #v
@@ -989,6 +1007,10 @@
                 (il->c (cdr il) (+ lvl 1) out)
                 (int->spaces lvl out)
                 (display "}\n" out))
+        (eq? (car il) 'c-and)
+            (stand-alone-logic->c (cdr il) lvl out #t)
+        (eq? (car il) 'c-or)
+            (stand-alone-logic->c (cdr il) lvl out #f)
         (eq? (car il) 'c-loop)
             (begin
                 ;(int->spaces lvl out)
