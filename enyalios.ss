@@ -935,7 +935,7 @@
         (il->c (car il) 0 out)
         (begin
             (display "(" out)
-            (if-condition (car il) out)
+            ;(if-condition (car il) out)
             (il->c (car il) 0 out)
             (display " == STRUE) ? " out)
             (if connector
@@ -944,8 +944,7 @@
                     (display " : SFALSE" out))
                 (begin
                     (display "STRUE : " out)
-                    (stand-alone-logic->c (cdr il) lvl out connector)))
-            (display ")" out))))
+                    (stand-alone-logic->c (cdr il) lvl out connector))))))
 
 (define (il->c il lvl out)
     (cond
