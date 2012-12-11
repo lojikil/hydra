@@ -57,17 +57,21 @@
 
 
 (define *procedures* {
-    ;; negative numbers mean "N or less"
-    :display ["f_princ" 1]
-    :newline ["newline" 1]
-    :read ["f_read" 0]
-    :write ["f_write" 0]
-    :format ["format" 0]
-    :read-char ["fread_char" 0]
-    :write-char ["fwrite_char" 0]
-    :read-buffer ["fread_buffer" 0]
-    :quit ["fquit" 0]
-    :write-buffer #t
+    ;; [ c-proc min max ]
+    ;; if max != min && max == 0:
+    ;;    1 .. N args are accepted
+    ;; should write these to a list. The proc
+    ;; handles unpacking.
+    :display ["f_princ" 1 2]
+    :newline ["newline" 0 1]
+    :read ["f_read" 0 1]
+    :write ["f_write" 1 2]
+    :format ["format" 1 0]
+    :read-char ["fread_char" 0 1]
+    :write-char ["fwrite_char" 0 1]
+    :read-buffer ["fread_buffer" 1 2]
+    :quit ["fquit" 0 0]
+    :write-buffer ["fwrite_buffer" 1 2]
     :read-string #t
     :write-string #t
 })
