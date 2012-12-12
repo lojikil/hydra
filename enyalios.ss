@@ -277,12 +277,21 @@
     (let ((proc (nth *procedures* (car block)))
           (args (cdr block)))
         (cond
-            (= (nth proc 1) 0)
+            (and
+                (= (nth proc 1) 0)
+                (= (nth proc 2) 0)
+                (= (length args) 0))
                 (list
                     #f
-                    (list 'c-variable-procedure (nth proc 0)
-                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)))
-            (= (nth proc 1) (length args))
+                    (list 'c-procedure (nth proc 0) c-snil))
+            (and
+                (> (nth proc 1) 0)
+                (>= (length args) (nth proc 1))
+                (= (nth proc 2) 0))
+                #t
+            (and
+                (>= (length args) (nth proc 1))
+                (<= (length args) (nth proc 2)))
                 (list
                     #f
                     (list 'c-procedure (nth proc 0)
