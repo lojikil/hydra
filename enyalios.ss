@@ -283,12 +283,15 @@
                 (= (length args) 0))
                 (list
                     #f
-                    (list 'c-procedure (nth proc 0) c-snil))
+                    (list 'c-procedure (nth proc 0) 'c-snil))
             (and
                 (> (nth proc 1) 0)
                 (>= (length args) (nth proc 1))
                 (= (nth proc 2) 0))
-                #t
+                (list
+                    #f
+                    (list 'c-procedure (nth proc 0)
+                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)))
             (and
                 (>= (length args) (nth proc 1))
                 (<= (length args) (nth proc 2)))
@@ -1181,8 +1184,7 @@
         (eq? (car il) 'c-variable-primitive)
             (let ((name (nth *varprimitives* (cadr il))))
                 (begin
-                    (display name out)
-                    (display (format "(~n, " (length (caddr il))) out)
+                    (display (format "~a(~n, " name (length (caddr il))) out)
                     (comma-separated-c (caddr il) out)
                     (display ")" out)))
         (eq? (car il) 'c-procedure)
