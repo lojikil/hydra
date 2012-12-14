@@ -1190,8 +1190,13 @@
         (eq? (car il) 'c-procedure)
             (begin
                 (display (cadr il) out)
-                (display "(" out)
-                (comma-separated-c (caddr il) out)
-                (display ")" out))
+                (if (or (eq? (caddr il) 'c-nil) (null? (caddr il)))
+                    (display "(SNIL)" out)
+                    (begin
+                        (display "(list(" out)
+                        (display (length (caddr il)) out)
+                        (display ", " out)
+                        (comma-separated-c (caddr il) out)
+                        (display "))" out))))
         else
             (display "###" out)))
