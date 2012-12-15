@@ -275,7 +275,8 @@
 
 (define (compile-primitive-procedure block name tail? rewrites lparams)
     (let ((proc (nth *procedures* (car block)))
-          (args (cdr block)))
+          (args (cdr block))
+          (env  (nth lparams "env" "tlenv")))
         (cond
             (and
                 (= (nth proc 1) 0)
@@ -283,7 +284,7 @@
                 (= (length args) 0))
                 (list
                     #f
-                    (list 'c-procedure (nth proc 0) 'c-snil))
+                    (list 'c-procedure (nth proc 0) 'c-snil env))
             (and
                 (> (nth proc 1) 0)
                 (>= (length args) (nth proc 1))
@@ -291,14 +292,16 @@
                 (list
                     #f
                     (list 'c-procedure (nth proc 0)
-                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)))
+                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)
+                        env))
             (and
                 (>= (length args) (nth proc 1))
                 (<= (length args) (nth proc 2)))
                 (list
                     #f
                     (list 'c-procedure (nth proc 0)
-                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)))
+                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)
+                        env))
             else (error (format "incorrect arity for primitive-procedure ~a" (car block))))))
 
 (define (compile-variable-primitive block name tail? rewrites lparams)
@@ -1191,12 +1194,14 @@
             (begin
                 (display (cadr il) out)
                 (if (or (eq? (caddr il) 'c-nil) (null? (caddr il)))
-                    (display "(SNIL)" out)
+                    (display "(SNIL" out)
                     (begin
                         (display "(list(" out)
                         (display (length (caddr il)) out)
                         (display ", " out)
                         (comma-separated-c (caddr il) out)
-                        (display "))" out))))
+                        (display "), " out)))
+                (display (cadddr il) out)
+                (display ")" out))
         else
             (display "###" out)))

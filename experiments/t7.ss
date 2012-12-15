@@ -51,7 +51,7 @@
                 #v)
             (cons 
                 (cadr (generate-code o '() #f {} (dict "env" env-name)))
-                (enyalios@compile-loop (cdr code))))))
+                (enyalios@compile-loop (cdr code) env-name)))))
 
 (define (enyalios@dump-prototypes names d out) 
     (if (null? names)
