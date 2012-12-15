@@ -37,7 +37,7 @@
                 out)
                 (enyalios@dump-lambdas (cdr lams) out))))
 
-(define (enyalios@compile-loop code)
+(define (enyalios@compile-loop code env-name)
     (if (null? code)
         (begin
             (display "\nfinished compiling\n")
@@ -50,10 +50,10 @@
                 (display (format "COMPILING: ~a~%" (cadr o)))
                 #v)
             (cons 
-                (cadr (generate-code o '() #f {} {}))
+                (cadr (generate-code o '() #f {} (dict "env" env-name)))
                 (enyalios@compile-loop (cdr code))))))
 
-(define (enyalios@dump-headers names d out)
+(define (enyalios@dump-prototypes names d out) 
     (if (null? names)
         #v
         (let* ((name (car names))
@@ -69,16 +69,19 @@
                         ", ")
                     out))
             (display ");\n" out)
-            (enyalios@dump-headers (cdr names) d out))))
+            (enyalios@dump-prototypes (cdr names) d out))))
 
 (define (enyalios in-file out-file init)
     (let* ((inf (open in-file :read))
           (outf (open out-file :write))
           (code (enyalios@load inf))
-          (obj-code (enyalios@compile-loop code)))
+          (env-name (gensym "enyalios"))
+          (obj-code (enyalios@compile-loop code env-name)))
         (display (format "LOADED: ~a~%" in-file))
-        (enyalios@dump-headers (keys *ulambdas*) *ulambdas* outf)
-        (display "\n" outf)
+        (enyalios@dump-prototypes (keys *ulambdas*) *ulambdas* outf)
+        (display "Symbol *" outf)
+        (display env-name outf)
+        (display ";\n\n" outf)
         (enyalios@dump-lambdas *ooblambdas* outf)
         (enyalios@dump-lambdas obj-code outf)
         (close inf)
