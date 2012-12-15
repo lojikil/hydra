@@ -1,0 +1,37 @@
+#+TITLE: Digamma Todo lists
+#+DATE: 15-DEC-2012
+#+AUTHOR: Stefan Edwards <sae@lojikil.com>
+
+* Vesta\/Hydra
+- engines
+- current\-input\-port, current\-output\-port, current\-error\-port
+- with\-output, with\-input, with\-error
+- get\/set current\-X\-port
+- define\-syntax
+
+* Enyalios
+- top level Symbol for procedures, added to lparams["env"]
+- top level static snil, strue, &c.
+- add that top level Symbol to procedure calls
+- closures in HOFs
+- free analysis for closures
+- Internally\-defined procedure lifting
+- Inlining
+- typing ala Stalin \(recursive union types, soft\-typing\/gradul\-typing)
+- named\-let
+- do\-loops \(I guess?)
+- fix apply!
+- letrec
+- let* fix \(doesn't correctly pass rewritten vars from above)
+- fix load
+- define\-c\-syntax
+- IL\->JS, IL\->C++, IL\->JAVA
+- support %c, define\-alien for self\-hosting runtimes.
+
+* Hydra\-only
+- review user of map, and potentially replace with bespoke, Enyalios\-friendly equivalent
+- Core version without repl\/read, for use with IL\->JS
+
+* All
+- SRFI\-0\/7, for supporting different loads, different FFIs, different low-level runtimes...
+- Scheme48\-style modules.
