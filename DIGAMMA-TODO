@@ -10,9 +10,10 @@
 - define\-syntax
 
 * Enyalios
-- top level Symbol for procedures, added to lparams["env"]
+- DONE: top level Symbol for procedures, added to lparams["env"]
 - top level static snil, strue, &c.
-- add that top level Symbol to procedure calls
+- add static snil &c to top level Symbol
+- DONE: add that top level Symbol to procedure calls
 - closures in HOFs
 - free analysis for closures
 - Internally\-defined procedure lifting
