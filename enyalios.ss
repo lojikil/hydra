@@ -347,30 +347,30 @@
         code generator. If it was handled here in some way, it would
         make life a bit easier in the Code generator...
     "
-    (display (format "in compile-procedure; name == ~a, block == \n" name))
-    (write block)
-    (newline)
+    ;(display (format "in compile-procedure; name == ~a, block == \n" name))
+    ;(write block)
+    ;(newline)
     (let* ((params (car block))
           (nulparams (merge-parameters lparams params)))
         (cset! nulparams "parameters" (append params (nth lparams "parameters" '())))
         (cset! nulparams "name" name)
-        (display "block.rest == ")
-        (write (cdr block))
-        (newline)
+        ;(display "block.rest == ")
+        ;(write (cdr block))
+        ;(newline)
         (let ((body (compile-begin (cdr block) name #t rewrites nulparams))) 
-            (display "body == ")
-            (write body)
-            (newline)
+            ;(display "body == ")
+            ;(write body)
+            ;(newline)
             (if (car body) ;; body contains a tail-call
                 (list 
                     #f
-                    (show (list 'c-dec name params
+                    (list 'c-dec name params
                         (list 'c-begin
                             (list 'c-shadow-params name)
-                            (list 'c-loop (cadr body))))))
-                (show (list
+                            (list 'c-loop (cadr body)))))
+                (list
                     #f
-                    (list 'c-dec name params (cadr body))))))))
+                    (list 'c-dec name params (cadr body)))))))
 
 (define (compile-if block name tail? rewrites lparams)
     " compiles an if statement into IL.
@@ -389,12 +389,12 @@
         ;; add 'c-returns to each of (<then> <else>)
         ;; this check for #v should be extended to all non-function calls...
         ;; all literals?
-        (display "\n<then> == ")
-        (write <then>)
-        (newline)
-        (display "\n<else> == ")
-        (write <else>)
-        (newline)
+        ;(display "\n<then> == ")
+        ;(write <then>)
+        ;(newline)
+        ;(display "\n<else> == ")
+        ;(write <else>)
+        ;(newline)
         (if (eq? (cadr <else>) #v)
             (list
                 <tail-check>
@@ -499,12 +499,15 @@
         else
             #f))
 
+;; perhaps this should return a var assignment here...
+;; ActionScript does something like that; it creates a lexically-scoped
+;; dummy var for such purposes. Could be a per-scope gensym'd var...
 (define (returnable c tail?)
     (if (and
             tail?
             (not (il-syntax? c)))
         (list 'c-return c)
-        c))
+        c)) ;; perhaps this should return a var assignment here...
 
 (define (compile-begin block name tail? rewrites lparams)
     (if tail?
@@ -523,15 +526,15 @@
                         name
                         tail?
                         rewrites lparams)))
-                (display "\n\nb == ")
-                (write b)
-                (display "\n\ne == ")
-                (write e)
-                (display "\n\n")
-                (show (list
+                ;(display "\n\nb == ")
+                ;(write b)
+                ;(display "\n\ne == ")
+                ;(write e)
+                ;(display "\n\n")
+                (list
                     (car e)
                     (cons 'c-begin
-                        (append b (list (returnable (cadr e) tail?))))) "compile-begin" )))
+                        (append b (list (returnable (cadr e) tail?)))))))
         (list
             #f
             (cons 'c-begin
@@ -647,12 +650,12 @@
            (body (compile-begin (cdr block) name tail? var-temps lparams))
            (nulparams (dict-copy (keys lparams) lparams {})))
         (cset! nulparams "letvals" (cons vars (nth lparams "letvals" '())))
-        (display "\n\nlet.body == ")
-        (write body)
-        (newline)
-        (display "\n\nvars == ")
-        (write vars)
-        (display "\n")
+        ;(display "\n\nlet.body == ")
+        ;(write body)
+        ;(newline)
+        ;(display "\n\nvars == ")
+        ;(write vars)
+        ;(display "\n")
         (list
             (car body)
             (cons
@@ -813,7 +816,7 @@
         (eq? c #\_)))
 
 (define (cmung o)
-    (show o "%%CMUNG-I-VALUE: ")
+    ;(show o "%%CMUNG-I-VALUE: ")
     (map
         (fn (x)
             (if (ascii-acceptable? x)
@@ -872,16 +875,16 @@
         ")"))
 
 (define (generate-list x)
-    (display "%%GENERATE-LIST: x ->")
-    (write x)
-    (newline)
+    ;(display "%%GENERATE-LIST: x ->")
+    ;(write x)
+    ;(newline)
     (let ((n (length x)))
         (string-append (format "list(~n," n) (string-join (map generate-quoted-literal x) ",") ")")))
 
 (define (generate-dict d)
-    (display "%%I-GENERATE-DICT: (keys d) -> ")
-    (write (keys d))
-    (newline)
+    ;(display "%%I-GENERATE-DICT: (keys d) -> ")
+    ;(write (keys d))
+    ;(newline)
     (if (empty? (keys d)) ; have to update empty? to check keys automagically...
         "makedict()"
         (format "fdict(~s)" 
@@ -1119,8 +1122,8 @@
         (eq? (car il) 'c-begin)
             (foreach-proc
                 (fn (x)
-                    (write x)
-                    (display "\n")
+                    ;(write x)
+                    ;(display "\n")
                     (if (il-syntax? x)
                         (il->c x lvl out)
                         (begin
