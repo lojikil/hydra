@@ -1206,5 +1206,11 @@
                         (display "), " out)))
                 (display (cadddr il) out)
                 (display ")" out))
+        (eq? (car il) 'c-apply-primitive)
+            (begin
+                (display (cadr il) out)
+                (display "(" out)
+                (il->c (caddr il) 0 out)
+                (display ")" out))
         else
             (display "###" out)))
