@@ -1018,13 +1018,18 @@
         (dict-has? (car env) item) (nth (car env) item)
         else (hydra@lookup item (cdr env))))
 
+(define (compile-lambda-helper lst env)
+    (if (null? lst)
+        '()
+        (append
+            (hydra@compile (car lst) env)
+            (compile-lambda-helper (cdr lst) env))))
+
 (define (compile-lambda rst env)
     (list 'compiled-lambda
         (vector
             (list-copy env)
-            (append-map
-                (fn (x) (hydra@compile x env))
-                (cdr rst))
+            (compile-lambda-helper (cdr rst) env)
             (car rst)))) 
 
 (define (hydra@lambda? x)
@@ -1087,6 +1092,13 @@
             (hydra@compile (car iter-list) env)
             (list (list (cdr (hydra@lookup sym env))))
             (hydra@compile-help sym (cdr iter-list) env))))
+
+(define (hydra@map iter-list env)
+    (if (null? iter-list)
+        iter-list
+        (cons
+            (hydra@compile (car iter-list) env)
+            (hydra@map (cdr iter-list) env))))
 
 (define (hydra@compile line env)
     (if (null? line)
@@ -1200,9 +1212,7 @@
                                         (list (list 4))
                                         (append
                                             (reverse-append
-                                                (map
-                                                    (fn (x) (hydra@compile x env))
-                                                    rst))
+                                                (hydra-map rst env))
                                             (list (list 3 (length rst)))
                                             (list (list (cdr (hydra@lookup '%list env))))))
                                 (eq? (cdr v) 'primitive-syntax-vector)
@@ -1213,9 +1223,7 @@
                                         (list (list 4))
                                         (append
                                             (reverse-append
-                                                (map
-                                                    (fn (x) (hydra@compile x env))
-                                                    rst))
+                                                (hydra@map rst env))
                                             (list (list 3 (length rst)))
                                             (list (list (cdr (hydra@lookup '%vector env))))))
                                 (eq? (cdr v) 'primitive-syntax-makevector)
@@ -1228,8 +1236,7 @@
                                                     (list (list (cdr (hydra@lookup '%make-vector env)))))
                                             (= l 2)
                                                 (append
-                                                    (reverse-append
-                                                        (map (fn (x) (hydra@compile x env)) rst))
+                                                    (reverse-append (hydra@map rst env))
                                                     (list (list (cdr (hydra@lookup '%make-vector env)))))
                                             else (hydra@error "make-vector len : INTEGER (v : SEXPR) => VECTOR")))
                                 (eq? (cdr v) 'primitive-syntax-makestring)
@@ -1242,8 +1249,7 @@
                                                     (list (list (cdr (hydra@lookup '%make-string env)))))
                                             (= l 2)
                                                 (append
-                                                    (reverse-append
-                                                        (map (fn (x) (hydra@compile x env)) rst))
+                                                    (reverse-append (hydra@map rst env))
                                                     (list (list (cdr (hydra@lookup '%make-string env)))))
                                             else (hydra@error "make-string len : INTEGER (c : CHAR) => STRING")))
                                 (eq? (cdr v) 'primitive-syntax-if)
@@ -1267,8 +1273,7 @@
                             (pair? fst) 
                                 ;; fst is a pair, so we just blindly attempt to compile it.
                                 ;; May cause an error that has to be caught in CALL. some lifting might fix this...
-                                (append (reverse-append
-                                            (map (fn (x) (hydra@compile x env)) rst))
+                                (append (reverse-append (hydra@map rst env))
                                         (hydra@compile fst env)
                                         (list (list 30)))
                             (hydra@primitive? v) ;; primitive procedure
@@ -1284,22 +1289,19 @@
                                 ;; this isn't the *most* efficient, but it is pretty easy
                                 (append
                                     (reverse-append
-                                        (map (fn (x) (hydra@compile x env))
-                                             rst))
+                                        (hydra@map rst env))
                                     (list (list (cdr v))))
                             (hydra@lambda? v) ;; hydra closure
-                                (append (reverse-append
-                                            (map (fn (x) (hydra@compile x env)) rst))
+                                (append (reverse-append (hydra@map rst env))
                                             (list (list 3 v))
                                             (list (list 30)))
                             (hydra@continuation? v) ;; hydra continuation
-                                (append (reverse-append
-                                            (map (fn (x) (hydra@compile x env)) rst))
+                                (append (reverse-append (hydra@map rst env))
                                     (list (list 3 v))
                                     (list (list 108))) ;; 108 -> %ap
                             (symbol? fst) ;; fst is a symbol, but it has no mapping in our current env; write to environment-load
                                 (append (reverse-append
-                                            (map (fn (x) (hydra@compile x env)) rst))
+                                            (hydra@map rst env) 
                                             (list (list 31 fst))
                                             (list (list 30)))
                             else (error "error: the only applicable types are primitive procedures, closures & syntax")))
