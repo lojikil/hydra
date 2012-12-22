@@ -1,9 +1,3 @@
-#include "vesta.h"
-
-extern SExp *snil, *sfalse, *strue, *ssucc, *sunsucc,*mem_err, *pinf, *ninf, *qnan, *snan;
-extern SExp *fake_rpar, *fake_rsqr, *fake_rcur; /* returns for llread, but should never really mean anything */
-extern SExp *seof, *svoid; /* #e, for use with read*, & eof-object?, #v for void */
-
 SExp *caar(SExp *);
 SExp *caaar(SExp *);
 SExp *caaaar(SExp *);
@@ -35,6 +29,7 @@ SExp *cdddar(SExp *);
 SExp *cddddr(SExp *);
 SExp *copy_code(SExp *, SExp *, SExp *);
 SExp *compile_lambda(SExp *, SExp *);
+SExp *compile_lambda_helper(SExp *, SExp *);
 SExp *nullp(SExp *);
 SExp *numberp(SExp *);
 SExp *not(SExp *);
@@ -55,17 +50,7 @@ SExp *eof_objectp(SExp *);
 SExp *list_copy(SExp *);
 SExp *map(SExp *, SExp *);
 SExp *foreach(SExp *, SExp *);
-SExp *fun_97(SExp *);
-SExp *fun_106(SExp *);
-SExp *fun_115(SExp *);
-SExp *fun_117(SExp *);
-SExp *fun_120(SExp *);
-SExp *fun_123(SExp *);
-SExp *fun_130(SExp *);
-SExp *fun_132(SExp *);
-SExp *fun_134(SExp *);
-SExp *fun_136(SExp *);
-SExp *fun_138(SExp *);
+SExp *fun_101(SExp *);
 SExp *append_map(SExp *, SExp *);
 SExp *hydra_instruction(SExp *);
 SExp *hydra_operand(SExp *);
@@ -83,55 +68,16 @@ SExp *hydra_continuationp(SExp *);
 SExp *hydra_compile(SExp *, SExp *);
 SExp *hydra_compile_help(SExp *, SExp *, SExp *);
 SExp *hydra_add_env_(SExp *, SExp *, SExp *);
-SExp *hydra_repl();
+SExp *hydra_map(SExp *, SExp *);
 SExp *hydra_main();
+SExp *hydra_repl();
 SExp *reverse_append(SExp *);
 SExp *top_level_print(SExp *);
-Symbol *enyalios93;
+Symbol *enyalios97;
 
 SExp *
-fun_138(SExp *x){
-    return hydra_compile(x, env);
-}
-SExp *
-fun_136(SExp *x){
-    return hydra_compile(x, env);
-}
-SExp *
-fun_134(SExp *x){
-    return hydra_compile(x, env);
-}
-SExp *
-fun_132(SExp *x){
-    return hydra_compile(x, env);
-}
-SExp *
-fun_130(SExp *x){
-    return hydra_compile(x, env);
-}
-SExp *
-fun_123(SExp *x){
-    return hydra_compile(x, env);
-}
-SExp *
-fun_120(SExp *x){
-    return hydra_compile(x, env);
-}
-SExp *
-fun_117(SExp *x){
-    return hydra_compile(x, env);
-}
-SExp *
-fun_115(SExp *x){
-    return hydra_compile(x, env);
-}
-SExp *
-fun_106(SExp *x){
-    return hydra_compile(x, env);
-}
-SExp *
-fun_97(SExp *x){
-    return fcset(tmp96, car(x), cadr(x));
+fun_101(SExp *x){
+    return fcset(tmp100, car(x), cadr(x));
 }
 SExp *
 caar(SExp *x){
@@ -385,19 +331,19 @@ build_environment(SExp *environment, SExp *stack, SExp *params){
      and binds those values in the new window. It returns a list of environment and
      the new stack.
      */
-    SExp *tmp94 = flength(stack);
-    SExp *tmp95 = flength(params);
-    SExp *tmp96 = makedict();
-    if((flt(list(2, tmp94, tmp95)) == STRUE)){
+    SExp *tmp98 = flength(stack);
+    SExp *tmp99 = flength(params);
+    SExp *tmp100 = makedict();
+    if((flt(list(2, tmp98, tmp99)) == STRUE)){
         return ferror(makestring("non-optional parameters are not statisfied by stack items in build-environment"));
     }
     else {
-        if((fnumeq(list(2, tmp95, makeinteger(0))) == STRUE)){
-            return list(2, cons(tmp96, environment), cdr(stack));
+        if((fnumeq(list(2, tmp99, makeinteger(0))) == STRUE)){
+            return list(2, cons(tmp100, environment), cdr(stack));
         }
         else {
-            foreach(fun_97, zip(params, fcslice(stack, makeinteger(0), tmp95)));
-            return list(2, cons(tmp96, environment), fcslice(stack, tmp95, tmp94));
+            foreach(fun_101, zip(params, fcslice(stack, makeinteger(0), tmp99)));
+            return list(2, cons(tmp100, environment), fcslice(stack, tmp99, tmp98));
         }
     }
 }
@@ -463,9 +409,9 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
             }
         }
         else {
-            SExp *tmp99 = fnth(list(2, code, ip));
-            SExp *tmp100 = hydra_instruction(c);
-            if((eqp(tmp100, makeinteger(0)) == STRUE)){
+            SExp *tmp103 = fnth(list(2, code, ip));
+            SExp *tmp104 = hydra_instruction(c);
+            if((eqp(tmp104, makeinteger(0)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -477,7 +423,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(1)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(1)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -489,7 +435,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(2)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(2)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -501,11 +447,11 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(3)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(3)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(hydra_operand(tmp99), stack);
+                stack63 = cons(hydra_operand(tmp103), stack);
                 dump64 = dump;
                 code = code60; 
                 env = env61; 
@@ -513,7 +459,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(4)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(4)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -525,7 +471,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(5)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(5)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -537,7 +483,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(6)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(6)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -549,7 +495,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(7)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(7)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -561,7 +507,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(8)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(8)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -573,7 +519,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(9)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(9)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -585,7 +531,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(10)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(10)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -597,7 +543,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(11)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(11)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -609,7 +555,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(12)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(12)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -621,7 +567,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(13)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(13)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -633,7 +579,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(14)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(14)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -645,7 +591,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(15)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(15)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -657,8 +603,8 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(16)) == STRUE)){
-                f_princ(list(1, car(stack)), enyalios93);
+            else if((eqp(tmp104, makeinteger(16)) == STRUE)){
+                f_princ(list(1, car(stack)), enyalios97);
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -670,7 +616,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(18)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(18)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -682,7 +628,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(19)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(19)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -694,7 +640,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(20)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(20)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -706,7 +652,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(21)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(21)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -718,7 +664,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(22)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(22)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -730,7 +676,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(23)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(23)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -742,7 +688,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(24)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(24)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -754,7 +700,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(25)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(25)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -766,7 +712,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(26)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(26)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -778,7 +724,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(27)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(27)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -790,10 +736,10 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(28)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(28)) == STRUE)){
                 code60 = code;
                 env61 = env;
-                ip62 = fplus(list(2, ip, hydra_operand(tmp99)));
+                ip62 = fplus(list(2, ip, hydra_operand(tmp103)));
                 stack63 = stack;
                 dump64 = dump;
                 code = code60; 
@@ -802,7 +748,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(29)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(29)) == STRUE)){
                 if((car(stack) == STRUE)){
                     code60 = code;
                     env61 = env;
@@ -818,7 +764,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 else {
                     code60 = code;
                     env61 = env;
-                    ip62 = fplus(list(2, ip, hydra_operand(tmp99)));
+                    ip62 = fplus(list(2, ip, hydra_operand(tmp103)));
                     stack63 = cdr(stack);
                     dump64 = dump;
                     code = code60; 
@@ -828,14 +774,14 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                     dump = dump64; 
                 }
             }
-            else if((eqp(tmp100, makeinteger(30)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(30)) == STRUE)){
                 if((hydra_lambdap(car(stack)) == STRUE)){
-                    SExp *tmp101 = build_environment(fnth(list(2, cadar(stack), makeinteger(0))), cdr(stack), fnth(list(2, cadar(stack), makeinteger(2))));
+                    SExp *tmp105 = build_environment(fnth(list(2, cadar(stack), makeinteger(0))), cdr(stack), fnth(list(2, cadar(stack), makeinteger(2))));
                     code60 = fnth(list(2, cadar(stack), makeinteger(1)));
-                    env61 = car(tmp101);
+                    env61 = car(tmp105);
                     ip62 = makeinteger(0);
                     stack63 = SNIL;
-                    dump64 = cons(list(4, code, env, ip, cadr(tmp101)), dump);
+                    dump64 = cons(list(4, code, env, ip, cadr(tmp105)), dump);
                     code = code60; 
                     env = env61; 
                     ip = ip62; 
@@ -843,26 +789,26 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                     dump = dump64; 
                 }
                 else if((hydra_primitivep(car(stack)) == STRUE)){
-                    f_princ(list(1, makestring("in hydra@primitive\n\t")), enyalios93);
-                    f_princ(list(1, car(stack)), enyalios93);
-                    f_princ(list(1, makestring("\n")), enyalios93);
+                    f_princ(list(1, makestring("in hydra@primitive\n\t")), enyalios97);
+                    f_princ(list(1, car(stack)), enyalios97);
+                    f_princ(list(1, makestring("\n")), enyalios97);
                     return STRUE;
                 }
                 else {
-                    f_princ(list(1, makestring("in <else> of CALL\n")), enyalios93);
+                    f_princ(list(1, makestring("in <else> of CALL\n")), enyalios97);
                     return SFALSE;
                 }
             }
-            else if((eqp(tmp100, makeinteger(31)) == STRUE)){
-                SExp *tmp102 = hydra_lookup(hydra_operand(tmp99), env);
-                if((eqp(tmp102, SFALSE) == STRUE)){
+            else if((eqp(tmp104, makeinteger(31)) == STRUE)){
+                SExp *tmp106 = hydra_lookup(hydra_operand(tmp103), env);
+                if((eqp(tmp106, SFALSE) == STRUE)){
                     return SFALSE;
                 }
                 else {
                     code60 = code;
                     env61 = env;
                     ip62 = fplus(list(2, ip, makeinteger(1)));
-                    stack63 = cons(tmp102, stack);
+                    stack63 = cons(tmp106, stack);
                     dump64 = dump;
                     code = code60; 
                     env = env61; 
@@ -871,7 +817,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                     dump = dump64; 
                 }
             }
-            else if((eqp(tmp100, makeinteger(32)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(32)) == STRUE)){
                 if((not(nullp(stack)) == STRUE) && (eqp(caar(stack), makeatom("compiled-lambda")) == STRUE)){
                     code60 = fnth(list(2, cdar(stack), makeinteger(0)));
                     env61 = fnth(list(2, cdar(stack), makeinteger(1)));
@@ -888,7 +834,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                     return SFALSE;
                 }
             }
-            else if((eqp(tmp100, makeinteger(33)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(33)) == STRUE)){
                 hydra_add_env_(car(stack), cadr(stack), env);
                 code60 = code;
                 env61 = env;
@@ -901,7 +847,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(34)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(34)) == STRUE)){
                 hydra_set_env_(car(stack), cadr(stack), env);
                 code60 = code;
                 env61 = env;
@@ -914,7 +860,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(35)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(35)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -926,7 +872,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(36)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(36)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -938,7 +884,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(37)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(37)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -950,7 +896,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(38)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(38)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -962,7 +908,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(39)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(39)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -974,7 +920,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(40)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(40)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -986,7 +932,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(41)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(41)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -998,7 +944,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(42)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(42)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1010,7 +956,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(43)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(43)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1022,7 +968,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(44)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(44)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1034,7 +980,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(45)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(45)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1046,7 +992,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(46)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(46)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1058,7 +1004,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(47)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(47)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1070,7 +1016,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(48)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(48)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1082,7 +1028,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(49)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(49)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1094,7 +1040,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(50)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(50)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1106,7 +1052,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(51)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(51)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1118,7 +1064,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(52)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(52)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1130,7 +1076,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(53)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(53)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1142,7 +1088,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(54)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(54)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1154,7 +1100,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(55)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(55)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1166,7 +1112,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(56)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(56)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1178,7 +1124,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(57)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(57)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1190,7 +1136,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(58)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(58)) == STRUE)){
                 fcset(caddr(stack), cadr(stack), car(stack));
                 code60 = code;
                 env61 = env;
@@ -1203,7 +1149,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(59)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(59)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1215,7 +1161,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(60)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(60)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1227,7 +1173,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(61)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(61)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1239,7 +1185,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(62)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(62)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1251,7 +1197,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(63)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(63)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1263,7 +1209,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(64)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(64)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1275,7 +1221,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(65)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(65)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1287,7 +1233,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(66)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(66)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1299,7 +1245,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(67)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(67)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1311,7 +1257,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(68)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(68)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1323,7 +1269,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(69)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(69)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1335,7 +1281,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(70)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(70)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1347,7 +1293,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(71)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(71)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1359,7 +1305,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(72)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(72)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1371,7 +1317,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(73)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(73)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1383,7 +1329,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(74)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(74)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1395,7 +1341,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(75)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(75)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1407,7 +1353,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(76)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(76)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1419,7 +1365,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(77)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(77)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1431,7 +1377,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(78)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(78)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1443,7 +1389,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(79)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(79)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1455,7 +1401,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(80)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(80)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1467,7 +1413,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(81)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(81)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1479,7 +1425,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(82)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(82)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1491,7 +1437,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(83)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(83)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1503,7 +1449,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(84)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(84)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1515,7 +1461,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(85)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(85)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1527,7 +1473,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(86)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(86)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1539,7 +1485,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(87)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(87)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1551,7 +1497,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(88)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(88)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1563,7 +1509,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(89)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(89)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1575,7 +1521,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(90)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(90)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1587,7 +1533,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(91)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(91)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1599,7 +1545,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(92)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(92)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1611,7 +1557,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(93)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(93)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1623,7 +1569,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(94)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(94)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1635,7 +1581,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(95)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(95)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1647,7 +1593,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(96)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(96)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1659,7 +1605,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(97)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(97)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1671,7 +1617,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(98)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(98)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1683,7 +1629,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(99)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(99)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1695,7 +1641,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(100)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(100)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1707,7 +1653,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(101)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(101)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1719,7 +1665,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(102)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(102)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1731,7 +1677,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(103)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(103)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1743,7 +1689,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(104)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(104)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1755,7 +1701,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(105)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(105)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1767,12 +1713,12 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(106)) == STRUE)){
-                SExp *tmp103 = hydra_vm(cons(list(2, makeinteger(3), car(stack)), list(1, list(1, makeinteger(30)))), env, makeinteger(0), cons(list(6, makeatom("continuation"), copy_code(code, ip, makeinteger(0)), ip, env, stack, dump), SNIL), SNIL);
+            else if((eqp(tmp104, makeinteger(106)) == STRUE)){
+                SExp *tmp107 = hydra_vm(cons(list(2, makeinteger(3), car(stack)), list(1, list(1, makeinteger(30)))), env, makeinteger(0), cons(list(6, makeatom("continuation"), copy_code(code, ip, makeinteger(0)), ip, env, stack, dump), SNIL), SNIL);
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(tmp103, cdr(stack));
+                stack63 = cons(tmp107, cdr(stack));
                 dump64 = dump;
                 code = code60; 
                 env = env61; 
@@ -1780,7 +1726,7 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(107)) == STRUE)){
+            else if((eqp(tmp104, makeinteger(107)) == STRUE)){
                 code60 = code;
                 env61 = env;
                 ip62 = fplus(list(2, ip, makeinteger(1)));
@@ -1792,14 +1738,14 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 stack = stack63; 
                 dump = dump64; 
             }
-            else if((eqp(tmp100, makeinteger(108)) == STRUE)){
-                SExp *tmp104 = car(stack);
-                SExp *tmp105 = cadr(stack);
-                code60 = fnth(list(2, tmp104, makeinteger(1)));
-                env61 = fnth(list(2, tmp104, makeinteger(3)));
+            else if((eqp(tmp104, makeinteger(108)) == STRUE)){
+                SExp *tmp108 = car(stack);
+                SExp *tmp109 = cadr(stack);
+                code60 = fnth(list(2, tmp108, makeinteger(1)));
+                env61 = fnth(list(2, tmp108, makeinteger(3)));
                 ip62 = makeinteger(0);
-                stack63 = cons(tmp105, fnth(list(2, tmp104, makeinteger(4))));
-                dump64 = fnth(list(2, tmp104, makeinteger(5)));
+                stack63 = cons(tmp109, fnth(list(2, tmp108, makeinteger(4))));
+                dump64 = fnth(list(2, tmp108, makeinteger(5)));
                 code = code60; 
                 env = env61; 
                 ip = ip62; 
@@ -1818,7 +1764,7 @@ hydra_lookup(SExp *item, SExp *env){
         return item;
     }
     else if((nullp(env) == STRUE)){
-        return hydra_error(format(list(2, makestring("unbound variable: ~a"), item), enyalios93));
+        return hydra_error(format(list(2, makestring("unbound variable: ~a"), item), enyalios97));
     }
     else if((fdicthas(car(env), item) == STRUE)){
         return fnth(list(2, car(env), item));
@@ -1831,8 +1777,17 @@ hydra_lookup(SExp *item, SExp *env){
     }
 }
 SExp *
+compile_lambda_helper(SExp *lst, SExp *env){
+    if((nullp(lst) == STRUE)){
+        return SNIL;
+    }
+    else {
+        return fappend(list(2, hydra_compile(car(lst), env), compile_lambda_helper(cdr(lst), env)));
+    }
+}
+SExp *
 compile_lambda(SExp *rst, SExp *env){
-    return list(2, makeatom("compiled-lambda"), vector(3, list_copy(env), append_map(fun_106, cdr(rst)), car(rst)));
+    return list(2, makeatom("compiled-lambda"), vector(3, list_copy(env), compile_lambda_helper(cdr(rst), env), car(rst)));
 }
 SExp *
 hydra_lambdap(SExp *x){
@@ -1869,18 +1824,18 @@ hydra_set_env_(SExp *name, SExp *value, SExp *environment){
       an error if that binding has not been previously defined
      */
     if((nullp(environment) == STRUE)){
-        return hydra_error(format(list(2, makestring("SET! error: undefined name \"~a\""), name), enyalios93));
+        return hydra_error(format(list(2, makestring("SET! error: undefined name \"~a\""), name), enyalios97));
     }
     else if((fdicthas(car(environment), name) == STRUE)){
         return fcset(car(environment), name, value);
     }
     else {
-        name77 = name;
-        value78 = value;
-        environment79 = cdr(environment);
-        name = name77; 
-        value = value78; 
-        environment = environment79; 
+        name79 = name;
+        value80 = value;
+        environment81 = cdr(environment);
+        name = name79; 
+        value = value80; 
+        environment = environment81; 
     }
 }
 SExp *
@@ -1899,9 +1854,9 @@ reverse_append(SExp *x){
 }
 SExp *
 show(SExp *x){
-    f_princ(list(1, makestring("show: ")), enyalios93);
-    f_princ(list(1, x), enyalios93);
-    f_princ(list(1, makestring("\n")), enyalios93);
+    f_princ(list(1, makestring("show: ")), enyalios97);
+    f_princ(list(1, x), enyalios97);
+    f_princ(list(1, makestring("\n")), enyalios97);
     return x;
 }
 SExp *
@@ -1928,7 +1883,16 @@ hydra_compile_help(SExp *sym, SExp *iter_list, SExp *env){
         return iter_list;
     }
     else {
-        return fappend(list(2, fappend(list(2, hydra_compile(car(iter_list), env), list(1, list(1, cdr(hydra_lookup(sym, env)))))), hydra_compile_help(sym, cdr(iter_list), env)));
+        return fappend(list(3, hydra_compile(car(iter_list), env), list(1, list(1, cdr(hydra_lookup(sym, env)))), hydra_compile_help(sym, cdr(iter_list), env)));
+    }
+}
+SExp *
+hydra_map(SExp *iter_list, SExp *env){
+    if((nullp(iter_list) == STRUE)){
+        return iter_list;
+    }
+    else {
+        return cons(hydra_compile(car(iter_list), env), hydra_map(cdr(iter_list), env));
     }
 }
 SExp *
@@ -1947,167 +1911,167 @@ hydra_compile(SExp *line, SExp *env){
             return list(1, list(2, makeinteger(31), line));
         }
         else if((pairp(line) == STRUE)){
-            SExp *tmp108 = car(line);
-            SExp *tmp109 = hydra_lookup(fst, env);
-            SExp *tmp110 = cdr(line);
-            if((hydra_syntaxp(tmp109) == STRUE)){
-                if((eqp(cdr(tmp109), makeatom("primitive-syntax-quote")) == STRUE)){
-                    if((nullp(car(tmp110)) == STRUE)){
+            SExp *tmp110 = car(line);
+            SExp *tmp111 = hydra_lookup(fst, env);
+            SExp *tmp112 = cdr(line);
+            if((hydra_syntaxp(tmp111) == STRUE)){
+                if((eqp(cdr(tmp111), makeatom("primitive-syntax-quote")) == STRUE)){
+                    if((nullp(car(tmp112)) == STRUE)){
                         return list(1,list(1,makeinteger(4)));
                     }
                     else {
-                        return list(1, list(2, makeinteger(3), car(tmp110)));
+                        return list(1, list(2, makeinteger(3), car(tmp112)));
                     }
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-plus")) == STRUE)){
-                    return fappend(list(2, list(1,list(2,makeinteger(3),makeinteger(0))), hydra_compile_help(makeatom("%+"), tmp110, env)));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-plus")) == STRUE)){
+                    return fappend(list(2, list(1,list(2,makeinteger(3),makeinteger(0))), hydra_compile_help(makeatom("%+"), tmp112, env)));
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-minus")) == STRUE)){
-                    if((fnumeq(list(2, flength(tmp110), makeinteger(1))) == STRUE)){
-                        return fappend(list(3, list(1,list(2,makeinteger(3),makeinteger(0))), hydra_compile(car(tmp110), env), list(1, list(1, hydra_lookup(makeatom("%-"), env)))));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-minus")) == STRUE)){
+                    if((fnumeq(list(2, flength(tmp112), makeinteger(1))) == STRUE)){
+                        return fappend(list(3, list(1,list(2,makeinteger(3),makeinteger(0))), hydra_compile(car(tmp112), env), list(1, list(1, hydra_lookup(makeatom("%-"), env)))));
                     }
-                    else if((fgt(list(2, flength(tmp110), makeinteger(1))) == STRUE)){
-                        return fappend(list(2, hydra_compile(car(tmp110), env), hydra_compile_help(makeatom("%-"), cdr(tmp110), env)));
+                    else if((fgt(list(2, flength(tmp112), makeinteger(1))) == STRUE)){
+                        return fappend(list(2, hydra_compile(car(tmp112), env), hydra_compile_help(makeatom("%-"), cdr(tmp112), env)));
                     }
                     else {
                         return ferror(makestring("minus fail"));
                     }
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-mult")) == STRUE)){
-                    return fappend(list(2, list(1,list(2,makeinteger(3),makeinteger(1))), hydra_compile_help(makeatom("%*"), tmp110, env)));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-mult")) == STRUE)){
+                    return fappend(list(2, list(1,list(2,makeinteger(3),makeinteger(1))), hydra_compile_help(makeatom("%*"), tmp112, env)));
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-div")) == STRUE)){
-                    if((fnumeq(list(2, flength(tmp110), makeinteger(1))) == STRUE)){
-                        return fappend(list(3, list(1,list(2,makeinteger(3),makeinteger(1))), hydra_compile(car(tmp110), env), list(1, list(1, hydra_lookup(makeatom("%/"), env)))));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-div")) == STRUE)){
+                    if((fnumeq(list(2, flength(tmp112), makeinteger(1))) == STRUE)){
+                        return fappend(list(3, list(1,list(2,makeinteger(3),makeinteger(1))), hydra_compile(car(tmp112), env), list(1, list(1, hydra_lookup(makeatom("%/"), env)))));
                     }
-                    else if((fgt(list(2, flength(tmp110), makeinteger(1))) == STRUE)){
-                        return fappend(list(2, hydra_compile(car(tmp110), env), hydra_compile_help(makeatom("%/"), cdr(tmp110), env)));
+                    else if((fgt(list(2, flength(tmp112), makeinteger(1))) == STRUE)){
+                        return fappend(list(2, hydra_compile(car(tmp112), env), hydra_compile_help(makeatom("%/"), cdr(tmp112), env)));
                     }
                     else {
                         return ferror(makestring("division fail"));
                     }
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-numeq")) == STRUE)){
-                    if((fnumeq(list(2, flength(tmp110), makeinteger(1))) == STRUE)){
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-numeq")) == STRUE)){
+                    if((fnumeq(list(2, flength(tmp112), makeinteger(1))) == STRUE)){
                         return list(1, list(2, makeinteger(3), STRUE));
                     }
-                    else if((fgt(list(2, flength(tmp110), makeinteger(1))) == STRUE)){
-                        return fappend(list(2, hydra_compile(car(tmp110), env), hydra_compile_help(makeatom("%="), cdr(tmp110), env)));
+                    else if((fgt(list(2, flength(tmp112), makeinteger(1))) == STRUE)){
+                        return fappend(list(2, hydra_compile(car(tmp112), env), hydra_compile_help(makeatom("%="), cdr(tmp112), env)));
                     }
                     else {
                         return ferror(makestring("numeq fail"));
                     }
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-define")) == STRUE)){
-                    SExp *tmp111 = car(tmp110);
-                    SExp *tmp112 = cadr(tmp110);
-                    if((pairp(tmp111) == STRUE)){
-                        return fappend(list(3, hydra_compile(cons(makeatom("fn"), cons(cdar(tmp110), cdr(tmp110))), env), list(1, list(2, makeinteger(3), caar(tmp110))), list(1, list(1, cdr(hydra_lookup(makeatom("%define"), env))))));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-define")) == STRUE)){
+                    SExp *tmp113 = car(tmp112);
+                    SExp *tmp114 = cadr(tmp112);
+                    if((pairp(tmp113) == STRUE)){
+                        return fappend(list(3, hydra_compile(cons(makeatom("fn"), cons(cdar(tmp112), cdr(tmp112))), env), list(1, list(2, makeinteger(3), caar(tmp112))), list(1, list(1, cdr(hydra_lookup(makeatom("%define"), env))))));
                     }
-                    else if((symbolp(tmp111) == STRUE)){
-                        return fappend(list(3, hydra_compile(tmp112, env), list(1, list(2, makeinteger(3), tmp111)), list(1, list(1, cdr(hydra_lookup(makeatom("%define"), env))))));
+                    else if((symbolp(tmp113) == STRUE)){
+                        return fappend(list(3, hydra_compile(tmp114, env), list(1, list(2, makeinteger(3), tmp113)), list(1, list(1, cdr(hydra_lookup(makeatom("%define"), env))))));
                     }
                     else {
                         return ferror(makestring("DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*"));
                     }
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-set")) == STRUE)){
-                    SExp *tmp113 = car(tmp110);
-                    SExp *tmp114 = cadr(tmp110);
-                    if((symbolp(tmp113) == STRUE)){
-                        return fappend(list(3, hydra_compile(tmp114, env), list(1, list(2, makeinteger(3), tmp113)), list(1, list(1, cdr(hydra_lookup(makeatom("%set!"), env))))));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-set")) == STRUE)){
+                    SExp *tmp115 = car(tmp112);
+                    SExp *tmp116 = cadr(tmp112);
+                    if((symbolp(tmp115) == STRUE)){
+                        return fappend(list(3, hydra_compile(tmp116, env), list(1, list(2, makeinteger(3), tmp115)), list(1, list(1, cdr(hydra_lookup(makeatom("%set!"), env))))));
                     }
                     else {
                         return ferror(makestring("SET!: set! SYMBOL S-EXPR*"));
                     }
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-defsyn")) == STRUE)){
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-defsyn")) == STRUE)){
                     return STRUE;
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-defmac")) == STRUE)){
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-defmac")) == STRUE)){
                     return STRUE;
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-fn")) == STRUE)){
-                    return list(1, list(2, makeinteger(3), compile_lambda(tmp110, env)));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-fn")) == STRUE)){
+                    return list(1, list(2, makeinteger(3), compile_lambda(tmp112, env)));
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-lt")) == STRUE)){
-                    return fappend(list(2, hydra_compile(car(tmp110), env), hydra_compile_help(makeatom("%<"), cdr(tmp110), env)));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-lt")) == STRUE)){
+                    return fappend(list(2, hydra_compile(car(tmp112), env), hydra_compile_help(makeatom("%<"), cdr(tmp112), env)));
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-gt")) == STRUE)){
-                    return fappend(list(2, hydra_compile(car(tmp110), env), hydra_compile_help(makeatom("%>"), cdr(tmp110), env)));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-gt")) == STRUE)){
+                    return fappend(list(2, hydra_compile(car(tmp112), env), hydra_compile_help(makeatom("%>"), cdr(tmp112), env)));
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-lte")) == STRUE)){
-                    return fappend(list(2, hydra_compile(car(tmp110), env), hydra_compile_help(makeatom("%<="), cdr(tmp110), env)));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-lte")) == STRUE)){
+                    return fappend(list(2, hydra_compile(car(tmp112), env), hydra_compile_help(makeatom("%<="), cdr(tmp112), env)));
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-gte")) == STRUE)){
-                    return fappend(list(2, hydra_compile(car(tmp110), env), hydra_compile_help(makeatom("%>="), cdr(tmp110), env)));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-gte")) == STRUE)){
+                    return fappend(list(2, hydra_compile(car(tmp112), env), hydra_compile_help(makeatom("%>="), cdr(tmp112), env)));
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-list")) == STRUE)){
-                    if((nullp(tmp110) == STRUE)){
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-list")) == STRUE)){
+                    if((nullp(tmp112) == STRUE)){
                         return list(1, list(1, makeinteger(4)));
                     }
                     else {
-                        return fappend(list(3, reverse_append(map(fun_115, tmp110)), list(1, list(2, makeinteger(3), flength(tmp110))), list(1, list(1, cdr(hydra_lookup(makeatom("%list"), env))))));
+                        return fappend(list(3, reverse_append(hydra_map(tmp112, env)), list(1, list(2, makeinteger(3), flength(tmp112))), list(1, list(1, cdr(hydra_lookup(makeatom("%list"), env))))));
                     }
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-vector")) == STRUE)){
-                    if((nullp(tmp110) == STRUE)){
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-vector")) == STRUE)){
+                    if((nullp(tmp112) == STRUE)){
                         return list(1, list(1, makeinteger(4)));
                     }
                     else {
-                        return fappend(list(3, reverse_append(map(fun_117, tmp110)), list(1, list(2, makeinteger(3), flength(tmp110))), list(1, list(1, cdr(hydra_lookup(makeatom("%vector"), env))))));
+                        return fappend(list(3, reverse_append(hydra_map(tmp112, env)), list(1, list(2, makeinteger(3), flength(tmp112))), list(1, list(1, cdr(hydra_lookup(makeatom("%vector"), env))))));
                     }
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-makevector")) == STRUE)){
-                    SExp *tmp119 = flength(tmp110);
-                    if((fnumeq(list(2, tmp119, makeinteger(1))) == STRUE)){
-                        return fappend(list(3, list(1,list(1,makeinteger(4))), hydra_compile(car(tmp110), env), list(1, list(1, cdr(hydra_lookup(makeatom("%make-vector"), env))))));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-makevector")) == STRUE)){
+                    SExp *tmp117 = flength(tmp112);
+                    if((fnumeq(list(2, tmp117, makeinteger(1))) == STRUE)){
+                        return fappend(list(3, list(1,list(1,makeinteger(4))), hydra_compile(car(tmp112), env), list(1, list(1, cdr(hydra_lookup(makeatom("%make-vector"), env))))));
                     }
-                    else if((fnumeq(list(2, tmp119, makeinteger(2))) == STRUE)){
-                        return fappend(list(2, reverse_append(map(fun_120, tmp110)), list(1, list(1, cdr(hydra_lookup(makeatom("%make-vector"), env))))));
+                    else if((fnumeq(list(2, tmp117, makeinteger(2))) == STRUE)){
+                        return fappend(list(2, reverse_append(hydra_map(tmp112, env)), list(1, list(1, cdr(hydra_lookup(makeatom("%make-vector"), env))))));
                     }
                     else {
                         return hydra_error(makestring("make-vector len : INTEGER (v : SEXPR) => VECTOR"));
                     }
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-makestring")) == STRUE)){
-                    SExp *tmp122 = flength(tmp110);
-                    if((fnumeq(list(2, tmp122, makeinteger(1))) == STRUE)){
-                        return fappend(list(3, list(1,list(2,makeinteger(3),makechar(' '))), hydra_compile(car(tmp110), env), list(1, list(1, cdr(hydra_lookup(makeatom("%make-string"), env))))));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-makestring")) == STRUE)){
+                    SExp *tmp118 = flength(tmp112);
+                    if((fnumeq(list(2, tmp118, makeinteger(1))) == STRUE)){
+                        return fappend(list(3, list(1,list(2,makeinteger(3),makechar(' '))), hydra_compile(car(tmp112), env), list(1, list(1, cdr(hydra_lookup(makeatom("%make-string"), env))))));
                     }
-                    else if((fnumeq(list(2, tmp122, makeinteger(2))) == STRUE)){
-                        return fappend(list(2, reverse_append(map(fun_123, tmp110)), list(1, list(1, cdr(hydra_lookup(makeatom("%make-string"), env))))));
+                    else if((fnumeq(list(2, tmp118, makeinteger(2))) == STRUE)){
+                        return fappend(list(2, reverse_append(hydra_map(tmp112, env)), list(1, list(1, cdr(hydra_lookup(makeatom("%make-string"), env))))));
                     }
                     else {
                         return hydra_error(makestring("make-string len : INTEGER (c : CHAR) => STRING"));
                     }
                 }
-                else if((eqp(cdr(tmp109), makeatom("primitive-syntax-if")) == STRUE)){
-                    SExp *tmp125 = hydra_compile(car(tmp110), env);
-                    SExp *tmp126 = hydra_compile(cadr(tmp110), env);
-                    SExp *tmp127 = hydra_compile(caddr(tmp110), env);
-                    SExp *tmp128 = fplus(list(2, flength(tmp126), makeinteger(2)));
-                    SExp *tmp129 = fplus(list(2, flength(tmp127), makeinteger(1)));
-                    return fappend(list(5, tmp125, list(1, list(2, makeinteger(29), tmp128)), tmp126, list(1, list(2, makeinteger(28), tmp129)), tmp127));
+                else if((eqp(cdr(tmp111), makeatom("primitive-syntax-if")) == STRUE)){
+                    SExp *tmp119 = hydra_compile(car(tmp112), env);
+                    SExp *tmp120 = hydra_compile(cadr(tmp112), env);
+                    SExp *tmp121 = hydra_compile(caddr(tmp112), env);
+                    SExp *tmp122 = fplus(list(2, flength(tmp120), makeinteger(2)));
+                    SExp *tmp123 = fplus(list(2, flength(tmp121), makeinteger(1)));
+                    return fappend(list(5, tmp119, list(1, list(2, makeinteger(29), tmp122)), tmp120, list(1, list(2, makeinteger(28), tmp123)), tmp121));
                 }
                 else {
                     return STRUE;
                 }
             }
-            else if((pairp(tmp108) == STRUE)){
-                return fappend(list(3, reverse_append(map(fun_130, tmp110)), hydra_compile(tmp108, env), list(1, list(1, makeinteger(30)))));
+            else if((pairp(tmp110) == STRUE)){
+                return fappend(list(3, reverse_append(hydra_map(tmp112, env)), hydra_compile(tmp110, env), list(1, list(1, makeinteger(30)))));
             }
-            else if((hydra_primitivep(tmp109) == STRUE)){
-                return fappend(list(2, reverse_append(map(fun_132, tmp110)), list(1, list(1, cdr(tmp109)))));
+            else if((hydra_primitivep(tmp111) == STRUE)){
+                return fappend(list(2, reverse_append(hydra_map(tmp112, env)), list(1, list(1, cdr(tmp111)))));
             }
-            else if((hydra_lambdap(tmp109) == STRUE)){
-                return fappend(list(3, reverse_append(map(fun_134, tmp110)), list(1, list(2, makeinteger(3), tmp109)), list(1, list(1, makeinteger(30)))));
+            else if((hydra_lambdap(tmp111) == STRUE)){
+                return fappend(list(3, reverse_append(hydra_map(tmp112, env)), list(1, list(2, makeinteger(3), tmp111)), list(1, list(1, makeinteger(30)))));
             }
-            else if((hydra_continuationp(tmp109) == STRUE)){
-                return fappend(list(3, reverse_append(map(fun_136, tmp110)), list(1, list(2, makeinteger(3), tmp109)), list(1, list(1, makeinteger(108)))));
+            else if((hydra_continuationp(tmp111) == STRUE)){
+                return fappend(list(3, reverse_append(hydra_map(tmp112, env)), list(1, list(2, makeinteger(3), tmp111)), list(1, list(1, makeinteger(108)))));
             }
-            else if((symbolp(tmp108) == STRUE)){
-                return fappend(list(3, reverse_append(map(fun_138, tmp110)), list(1, list(2, makeinteger(31), tmp108)), list(1, list(1, makeinteger(30)))));
+            else if((symbolp(tmp110) == STRUE)){
+                return fappend(list(3, reverse_append(hydra_map(tmp112, env)), list(1, list(2, makeinteger(31), tmp110)), list(1, list(1, makeinteger(30)))));
             }
             else {
                 return ferror(makestring("error: the only applicable types are primitive procedures, closures & syntax"));
@@ -2123,22 +2087,22 @@ top_level_print(SExp *x){
     /*  print #<foo> at the top level
      */
     if((hydra_lambdap(x) == STRUE)){
-        return f_princ(list(1, makestring("#<closure>")), enyalios93);
+        return f_princ(list(1, makestring("#<closure>")), enyalios97);
     }
     else if((hydra_continuationp(x) == STRUE)){
-        return f_princ(list(1, makestring("#<continuation>")), enyalios93);
+        return f_princ(list(1, makestring("#<continuation>")), enyalios97);
     }
     else if((hydra_primitivep(x) == STRUE)){
-        return f_princ(list(1, format(list(2, makestring("#<primitive-procedure ~a>"), cdr(x)), enyalios93)), enyalios93);
+        return f_princ(list(1, format(list(2, makestring("#<primitive-procedure ~a>"), cdr(x)), enyalios97)), enyalios97);
     }
     else if((hydra_syntaxp(x) == STRUE)){
-        return f_princ(list(1, format(list(2, makestring("#<syntax ~a>"), cdr(x)), enyalios93)), enyalios93);
+        return f_princ(list(1, format(list(2, makestring("#<syntax ~a>"), cdr(x)), enyalios97)), enyalios97);
     }
     else if((hydra_errorp(x) == STRUE)){
-        return f_princ(list(1, format(list(2, makestring("ERROR: ~a"), cdr(x)), enyalios93)), enyalios93);
+        return f_princ(list(1, format(list(2, makestring("ERROR: ~a"), cdr(x)), enyalios97)), enyalios97);
     }
     else {
-        return f_princ(list(1, x), enyalios93);
+        return f_princ(list(1, x), enyalios97);
     }
 }
 SExp *
@@ -2150,54 +2114,54 @@ hydra_load(SExp *src_file, SExp *env){
 SExp *
 hydra_repl(){
 while(1) {
-        f_princ(list(1, makestring("h; ")), enyalios93);
-        SExp *tmp140 = f_read(SNILenyalios93);
-        if((eqp(ftype(tmp140), makestring("Pair")) == STRUE) && (eqp(car(tmp140), makeatom("unquote")) == STRUE)){
-            if((eqp(cadr(tmp140), makeatom("exit")) == STRUE)){
+        f_princ(list(1, makestring("h; ")), enyalios97);
+        SExp *tmp124 = f_read(SNILenyalios97);
+        if((eqp(ftype(tmp124), makestring("Pair")) == STRUE) && (eqp(car(tmp124), makeatom("unquote")) == STRUE)){
+            if((eqp(cadr(tmp124), makeatom("exit")) == STRUE)){
                 return SVOID;
             }
-            else if((eqp(cadr(tmp140), makeatom("q")) == STRUE)){
+            else if((eqp(cadr(tmp124), makeatom("q")) == STRUE)){
                 return SVOID;
             }
-            else if((eqp(cadr(tmp140), makeatom("quit")) == STRUE)){
+            else if((eqp(cadr(tmp124), makeatom("quit")) == STRUE)){
                 return SVOID;
             }
-            else if((eqp(cadr(tmp140), makeatom("bye")) == STRUE)){
+            else if((eqp(cadr(tmp124), makeatom("bye")) == STRUE)){
                 return SVOID;
             }
-            else if((eqp(cadr(tmp140), makeatom("dribble")) == STRUE)){
+            else if((eqp(cadr(tmp124), makeatom("dribble")) == STRUE)){
                 continue;
             }
-            else if((eqp(cadr(tmp140), makeatom("save")) == STRUE)){
+            else if((eqp(cadr(tmp124), makeatom("save")) == STRUE)){
                 continue;
             }
-            else if((eqp(cadr(tmp140), makeatom("save-and-die")) == STRUE)){
+            else if((eqp(cadr(tmp124), makeatom("save-and-die")) == STRUE)){
                 continue;
             }
             else {
-                f_princ(list(1, format(list(2, makestring("Unknown command: ~a~%"), cadr(tmp140)), enyalios93)), enyalios93);
+                f_princ(list(1, format(list(2, makestring("Unknown command: ~a~%"), cadr(tmp124)), enyalios97)), enyalios97);
                 continue;
             }
         }
         else {
-            if((not(pairp(tmp140)) == STRUE)){
-                if((eqp(tmp140, SVOID) == STRUE)){
+            if((not(pairp(tmp124)) == STRUE)){
+                if((eqp(tmp124, SVOID) == STRUE)){
                     continue;
                 }
                 else {
-                    top_level_print(hydra_lookup(tmp140, _tlenv_));
-                    f_princ(list(1, makestring("\n")), enyalios93);
+                    top_level_print(hydra_lookup(tmp124, _tlenv_));
+                    f_princ(list(1, makestring("\n")), enyalios97);
                     continue;
                 }
             }
             else {
-                SExp *tmp141 = hydra_eval(tmp140, _tlenv_);
-                if((eqp(tmp141, SVOID) == STRUE)){
+                SExp *tmp125 = hydra_eval(tmp124, _tlenv_);
+                if((eqp(tmp125, SVOID) == STRUE)){
                     continue;
                 }
                 else {
-                    top_level_print(tmp141);
-                    f_princ(list(1, makestring("\n")), enyalios93);
+                    top_level_print(tmp125);
+                    f_princ(list(1, makestring("\n")), enyalios97);
                     continue;
                 }
             }
@@ -2206,6 +2170,6 @@ while(1) {
 }
 SExp *
 hydra_main(){
-    f_princ(list(1, makestring("\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2012.0/r0\n")), enyalios93);
+    f_princ(list(1, makestring("\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2012.0/r0\n")), enyalios97);
     return hydra_repl();
 }

@@ -1212,7 +1212,7 @@
                                         (list (list 4))
                                         (append
                                             (reverse-append
-                                                (hydra-map rst env))
+                                                (hydra@map rst env))
                                             (list (list 3 (length rst)))
                                             (list (list (cdr (hydra@lookup '%list env))))))
                                 (eq? (cdr v) 'primitive-syntax-vector)
@@ -1301,7 +1301,7 @@
                                     (list (list 108))) ;; 108 -> %ap
                             (symbol? fst) ;; fst is a symbol, but it has no mapping in our current env; write to environment-load
                                 (append (reverse-append
-                                            (hydra@map rst env) 
+                                            (hydra@map rst env)) 
                                             (list (list 31 fst))
                                             (list (list 30)))
                             else (error "error: the only applicable types are primitive procedures, closures & syntax")))
