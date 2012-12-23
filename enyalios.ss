@@ -138,7 +138,7 @@
     :cset! ["fcset" #f 3]
     :string ["fstring" #f 0]
     :empty? ["fempty" #f 1]
-    :gensym ["gensym" #f 0] 
+    :gensym ["fgensym" #f 0] 
     :imag-part ["fimag_part" #f 1]
     :real-part ["freal_part" #f 1] 
     :make-rectangular ["fmake_rect" #f 2]
@@ -1087,7 +1087,7 @@
                 (foreach-proc
                     (fn (x)
                         (int->spaces lvl out)
-                        (format "SExp ~a = SNIL;~%" (cmung x)))
+                        (display (format "SExp *~a = SNIL;~%" (cmung x)) out))
                     (nth proc-data 4)))
         (eq? (car il) 'c-docstring)
             (begin
