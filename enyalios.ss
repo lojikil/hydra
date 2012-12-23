@@ -664,7 +664,7 @@
                     (map 
                         (fn (x) (list 'c-var
                                 (nth var-temps (car x))
-                                (cadr (generate-code (cadr x) name #f rewrites nulparams))))
+                                (cadr (generate-code (cadr x) name #f var-temps nulparams))))
                         (car block)) 
                     (cdr body))))))
 
