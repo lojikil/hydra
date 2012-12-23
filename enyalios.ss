@@ -114,7 +114,7 @@
     :lcm ["flcm" #f 2]
     :ceil ["fceil" #f 1]
     :floor ["ffloor" #f 1]
-    :truncate ["ftruncate" #f 1]
+    :truncate ["ftrunc" #f 1]
     :round ["fround" #f 1]
     :inexact->exact ["fin2ex" #f 1]
     :quotient ["fquotient" #f 2]
