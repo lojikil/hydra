@@ -1,3 +1,5 @@
+#include "murt.h"
+
 SExp *caar(SExp *);
 SExp *caaar(SExp *);
 SExp *caaaar(SExp *);
@@ -48,9 +50,9 @@ SExp *zerop(SExp *);
 SExp *zip(SExp *, SExp *);
 SExp *eof_objectp(SExp *);
 SExp *list_copy(SExp *);
+SExp *loop_set_env_(SExp *, SExp *);
 SExp *map(SExp *, SExp *);
 SExp *foreach(SExp *, SExp *);
-SExp *fun_101(SExp *);
 SExp *append_map(SExp *, SExp *);
 SExp *hydra_instruction(SExp *);
 SExp *hydra_operand(SExp *);
@@ -73,12 +75,8 @@ SExp *hydra_main();
 SExp *hydra_repl();
 SExp *reverse_append(SExp *);
 SExp *top_level_print(SExp *);
-Symbol *enyalios97;
+Symbol *enyalios99;
 
-SExp *
-fun_101(SExp *x){
-    return fcset(tmp100, car(x), cadr(x));
-}
 SExp *
 caar(SExp *x){
     return car(car(x));
@@ -326,24 +324,39 @@ hydra_operand(SExp *c){
     return cadr(c);
 }
 SExp *
+loop_set_env_(SExp *env, SExp *pairs){
+        while(1) {
+        if((nullp(pairs) == STRUE)){
+            return SVOID;
+        }
+        else {
+            fcset(env, caar(pairs), cadar(pairs));
+            env54 = env;
+            pairs55 = cdr(pairs);
+            env = env54; 
+            pairs = pairs55; 
+        }
+    }
+}
+SExp *
 build_environment(SExp *environment, SExp *stack, SExp *params){
     /* Adds a new window to the environment, removes |params| items from the stack
      and binds those values in the new window. It returns a list of environment and
      the new stack.
      */
-    SExp *tmp98 = flength(stack);
-    SExp *tmp99 = flength(params);
-    SExp *tmp100 = makedict();
-    if((flt(list(2, tmp98, tmp99)) == STRUE)){
+    SExp *tmp100 = flength(stack);
+    SExp *tmp101 = flength(params);
+    SExp *tmp102 = makedict();
+    if((flt(list(2, tmp100, tmp101)) == STRUE)){
         return ferror(makestring("non-optional parameters are not statisfied by stack items in build-environment"));
     }
     else {
-        if((fnumeq(list(2, tmp99, makeinteger(0))) == STRUE)){
-            return list(2, cons(tmp100, environment), cdr(stack));
+        if((fnumeq(list(2, tmp101, makeinteger(0))) == STRUE)){
+            return list(2, cons(tmp102, environment), cdr(stack));
         }
         else {
-            foreach(fun_101, zip(params, fcslice(stack, makeinteger(0), tmp99)));
-            return list(2, cons(tmp100, environment), fcslice(stack, tmp99, tmp98));
+            loop_set_env_(tmp102, zip(params, fcslice(stack, makeinteger(0), tmp101)));
+            return list(2, cons(tmp102, environment), fcslice(stack, tmp101, tmp100));
         }
     }
 }
@@ -396,406 +409,406 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                 return car(stack);
             }
             else {
-                code60 = caar(dump);
-                env61 = cadar(dump);
-                ip62 = fplus(list(2, caddar(dump), makeinteger(1)));
-                stack63 = cons(car(stack), cadddar(dump));
-                dump64 = cdr(dump);
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = caar(dump);
+                env63 = cadar(dump);
+                ip64 = fplus(list(2, caddar(dump), makeinteger(1)));
+                stack65 = cons(car(stack), cadddar(dump));
+                dump66 = cdr(dump);
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
         }
         else {
             SExp *tmp103 = fnth(list(2, code, ip));
             SExp *tmp104 = hydra_instruction(c);
             if((eqp(tmp104, makeinteger(0)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(car(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(car(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(1)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(cdr(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(cdr(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(2)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(cons(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(cons(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(3)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(hydra_operand(tmp103), stack);
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(hydra_operand(tmp103), stack);
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(4)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(SNIL, stack);
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(SNIL, stack);
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(5)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fsubt(list(2, cadr(stack), car(stack))), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fsubt(list(2, cadr(stack), car(stack))), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(6)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fplus(list(2, car(stack), cadr(stack))), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fplus(list(2, car(stack), cadr(stack))), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(7)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fmult(list(2, car(stack), cadr(stack))), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fmult(list(2, car(stack), cadr(stack))), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(8)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fdivi(list(2, cadr(stack), car(stack))), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fdivi(list(2, cadr(stack), car(stack))), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(9)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(flt(list(2, cadr(stack), car(stack))), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(flt(list(2, cadr(stack), car(stack))), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(10)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fgt(list(2, cadr(stack), car(stack))), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fgt(list(2, cadr(stack), car(stack))), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(11)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(flte(list(2, cadr(stack), car(stack))), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(flte(list(2, cadr(stack), car(stack))), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(12)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fgte(list(2, cadr(stack), car(stack))), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fgte(list(2, cadr(stack), car(stack))), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(13)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(flength(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(flength(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(14)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fexactp(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fexactp(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(15)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(finexactp(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(finexactp(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(16)) == STRUE)){
-                f_princ(list(1, car(stack)), enyalios97);
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(SVOID, cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                f_princ(list(1, car(stack)), enyalios99);
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(SVOID, cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(18)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(frealp(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(frealp(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(19)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fintegerp(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fintegerp(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(20)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fcomplexp(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fcomplexp(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(21)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(frationalp(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(frationalp(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(22)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fgcd(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fgcd(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(23)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(flcm(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(flcm(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(24)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fnum(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fnum(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(25)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fden(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fden(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(26)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fnumeq(list(2, car(stack), cadr(stack))), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fnumeq(list(2, car(stack), cadr(stack))), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(27)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(eqp(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(eqp(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(28)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, hydra_operand(tmp103)));
-                stack63 = stack;
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, hydra_operand(tmp103)));
+                stack65 = stack;
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(29)) == STRUE)){
                 if((car(stack) == STRUE)){
-                    code60 = code;
-                    env61 = env;
-                    ip62 = fplus(list(2, ip, makeinteger(1)));
-                    stack63 = cdr(stack);
-                    dump64 = dump;
-                    code = code60; 
-                    env = env61; 
-                    ip = ip62; 
-                    stack = stack63; 
-                    dump = dump64; 
+                    code62 = code;
+                    env63 = env;
+                    ip64 = fplus(list(2, ip, makeinteger(1)));
+                    stack65 = cdr(stack);
+                    dump66 = dump;
+                    code = code62; 
+                    env = env63; 
+                    ip = ip64; 
+                    stack = stack65; 
+                    dump = dump66; 
                 }
                 else {
-                    code60 = code;
-                    env61 = env;
-                    ip62 = fplus(list(2, ip, hydra_operand(tmp103)));
-                    stack63 = cdr(stack);
-                    dump64 = dump;
-                    code = code60; 
-                    env = env61; 
-                    ip = ip62; 
-                    stack = stack63; 
-                    dump = dump64; 
+                    code62 = code;
+                    env63 = env;
+                    ip64 = fplus(list(2, ip, hydra_operand(tmp103)));
+                    stack65 = cdr(stack);
+                    dump66 = dump;
+                    code = code62; 
+                    env = env63; 
+                    ip = ip64; 
+                    stack = stack65; 
+                    dump = dump66; 
                 }
             }
             else if((eqp(tmp104, makeinteger(30)) == STRUE)){
                 if((hydra_lambdap(car(stack)) == STRUE)){
                     SExp *tmp105 = build_environment(fnth(list(2, cadar(stack), makeinteger(0))), cdr(stack), fnth(list(2, cadar(stack), makeinteger(2))));
-                    code60 = fnth(list(2, cadar(stack), makeinteger(1)));
-                    env61 = car(tmp105);
-                    ip62 = makeinteger(0);
-                    stack63 = SNIL;
-                    dump64 = cons(list(4, code, env, ip, cadr(tmp105)), dump);
-                    code = code60; 
-                    env = env61; 
-                    ip = ip62; 
-                    stack = stack63; 
-                    dump = dump64; 
+                    code62 = fnth(list(2, cadar(stack), makeinteger(1)));
+                    env63 = car(tmp105);
+                    ip64 = makeinteger(0);
+                    stack65 = SNIL;
+                    dump66 = cons(list(4, code, env, ip, cadr(tmp105)), dump);
+                    code = code62; 
+                    env = env63; 
+                    ip = ip64; 
+                    stack = stack65; 
+                    dump = dump66; 
                 }
                 else if((hydra_primitivep(car(stack)) == STRUE)){
-                    f_princ(list(1, makestring("in hydra@primitive\n\t")), enyalios97);
-                    f_princ(list(1, car(stack)), enyalios97);
-                    f_princ(list(1, makestring("\n")), enyalios97);
+                    f_princ(list(1, makestring("in hydra@primitive\n\t")), enyalios99);
+                    f_princ(list(1, car(stack)), enyalios99);
+                    f_princ(list(1, makestring("\n")), enyalios99);
                     return STRUE;
                 }
                 else {
-                    f_princ(list(1, makestring("in <else> of CALL\n")), enyalios97);
+                    f_princ(list(1, makestring("in <else> of CALL\n")), enyalios99);
                     return SFALSE;
                 }
             }
@@ -805,30 +818,30 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
                     return SFALSE;
                 }
                 else {
-                    code60 = code;
-                    env61 = env;
-                    ip62 = fplus(list(2, ip, makeinteger(1)));
-                    stack63 = cons(tmp106, stack);
-                    dump64 = dump;
-                    code = code60; 
-                    env = env61; 
-                    ip = ip62; 
-                    stack = stack63; 
-                    dump = dump64; 
+                    code62 = code;
+                    env63 = env;
+                    ip64 = fplus(list(2, ip, makeinteger(1)));
+                    stack65 = cons(tmp106, stack);
+                    dump66 = dump;
+                    code = code62; 
+                    env = env63; 
+                    ip = ip64; 
+                    stack = stack65; 
+                    dump = dump66; 
                 }
             }
             else if((eqp(tmp104, makeinteger(32)) == STRUE)){
                 if((not(nullp(stack)) == STRUE) && (eqp(caar(stack), makeatom("compiled-lambda")) == STRUE)){
-                    code60 = fnth(list(2, cdar(stack), makeinteger(0)));
-                    env61 = fnth(list(2, cdar(stack), makeinteger(1)));
-                    ip62 = makeinteger(0);
-                    stack63 = SNIL;
-                    dump64 = dump;
-                    code = code60; 
-                    env = env61; 
-                    ip = ip62; 
-                    stack = stack63; 
-                    dump = dump64; 
+                    code62 = fnth(list(2, cdar(stack), makeinteger(0)));
+                    env63 = fnth(list(2, cdar(stack), makeinteger(1)));
+                    ip64 = makeinteger(0);
+                    stack65 = SNIL;
+                    dump66 = dump;
+                    code = code62; 
+                    env = env63; 
+                    ip = ip64; 
+                    stack = stack65; 
+                    dump = dump66; 
                 }
                 else {
                     return SFALSE;
@@ -836,921 +849,921 @@ hydra_vm(SExp *code, SExp *env, SExp *ip, SExp *stack, SExp *dump){
             }
             else if((eqp(tmp104, makeinteger(33)) == STRUE)){
                 hydra_add_env_(car(stack), cadr(stack), env);
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(SVOID, stack);
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(SVOID, stack);
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(34)) == STRUE)){
                 hydra_set_env_(car(stack), cadr(stack), env);
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(SVOID, stack);
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(SVOID, stack);
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(35)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fceil(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fceil(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(36)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(ffloor(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(ffloor(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(37)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(ftruncate(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(ftruncate(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(38)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fround(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fround(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(39)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fin2ex(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fin2ex(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(40)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fquotient(cadr(stack), car(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fquotient(cadr(stack), car(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(41)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fmodulo(cadr(stack), car(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fmodulo(cadr(stack), car(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(42)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fbitand(cadr(stack), car(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fbitand(cadr(stack), car(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(43)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fbitor(cadr(stack), car(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fbitor(cadr(stack), car(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(44)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fbitxor(cadr(stack), car(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fbitxor(cadr(stack), car(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(45)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fbitnot(cadr(stack), car(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fbitnot(cadr(stack), car(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(46)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fcslice(cdr(stack), makeinteger(0), car(stack)), fcslice(cdr(stack), car(stack), fsubt(list(2, flength(stack), makeinteger(1)))));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fcslice(cdr(stack), makeinteger(0), car(stack)), fcslice(cdr(stack), car(stack), fsubt(list(2, flength(stack), makeinteger(1)))));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(47)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fcoerce(fcslice(cdr(stack), makeinteger(0), car(stack)), makeatom("vector")), fcslice(cdr(stack), car(stack), fsubt(list(2, flength(stack), makeinteger(1)))));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fcoerce(fcslice(cdr(stack), makeinteger(0), car(stack)), makeatom("vector")), fcslice(cdr(stack), car(stack), fsubt(list(2, flength(stack), makeinteger(1)))));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(48)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fmkvector(list(2, car(stack), cadr(stack))), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fmkvector(list(2, car(stack), cadr(stack))), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(49)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fmakestring(list(2, car(stack), cadr(stack))), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fmakestring(list(2, car(stack), cadr(stack))), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(50)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fstring(fcslice(cdr(stack), makeinteger(0), car(stack))), fcslice(cdr(stack), car(stack), fsubt(list(2, flength(stack), makeinteger(1)))));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fstring(fcslice(cdr(stack), makeinteger(0), car(stack))), fcslice(cdr(stack), car(stack), fsubt(list(2, flength(stack), makeinteger(1)))));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(51)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fappend(fcslice(cdr(stack), makeinteger(0), car(stack))), fcslice(cdr(stack), car(stack), fsubt(list(2, flength(stack), makeinteger(1)))));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fappend(fcslice(cdr(stack), makeinteger(0), car(stack))), fcslice(cdr(stack), car(stack), fsubt(list(2, flength(stack), makeinteger(1)))));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(52)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(ffirst(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(ffirst(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(53)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(frest(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(frest(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(54)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fccons(cadr(stack), car(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fccons(cadr(stack), car(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(55)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fnth(list(3, caddr(stack), cadr(stack), car(stack))), cdddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fnth(list(3, caddr(stack), cadr(stack), car(stack))), cdddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(56)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fkeys(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fkeys(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(57)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fpartial_key(cadr(stack), car(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fpartial_key(cadr(stack), car(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(58)) == STRUE)){
                 fcset(caddr(stack), cadr(stack), car(stack));
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(SVOID, cdddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(SVOID, cdddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(59)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fempty(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fempty(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(60)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(gensym(list(1, car(stack))), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(gensym(list(1, car(stack))), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(61)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fimag_part(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fimag_part(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(62)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(freal_part(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(freal_part(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(63)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fmake_rect(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fmake_rect(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(64)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fmake_pole(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fmake_pole(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(65)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fmag(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fmag(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(66)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(farg(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(farg(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(67)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fconjugate(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fconjugate(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(68)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fconjugate_bang(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fconjugate_bang(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(69)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fpol2rect(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fpol2rect(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(70)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(frect2pol(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(frect2pol(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(71)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fsin(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fsin(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(72)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fcos(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fcos(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(73)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(ftan(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(ftan(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(74)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fasin(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fasin(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(75)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(facos(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(facos(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(76)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fatan(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fatan(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(77)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fatan2(cadr(stack), car(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fatan2(cadr(stack), car(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(78)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fsinh(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fsinh(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(79)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fcosh(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fcosh(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(80)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(ftanh(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(ftanh(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(81)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fexp(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fexp(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(82)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fln(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fln(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(83)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fnabs(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fnabs(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(84)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fsqrt(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fsqrt(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(85)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fexp2(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fexp2(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(86)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fexpm1(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fexpm1(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(87)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(flog2(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(flog2(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(88)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(flog10(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(flog10(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(89)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fbitshl(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fbitshl(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(90)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fbitshr(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fbitshr(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(91)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fexp2(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fexp2(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(92)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(assq(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(assq(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(93)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(memq(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(memq(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(94)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fexp2(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fexp2(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(95)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fdict(SNIL), stack);
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fdict(SNIL), stack);
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(96)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fdicthas(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fdicthas(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(97)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fcoerce(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fcoerce(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(98)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fcupdate(car(stack), cadr(stack), caddr(stack)), cdddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fcupdate(car(stack), cadr(stack), caddr(stack)), cdddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(99)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fcslice(car(stack), cadr(stack), caddr(stack)), cdddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fcslice(car(stack), cadr(stack), caddr(stack)), cdddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(100)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fexp2(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fexp2(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(101)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fexp2(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fexp2(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(102)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fexp2(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fexp2(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(103)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fexp2(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fexp2(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(104)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(fexp2(car(stack)), cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(fexp2(car(stack)), cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(105)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(frationalize(car(stack), cadr(stack)), cddr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(frationalize(car(stack), cadr(stack)), cddr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(106)) == STRUE)){
                 SExp *tmp107 = hydra_vm(cons(list(2, makeinteger(3), car(stack)), list(1, list(1, makeinteger(30)))), env, makeinteger(0), cons(list(6, makeatom("continuation"), copy_code(code, ip, makeinteger(0)), ip, env, stack, dump), SNIL), SNIL);
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = cons(tmp107, cdr(stack));
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = cons(tmp107, cdr(stack));
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(107)) == STRUE)){
-                code60 = code;
-                env61 = env;
-                ip62 = fplus(list(2, ip, makeinteger(1)));
-                stack63 = stack;
-                dump64 = dump;
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = code;
+                env63 = env;
+                ip64 = fplus(list(2, ip, makeinteger(1)));
+                stack65 = stack;
+                dump66 = dump;
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
             else if((eqp(tmp104, makeinteger(108)) == STRUE)){
                 SExp *tmp108 = car(stack);
                 SExp *tmp109 = cadr(stack);
-                code60 = fnth(list(2, tmp108, makeinteger(1)));
-                env61 = fnth(list(2, tmp108, makeinteger(3)));
-                ip62 = makeinteger(0);
-                stack63 = cons(tmp109, fnth(list(2, tmp108, makeinteger(4))));
-                dump64 = fnth(list(2, tmp108, makeinteger(5)));
-                code = code60; 
-                env = env61; 
-                ip = ip62; 
-                stack = stack63; 
-                dump = dump64; 
+                code62 = fnth(list(2, tmp108, makeinteger(1)));
+                env63 = fnth(list(2, tmp108, makeinteger(3)));
+                ip64 = makeinteger(0);
+                stack65 = cons(tmp109, fnth(list(2, tmp108, makeinteger(4))));
+                dump66 = fnth(list(2, tmp108, makeinteger(5)));
+                code = code62; 
+                env = env63; 
+                ip = ip64; 
+                stack = stack65; 
+                dump = dump66; 
             }
         }
     }
@@ -1764,16 +1777,16 @@ hydra_lookup(SExp *item, SExp *env){
         return item;
     }
     else if((nullp(env) == STRUE)){
-        return hydra_error(format(list(2, makestring("unbound variable: ~a"), item), enyalios97));
+        return hydra_error(format(list(2, makestring("unbound variable: ~a"), item), enyalios99));
     }
     else if((fdicthas(car(env), item) == STRUE)){
         return fnth(list(2, car(env), item));
     }
     else {
-        item65 = item;
-        env66 = cdr(env);
-        item = item65; 
-        env = env66; 
+        item67 = item;
+        env68 = cdr(env);
+        item = item67; 
+        env = env68; 
     }
 }
 SExp *
@@ -1824,18 +1837,18 @@ hydra_set_env_(SExp *name, SExp *value, SExp *environment){
       an error if that binding has not been previously defined
      */
     if((nullp(environment) == STRUE)){
-        return hydra_error(format(list(2, makestring("SET! error: undefined name \"~a\""), name), enyalios97));
+        return hydra_error(format(list(2, makestring("SET! error: undefined name \"~a\""), name), enyalios99));
     }
     else if((fdicthas(car(environment), name) == STRUE)){
         return fcset(car(environment), name, value);
     }
     else {
-        name79 = name;
-        value80 = value;
-        environment81 = cdr(environment);
-        name = name79; 
-        value = value80; 
-        environment = environment81; 
+        name81 = name;
+        value82 = value;
+        environment83 = cdr(environment);
+        name = name81; 
+        value = value82; 
+        environment = environment83; 
     }
 }
 SExp *
@@ -1854,9 +1867,9 @@ reverse_append(SExp *x){
 }
 SExp *
 show(SExp *x){
-    f_princ(list(1, makestring("show: ")), enyalios97);
-    f_princ(list(1, x), enyalios97);
-    f_princ(list(1, makestring("\n")), enyalios97);
+    f_princ(list(1, makestring("show: ")), enyalios99);
+    f_princ(list(1, x), enyalios99);
+    f_princ(list(1, makestring("\n")), enyalios99);
     return x;
 }
 SExp *
@@ -2087,22 +2100,22 @@ top_level_print(SExp *x){
     /*  print #<foo> at the top level
      */
     if((hydra_lambdap(x) == STRUE)){
-        return f_princ(list(1, makestring("#<closure>")), enyalios97);
+        return f_princ(list(1, makestring("#<closure>")), enyalios99);
     }
     else if((hydra_continuationp(x) == STRUE)){
-        return f_princ(list(1, makestring("#<continuation>")), enyalios97);
+        return f_princ(list(1, makestring("#<continuation>")), enyalios99);
     }
     else if((hydra_primitivep(x) == STRUE)){
-        return f_princ(list(1, format(list(2, makestring("#<primitive-procedure ~a>"), cdr(x)), enyalios97)), enyalios97);
+        return f_princ(list(1, format(list(2, makestring("#<primitive-procedure ~a>"), cdr(x)), enyalios99)), enyalios99);
     }
     else if((hydra_syntaxp(x) == STRUE)){
-        return f_princ(list(1, format(list(2, makestring("#<syntax ~a>"), cdr(x)), enyalios97)), enyalios97);
+        return f_princ(list(1, format(list(2, makestring("#<syntax ~a>"), cdr(x)), enyalios99)), enyalios99);
     }
     else if((hydra_errorp(x) == STRUE)){
-        return f_princ(list(1, format(list(2, makestring("ERROR: ~a"), cdr(x)), enyalios97)), enyalios97);
+        return f_princ(list(1, format(list(2, makestring("ERROR: ~a"), cdr(x)), enyalios99)), enyalios99);
     }
     else {
-        return f_princ(list(1, x), enyalios97);
+        return f_princ(list(1, x), enyalios99);
     }
 }
 SExp *
@@ -2114,8 +2127,8 @@ hydra_load(SExp *src_file, SExp *env){
 SExp *
 hydra_repl(){
 while(1) {
-        f_princ(list(1, makestring("h; ")), enyalios97);
-        SExp *tmp124 = f_read(SNILenyalios97);
+        f_princ(list(1, makestring("h; ")), enyalios99);
+        SExp *tmp124 = f_read(SNIL, enyalios99);
         if((eqp(ftype(tmp124), makestring("Pair")) == STRUE) && (eqp(car(tmp124), makeatom("unquote")) == STRUE)){
             if((eqp(cadr(tmp124), makeatom("exit")) == STRUE)){
                 return SVOID;
@@ -2139,7 +2152,7 @@ while(1) {
                 continue;
             }
             else {
-                f_princ(list(1, format(list(2, makestring("Unknown command: ~a~%"), cadr(tmp124)), enyalios97)), enyalios97);
+                f_princ(list(1, format(list(2, makestring("Unknown command: ~a~%"), cadr(tmp124)), enyalios99)), enyalios99);
                 continue;
             }
         }
@@ -2150,7 +2163,7 @@ while(1) {
                 }
                 else {
                     top_level_print(hydra_lookup(tmp124, _tlenv_));
-                    f_princ(list(1, makestring("\n")), enyalios97);
+                    f_princ(list(1, makestring("\n")), enyalios99);
                     continue;
                 }
             }
@@ -2161,7 +2174,7 @@ while(1) {
                 }
                 else {
                     top_level_print(tmp125);
-                    f_princ(list(1, makestring("\n")), enyalios97);
+                    f_princ(list(1, makestring("\n")), enyalios99);
                     continue;
                 }
             }
@@ -2170,6 +2183,6 @@ while(1) {
 }
 SExp *
 hydra_main(){
-    f_princ(list(1, makestring("\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2012.0/r0\n")), enyalios97);
+    f_princ(list(1, makestring("\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2012.0/r0\n")), enyalios99);
     return hydra_repl();
 }

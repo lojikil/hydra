@@ -160,6 +160,13 @@
 (define (hydra@operand c)
     (cadr c))
 
+(define (loop-set-env! env pairs)
+    (if (null? pairs)
+        #v
+        (begin
+            (cset! env (caar pairs) (cadar pairs))
+            (loop-set-env! env (cdr pairs)))))
+
 (define (build-environment environment stack params)
     "Adds a new window to the environment, removes |params| items from the stack
      and binds those values in the new window. It returns a list of environment and
@@ -174,9 +181,8 @@
             (if (= lp 0)
                 (list (cons nu-env environment) (cdr stack))
                 (begin 
-                    (foreach
-                        (lambda (x)
-                            (cset! nu-env (car x) (cadr x)))
+                    (loop-set-env!
+                        nu-env
                         (zip params (cslice stack 0 lp)))
                     (list (cons nu-env environment) (cslice stack lp ls)))))))
 

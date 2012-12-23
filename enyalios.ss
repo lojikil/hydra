@@ -1203,7 +1203,7 @@
             (begin
                 (display (cadr il) out)
                 (if (or (eq? (caddr il) 'c-nil) (null? (caddr il)))
-                    (display "(SNIL" out)
+                    (display "(SNIL, " out)
                     (begin
                         (display "(list(" out)
                         (display (length (caddr il)) out)
