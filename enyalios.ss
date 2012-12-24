@@ -74,6 +74,7 @@
     :write-buffer ["fwrite_buffer" 1 2]
     :read-string #t
     :write-string #t
+    :eval ["__seval" 1 1]
 })
 
 (define *varprimitives* {
@@ -185,7 +186,6 @@
     ;;:tconc-list #t
     ;;:tconc->pair #t
     ;;:tconc-splice! ["tconc_splice"]
-    ;:eval ["__seval" #t 0]
 })
 
 (define *ulambdas* {})
