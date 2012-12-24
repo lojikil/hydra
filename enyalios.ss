@@ -136,7 +136,7 @@
     :keys ["fkeys" #f 1 1] 
     :partial-key? ["fpartial_key" #f 2 2]
     :cset! ["fcset" #f 3 3]
-    :string ["fstring" #f 0 0]
+    ;;:string ["fstring" #f 0 0]
     :empty? ["fempty" #f 1 1]
     :gensym ["fgensym" #f 0 1] 
     :imag-part ["fimag_part" #f 1 1]
@@ -173,8 +173,8 @@
     :memq ["memq" #f 2 2]
     ;:defrec #t
     ;:set-rec! #t
-    :dict ["fdict" #f 0 0]
-    ;:make-dict #t
+    ;:dict ["fdict" #f 0 0]
+    :make-dict ["makedict" #f 0 2]
     :dict-has? ["fdicthas" #f 2 2]
     :coerce ["fcoerce" #f 2 2]
     :error ["ferror" #f 1 1]
