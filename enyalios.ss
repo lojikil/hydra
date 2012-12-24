@@ -89,15 +89,15 @@
     :cdr ["cdr" #f 1 1]
     :cons ["cons" #f 2 2]
     :eq? ["eqp" #f 2 2] 
-    :< ["flt" #f 1 0]
-    :> ["fgt" #f 1 0]
-    :<= ["flte" #f 1 0]
-    :>= ["fgte" #f 1 0]
-    := ["fnumeq" #f 1 0]
-    :+ ["fplus" #f 1 0]
-    :* ["fmult" #f 1 0]
-    :/ ["fdivi" #f 1 0]
-    :- ["fsubt" #f 1 0]
+    :< ["flt" #f 1 -1]
+    :> ["fgt" #f 1 -1]
+    :<= ["flte" #f 1 -1]
+    :>= ["fgte" #f 1 -1]
+    := ["fnumeq" #f 1 -1]
+    :+ ["fplus" #f 1 -1]
+    :* ["fmult" #f 1 -1]
+    :/ ["fdivi" #f 1 -1]
+    :- ["fsubt" #f 1 -1]
     :numerator ["fnumerator" #f 1 1]
     :denomenator ["fdenomenator" #f 1 1]
     :length ["flength" #f 1 1] 
@@ -129,7 +129,7 @@
     :>> ["fbitshr" #f 2 2]
     :make-vector ["fmkvector" #f 0 2]
     :make-string ["fmakestring" #f 0 2]
-    :append ["fappend" #f 2 0]
+    :append ["fappend" #f 2 -1]
     :first ["ffirst" #f 1 1]
     :rest ["frest" #f 1 1]
     :ccons ["fccons" #f 2 2] 
@@ -137,7 +137,7 @@
     :keys ["fkeys" #f 1 1] 
     :partial-key? ["fpartial_key" #f 2 2]
     :cset! ["fcset" #f 3 3]
-    ;;:string ["fstring" #f 0 0]
+    ;;:string ["fstring" #f 0 -1]
     :empty? ["fempty" #f 1 1]
     :gensym ["fgensym" #f 0 1] 
     :imag-part ["fimag_part" #f 1 1]
@@ -168,13 +168,13 @@
     :expm1 ["fexpm1" #f 1 1]
     :log2 ["flog2" #f 1 1]
     :log10 ["flog10" #f 1 1]
-    :string-append ["fstringappend" #f 0 0]
+    :string-append ["fstringappend" #f 0 -1]
     ;:apply #t
     :assq ["assq" #f 2 2]
     :memq ["memq" #f 2 2]
     ;:defrec #t
     ;:set-rec! #t
-    ;:dict ["fdict" #f 0 0]
+    ;:dict ["fdict" #f 0 -1]
     :make-dict ["makedict" #f 0 2]
     :dict-has? ["fdicthas" #f 2 2]
     :coerce ["fcoerce" #f 2 2]
@@ -256,15 +256,21 @@
     (let ((prim (nth *primitives* (car block)))
           (args (cdr block)))
         (cond
-            (= (nth prim 2) 0)
-                (if (= (length args) 0)
-                    (list 
-                        #f
-                        (list 'c-primitive (nth prim 0) '()))
-                    (list
-                        #f
-                        (list 'c-primitive (nth prim 0)
-                            (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args))))
+            (and
+                (= (nth proc 1) 0)
+                (= (nth proc 2) 0)
+                (= (length args) 0))
+                (list 
+                    #f
+                    (list 'c-primitive (nth prim 0) '()))
+            (and
+                (> (nth prim 1) 0)
+                (>= (length args) (nth prim 1))
+                (= (nth prim 2) -1)
+                (list
+                    #f
+                    (list 'c-primitive (nth prim 0)
+                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args))))
             (= (nth prim 2) (length args))
                 (list
                     #f
