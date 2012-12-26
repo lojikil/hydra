@@ -266,10 +266,10 @@
 (define (compile-primitive block name tail? rewrites lparams)
     (let ((prim (nth *primitives* (car block)))
           (args (cdr block)))
-        (display "compile-primitive; len(args) == ")
-        (display (length args))
-        (display "and primitive lens == ")
-        (display (format "~a, ~a~%" (nth prim 2) (nth prim 3)))
+        ;(display "compile-primitive; len(args) == ")
+        ;(display (length args))
+        ;(display "and primitive lens == ")
+        ;(display (format "~a, ~a~%" (nth prim 2) (nth prim 3)))
         (cond
             (and
                 (= (nth prim 2) 0)
@@ -620,13 +620,25 @@
 
 (define (compile-apply block name tail? rewrites lparams)
     (cond
-        (enyalios@primitive? (car block))
+            (enyalios@primitive? (car block))
             (list
                 #f
                 (cons
                     'c-apply-primitive
                     (cons
                         (first (nth *primitives* (car block)))
+                        (map
+                            (fn (x)
+                                (cadr
+                                    (generate-code x '() #f rewrites lparams)))
+                            (cdr block)))))
+            (enyalios@var-prim? (car block))
+            (list
+                #f
+                (cons
+                    'c-apply-var-primitive
+                    (cons
+                        (nth *varprimitives* (car block))
                         (map
                             (fn (x)
                                 (cadr
