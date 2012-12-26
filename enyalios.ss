@@ -258,37 +258,41 @@
         '()
         (null? args)
         (cons 'c-nil (fixed-helper args (+ idx 1) max-len rewrites lparams))
+        else
         (cons
-            (generate-code (car args) '() #f rewrites lparams)
+            (cadr (generate-code (car args) '() #f rewrites lparams))
             (fixed-helper (cdr args) (+ idx 1) max-len rewrites lparams))))
-
 
 (define (compile-primitive block name tail? rewrites lparams)
     (let ((prim (nth *primitives* (car block)))
           (args (cdr block)))
+        (display "compile-primitive; len(args) == ")
+        (display (length args))
+        (display "and primitive lens == ")
+        (display (format "~a, ~a~%" (nth prim 2) (nth prim 3)))
         (cond
             (and
-                (= (nth prim 1) 0)
                 (= (nth prim 2) 0)
+                (= (nth prim 3) 0)
                 (= (length args) 0))
                 (list 
                     #f
                     (list 'c-primitive (nth prim 0) '()))
             (and
                 (> (nth prim 2) 0)
-                (>= (length args) (nth prim 1))
-                (= (nth prim 3) -1)
+                (>= (length args) (nth prim 2))
+                (= (nth prim 3) -1))
                 (list
                     #f
                     (list 'c-primitive (nth prim 0)
-                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args))))
+                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)))
             (and
                 (>= (length args) (nth prim 2))
                 (<= (length args) (nth prim 3)))
                 (list
                     #f
-                    (list 'c-primitive (nth prim 0)
-                        (fixed-helper args (nth prim 3) rewrites lparams)))
+                    (list 'c-primitive-fixed (nth prim 0)
+                        (fixed-helper args 0 (nth prim 3) rewrites lparams)))
             else
                 (error (format "incorrect arity for primitive ~a" (car block))))))
 
