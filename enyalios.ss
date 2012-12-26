@@ -252,30 +252,43 @@
                 (shadow-params params '())
                 '()))))
 
+(define (fixed-helper args idx max-len rewrites lparams)
+    (cond
+        (>= idx max-len)
+        '()
+        (null? args)
+        (cons 'c-nil (fixed-helper args (+ idx 1) max-len rewrites lparams))
+        (cons
+            (generate-code (car args) '() #f rewrites lparams)
+            (fixed-helper (cdr args) (+ idx 1) max-len rewrites lparams))))
+
+
 (define (compile-primitive block name tail? rewrites lparams)
     (let ((prim (nth *primitives* (car block)))
           (args (cdr block)))
         (cond
             (and
-                (= (nth proc 1) 0)
-                (= (nth proc 2) 0)
+                (= (nth prim 1) 0)
+                (= (nth prim 2) 0)
                 (= (length args) 0))
                 (list 
                     #f
                     (list 'c-primitive (nth prim 0) '()))
             (and
-                (> (nth prim 1) 0)
+                (> (nth prim 2) 0)
                 (>= (length args) (nth prim 1))
-                (= (nth prim 2) -1)
+                (= (nth prim 3) -1)
                 (list
                     #f
                     (list 'c-primitive (nth prim 0)
                         (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args))))
-            (= (nth prim 2) (length args))
+            (and
+                (>= (length args) (nth prim 2))
+                (<= (length args) (nth prim 3)))
                 (list
                     #f
-                    (list 'c-primitive-fixed (nth prim 0)
-                        (map (fn (x) (cadr (generate-code x '() #f rewrites lparams))) args)))
+                    (list 'c-primitive (nth prim 0)
+                        (fixed-helper args (nth prim 3) rewrites lparams)))
             else
                 (error (format "incorrect arity for primitive ~a" (car block))))))
 
@@ -290,7 +303,7 @@
                 (= (length args) 0))
                 (list
                     #f
-                    (list 'c-procedure (nth proc 0) 'c-snil env))
+                    (list 'c-procedure (nth proc 0) 'c-nil env))
             (and
                 (> (nth proc 1) 0)
                 (>= (length args) (nth proc 1))
