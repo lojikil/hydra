@@ -175,10 +175,10 @@
     ;:defrec #t
     ;:set-rec! #t
     ;:dict ["fdict" #f 0 -1]
-    :make-dict ["makedict" #f 0 2]
+    :make-dict ["makedict" #f 0 0]
     :dict-has? ["fdicthas" #f 2 2]
     :coerce ["fcoerce" #f 2 2]
-    :error ["ferror" #f 1 1]
+    :error ["f_error" #f 1 1]
     :cupdate ["fcupdate" #f 3 3]
     :cslice ["fcslice" #f 3 3]
     ;:tconc! ["tconc"]
@@ -266,7 +266,9 @@
 (define (compile-primitive block name tail? rewrites lparams)
     (let ((prim (nth *primitives* (car block)))
           (args (cdr block)))
-        ;(display "compile-primitive; len(args) == ")
+        ;(display "compile-primitive ")
+        ;(display (car block))
+        ;(display " ; len(args) == ")
         ;(display (length args))
         ;(display "and primitive lens == ")
         ;(display (format "~a, ~a~%" (nth prim 2) (nth prim 3)))
@@ -277,7 +279,7 @@
                 (= (length args) 0))
                 (list 
                     #f
-                    (list 'c-primitive (nth prim 0) '()))
+                    (list 'c-primitive-null (nth prim 0)))
             (and
                 (> (nth prim 2) 0)
                 (>= (length args) (nth prim 2))
@@ -1143,6 +1145,10 @@
                 (display ", " out)
                 (il->c (caddr il) 0 out)
                 (display ")" out))
+        (eq? (car il) 'c-primitive-null)
+            (begin
+                (display (cmung (cadr il)) out)
+                (display "()" out))
         (eq? (car il) 'c-primitive)
             (begin
                 (display (cadr il) out)

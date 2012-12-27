@@ -772,7 +772,7 @@
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (dict) stack) dump)
+                            (cons (make-dict) stack) dump)
                     (eq? instr 96) ;; dict-has?
                         (hydra@vm code
                             env
