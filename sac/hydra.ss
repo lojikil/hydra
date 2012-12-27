@@ -124,13 +124,13 @@
 		'()
 		(cons (cons (car xs) (cons (car ys) '())) (zip (cdr xs) (cdr ys)))))
 
-(define (list-copy l)
+(define (srfi1-list-copy l)
     " really, should be included from SRFI-1, but this simply makes a copy
       of the spine of a pair
       "
     (if (null? l)
         l
-        (cons (car l) (list-copy (cdr l)))))
+        (cons (car l) (srfi1-list-copy (cdr l)))))
 
 (define (cadddar x) (car (cdddar x)))
 
@@ -510,7 +510,7 @@
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (~ (cadr stack) (car stack)) (cddr stack)) dump)
+                            (cons (~ (car stack)) (cdr stack)) dump)
                   (eq? instr 46) ;; %list
                         ;; take N items off the stack, create a list, and return it
                         (hydra@vm code
@@ -1034,7 +1034,7 @@
 (define (compile-lambda rst env)
     (list 'compiled-lambda
         (vector
-            (list-copy env)
+            (srfi1-list-copy env)
             (compile-lambda-helper (cdr rst) env)
             (car rst)))) 
 

@@ -96,7 +96,7 @@
     := ["fnumeq" #f 1 -1]
     :+ ["fplus" #f 1 -1]
     :* ["fmult" #f 1 -1]
-    :/ ["fdivi" #f 1 -1]
+    :/ ["fdivd" #f 1 -1]
     :- ["fsubt" #f 1 -1]
     :numerator ["fnumerator" #f 1 1]
     :denomenator ["fdenomenator" #f 1 1]
@@ -111,8 +111,8 @@
     :numerator ["fnum" #f 1 1]
     :denomenator ["fden" #f 1 1]
     :type ["ftype" #f 1 1]
-    :gcd ["fgcd" #f 2 2]
-    :lcm ["flcm" #f 2 2]
+    :gcd ["fgcd" #f 1 -1]
+    :lcm ["flcm" #f 1 -1]
     :ceil ["fceil" #f 1 1]
     :floor ["ffloor" #f 1 1]
     :truncate ["ftrunc" #f 1 1]
@@ -124,7 +124,7 @@
     :& ["fbitand" #f 2 2]
     :| ["fbitor" #f 2 2]
     :^ ["fbitxor" #f 2 2]
-    :~ ["fbitnot" #f 2 2]
+    :~ ["fbitnot" #f 1 1]
     :<< ["fbitshl" #f 2 2]
     :>> ["fbitshr" #f 2 2]
     :make-vector ["fmkvector" #f 0 2]
@@ -137,7 +137,7 @@
     :keys ["fkeys" #f 1 1] 
     :partial-key? ["fpartial_key" #f 2 2]
     :cset! ["fcset" #f 3 3]
-    ;;:string ["fstring" #f 0 -1]
+    :string ["fstring" #f 0 -1]
     :empty? ["fempty" #f 1 1]
     :gensym ["fgensym" #f 0 1] 
     :imag-part ["fimag_part" #f 1 1]
@@ -145,7 +145,7 @@
     :make-rectangular ["fmake_rect" #f 2 2]
     :make-polar ["fmake_pole" #f 2 2]
     :magnitude ["fmag" #f 1 1]
-    :argument ["farg" #f 1 1]
+    :argument ["fimag_part" #f 1 1]
     :conjugate! ["fconjugate_bang" #f 1 1] 
     :conjugate ["fconjugate" #f 1 1]
     :polar->rectangular ["fpol2rect" #f 1 1]
@@ -257,7 +257,7 @@
         (>= idx max-len)
         '()
         (null? args)
-        (cons 'c-nil (fixed-helper args (+ idx 1) max-len rewrites lparams))
+        (cons '(c-nil) (fixed-helper args (+ idx 1) max-len rewrites lparams))
         else
         (cons
             (cadr (generate-code (car args) '() #f rewrites lparams))
@@ -307,7 +307,7 @@
                 (= (length args) 0))
                 (list
                     #f
-                    (list 'c-procedure (nth proc 0) 'c-nil env))
+                    (list 'c-procedure (nth proc 0) '(c-nil) env))
             (and
                 (> (nth proc 1) 0)
                 (>= (length args) (nth proc 1))
@@ -479,7 +479,7 @@
                 (fn (x)
                     (with res (generate-code x name tail? rewrites lparams)
                         (if (car res)
-                            (set! then-list #t)
+                            (set! tail-rec? #t)
                             #v)
                         (returnable (cadr res) tail?)))
                 then-list))

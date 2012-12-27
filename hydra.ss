@@ -504,7 +504,7 @@
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (~ (cadr stack) (car stack)) (cddr stack)) dump)
+                            (cons (~ (car stack)) (cdr stack)) dump)
                   (eq? instr 46) ;; %list
                         ;; take N items off the stack, create a list, and return it
                         (hydra@vm code
