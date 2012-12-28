@@ -884,6 +884,11 @@
                 (display ", " out)
                 (comma-separated-c (cdr ill) out))))
 
+(define (generate-sexps n)
+    (if (= n 0)
+        '()
+        (cons "SExp *" (generate-sexps (- n 1)))))
+
 (define (params->c params param-data)
     (if (null? params)
         '()
@@ -1110,10 +1115,10 @@
                 (display "(" out)
                 (if (null? (caddr il))
                     #v
+                    (params->c caddr il out)
                     (display ;; can soon switch this to params->c
                         (string-join
-                            (map (fn (x) (format "SExp *~a" (cmung x)))
-                                (caddr il))
+                            (params->c (caddr il) (nth *ulambdas* (cadr il)))
                             ", ")
                         out))
                 (display "){\n" out)
