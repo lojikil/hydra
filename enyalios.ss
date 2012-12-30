@@ -1335,7 +1335,7 @@
                 #v
                 (display
                     (string-join 
-                        (map (fn (x) x "SExp *") (nth data 1))
+                        (params->c (nth data 1) data)
                         ", ")
                     out))
             (display ");\n" out)
