@@ -890,6 +890,7 @@
         (cons "SExp *" (generate-sexps (- n 1)))))
 
 (define (params->c params param-data)
+    (show param-data "param->c param-data: ")
     (if (null? params)
         '()
         (let* ((cur (car params))
@@ -1115,7 +1116,6 @@
                 (display "(" out)
                 (if (null? (caddr il))
                     #v
-                    (params->c caddr il out)
                     (display ;; can soon switch this to params->c
                         (string-join
                             (params->c (caddr il) (nth *ulambdas* (cadr il)))
