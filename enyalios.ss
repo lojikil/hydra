@@ -819,13 +819,14 @@
         (enyalios@procedure? (car c)) (compile-primitive-procedure c name tail? rewrites lparams) ; primitive procs, like display
         (enyalios@var-prim? (car c)) (compile-variable-primitive c name tail? rewrites lparams) ; list & friends
         (enyalios@parameter-call? (car c) lparams) ;; are we attempting to call a paramter?
-            (let ((name (nth lparams "name")))
+            (let* ((name (nth lparams "name"))
+                   (data (nth *ulambdas* name)))
                 (cset!
-                    (nth *ulambdas* name)
+                    data
                     5
                     (cons
-                        (list (car c) (- 1 (length c)))
-                        (nth *ulambdas* name)))
+                        (list (car c) (- (length c) 1))
+                        (nth data 5)))
                 (list
                     #f
                     (list
@@ -885,6 +886,7 @@
                 (comma-separated-c (cdr ill) out))))
 
 (define (generate-sexps n)
+    (show n "generate-sexps: ")
     (if (= n 0)
         '()
         (cons "SExp *" (generate-sexps (- n 1)))))
@@ -894,14 +896,15 @@
     (if (null? params)
         '()
         (let* ((cur (car params))
-               (data (nth param-data cur)))
+               (data (nth param-data 5)))
+            (show data "params->c::data ")
             (if (not (eq? (assq cur data) #f))
                 (cons
                     (format
                         "SExp *(*~a)(~s)"
                         cur
                         (string-join 
-                            (generate-sexps (cadr data))
+                            (generate-sexps (cadar data))
                             ", "))
                     (params->c (cdr params) param-data))
                 (cons
