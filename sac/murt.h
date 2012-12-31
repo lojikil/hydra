@@ -21,4 +21,5 @@ extern SExp *seof, *svoid; /* #e, for use with read*, & eof-object?, #v for void
 #define SEOF seof
 #define SVOID svoid
 
+#define f_error(x) makeerror(2,0,x)
 #endif
