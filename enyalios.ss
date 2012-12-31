@@ -886,18 +886,18 @@
                 (comma-separated-c (cdr ill) out))))
 
 (define (generate-sexps n)
-    (show n "generate-sexps: ")
+    ;(show n "generate-sexps: ")
     (if (= n 0)
         '()
         (cons "SExp *" (generate-sexps (- n 1)))))
 
 (define (params->c params param-data)
-    (show param-data "param->c param-data: ")
+    ;(show param-data "param->c param-data: ")
     (if (null? params)
         '()
         (let* ((cur (car params))
                (data (nth param-data 5)))
-            (show data "params->c::data ")
+            ;(show data "params->c::data ")
             (if (not (eq? (assq cur data) #f))
                 (cons
                     (format

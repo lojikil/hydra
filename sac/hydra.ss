@@ -882,7 +882,7 @@
 ;     + this does not confer the benefits that the above does (that hydra@compile can
 ;       know about the arity of primitives & signal failure during code generation).
 
-(define *tlenv* (list (make-dict)))
+(define *tlenv* '())
 (define (hydra@init-env env)
     (cset! env "car" '(primitive . 0))
     (cset! env "call/cc" '(primitive . 106))
