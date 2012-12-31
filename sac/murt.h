@@ -21,5 +21,5 @@ extern SExp *seof, *svoid; /* #e, for use with read*, & eof-object?, #v for void
 #define SEOF seof
 #define SVOID svoid
 
-#define f_error(x) makeerror(2,0,x)
+#define f_error(x) ((x)->type == STRING ? makeerror(2,0,x->object.str) : makeerror(2,1,"something happened"))
 #endif
