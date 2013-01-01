@@ -1360,7 +1360,7 @@
          else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (hydra@repl env)))
         (if (not (pair? inp))
             (if (eq? inp #v)
-                (hydra@repl)
+                (hydra@repl env)
                 (begin
                     (top-level-print (hydra@lookup inp env))
                     (display "\n")
@@ -1379,8 +1379,8 @@
         (hydra@init-env e)
         (if (> (length args) 0)
             (begin
-                (hydra@add-env! '*command-line* (cslice *command-line* 1 (length *command-line*)) (list e))
-                (hydra@load (nth *command-line* 1) (list e)))
+                (hydra@add-env! '*command-line* (cslice args 1 (length args)) (list e))
+                (hydra@load (nth args 1) (list e)))
             (begin
                 (hydra@add-env! '*command-line* '() (list e))
                 (hydra@repl (list e))))))
