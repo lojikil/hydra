@@ -17,9 +17,11 @@ main(int ac, char **al)
         return 1;
     }
     enyalios104 = init_env(0);
-    if(!tlenv)
+    if(!enyalios104)
     {
         printf("could not load initial constants!\n");
         return 2;
     }
+    hydra_main(SNIL);
+    return 0;
 }
