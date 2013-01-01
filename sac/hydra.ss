@@ -882,7 +882,6 @@
 ;     + this does not confer the benefits that the above does (that hydra@compile can
 ;       know about the arity of primitives & signal failure during code generation).
 
-(define *tlenv* '())
 (define (hydra@init-env env)
     (cset! env "car" '(primitive . 0))
     (cset! env "call/cc" '(primitive . 106))
@@ -1346,7 +1345,7 @@
     ;            (close f)))))
     #f)
                                     
-(define (hydra@repl)
+(define (hydra@repl env)
     (display "h; ")
     (with inp (read)
      (if (and (eq? (type inp) "Pair") (eq? (car inp) 'unquote))
@@ -1355,25 +1354,33 @@
          (eq? (cadr inp) 'q) #v
          (eq? (cadr inp) 'quit) #v
          (eq? (cadr inp) 'bye) #v
-         (eq? (cadr inp) 'dribble) (begin (hydra@repl))
-         (eq? (cadr inp) 'save) (begin (hydra@repl))
-         (eq? (cadr inp) 'save-and-die) (begin (hydra@repl))
-         else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (hydra@repl)))
+         (eq? (cadr inp) 'dribble) (begin (hydra@repl env))
+         (eq? (cadr inp) 'save) (begin (hydra@repl env))
+         (eq? (cadr inp) 'save-and-die) (begin (hydra@repl env))
+         else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (hydra@repl env)))
         (if (not (pair? inp))
             (if (eq? inp #v)
                 (hydra@repl)
                 (begin
-                    (top-level-print (hydra@lookup inp *tlenv*))
+                    (top-level-print (hydra@lookup inp env))
                     (display "\n")
-                    (hydra@repl)))
-            (with r (hydra@eval inp *tlenv*) 
+                    (hydra@repl env)))
+            (with r (hydra@eval inp env) 
                 (if (eq? r #v)
-                 (hydra@repl)
+                 (hydra@repl env)
                  (begin
                     (top-level-print r)
                     (display "\n")
-                    (hydra@repl))))))))
+                    (hydra@repl env))))))))
 
-(define (hydra@main)
+(define (hydra@main args)
     (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2012.0/r0\n")
-    (hydra@repl))    
+    (let ((e {}))
+        (hydra@init-env e)
+        (if (> (length args) 0)
+            (begin
+                (hydra@add-env! '*command-line* (cslice *command-line* 1 (length *command-line*)) (list e))
+                (hydra@load (nth *command-line* 1) (list e)))
+            (begin
+                (hydra@add-env! '*command-line* '() (list e))
+                (hydra@repl (list e))))))
