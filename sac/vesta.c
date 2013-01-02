@@ -525,7 +525,7 @@ init_env(int full_env)
 	if(snil == nil)
 	{
 		printf("[-] snil == nil...\n");
-		return;
+		return nil;
 	}
 	//LINE_DEBUG;
 	snil->type = NIL;
