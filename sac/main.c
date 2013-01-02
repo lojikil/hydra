@@ -11,6 +11,8 @@ extern Symbol *enyalios104;
 int
 main(int ac, char **al)
 {
+    SExp *args;
+    int idx = 0;
     if(!gc_init())
     {
         printf("could not initialize garbage collector!\n");
@@ -22,6 +24,14 @@ main(int ac, char **al)
         printf("could not load initial constants!\n");
         return 2;
     }
-    hydra_main(SNIL);
+    if(ac > 1)
+    {
+        args = makevector(ac - 1, nil);
+        for(idx = 1; idx < ac; idx++)
+            args->object.vec[idx] = makestring(al[idx]);
+        hydra_main(args);
+    }
+    else
+        hydra_main(SNIL);
     return 0;
 }

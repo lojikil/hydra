@@ -756,6 +756,7 @@
                             (map
                                 (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
                                 (cdr c))))))
+        (eq? (car c) '%prim) (list #f (list 'c-%prim (cadr il)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'quote)
@@ -1051,6 +1052,8 @@
         (dict? il) (display (generate-dict il) out)
         (pair? (car il))
             (foreach-proc (fn (x) (il->c x lvl out)) il)
+        (eq? (car il) 'c-%prim)
+            (display (cadr il) out)
         (eq? (car il) 'c-nil)
             (display "SNIL" out)
         (eq? (car il) 'c-quote)
