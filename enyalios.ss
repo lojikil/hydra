@@ -519,6 +519,7 @@
             (eq? (car c) 'c-dec)
             (eq? (car c) 'c-tailcall)
             (eq? (car c) 'c-docstring)
+            (eq? (car c) 'c-%prim)
             (eq? (car c) 'c-loop))
             #t
         else
@@ -756,7 +757,7 @@
                             (map
                                 (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
                                 (cdr c))))))
-        (eq? (car c) '%prim) (list #f (list 'c-%prim (cadr il)))
+        (eq? (car c) '%prim) (list #f (list 'c-%prim (cadr c)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'quote)
