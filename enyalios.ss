@@ -75,6 +75,10 @@
     :read-string #t
     :write-string #t
     :eval ["__seval" 1 1]
+    :sys/getpid ["f_sysgetpid" 0 1]
+    :sys/getppid ["f_sysgetppid" 0 1]
+    :sys/fork ["f_fork" 0 1]
+    :sys/time ["f_time" 0 1]
 })
 
 (define *varprimitives* {

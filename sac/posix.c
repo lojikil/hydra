@@ -1872,3 +1872,18 @@ f_sysselect(SExp *s, Symbol *e)
 	return e->snil;
 }
 
+SExp *
+f_sysgetpid(SExp *s, Symbol *e)
+{
+    pid_t i = 0;
+    i = getpid();
+    return makeinteger(i);
+}
+
+SExp *
+f_sysgetppid(SExp *s, Symbol *e)
+{
+    pid_t i = 0;
+    i = getppid();
+    return makeinteger(i);
+}
