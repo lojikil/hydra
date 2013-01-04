@@ -79,6 +79,11 @@
     :sys/getppid ["f_sysgetppid" 0 1]
     :sys/fork ["f_fork" 0 1]
     :sys/time ["f_time" 0 1]
+    :announce ["f_announce" 3 0]
+    :accept ["f_accept" 1 0]
+    :listen ["f_listen" 1 0]
+    :hangup ["f_hangup" 1 0]
+    :ls ["f_ls" 1 0]
 })
 
 (define *varprimitives* {
