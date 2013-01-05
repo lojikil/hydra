@@ -84,6 +84,8 @@
     :listen ["f_listen" 1 0]
     :hangup ["f_hangup" 1 0]
     :ls ["f_ls" 1 0]
+    :close ["f_close" 1 0]
+    :open ["f_open" 2 0]
 })
 
 (define *varprimitives* {
@@ -742,6 +744,7 @@
             (string? c)
             (number? c)
             (void? c)
+            (key? c)
             (eof-object? c)) 
                 (if tail?
                     (list #f (list 'c-return c))
@@ -1059,6 +1062,7 @@
                 (display ")" out))
         (char? il) (display (format "makechar('~c')" il) out)
         (symbol? il) (display (cmung il) out)
+        (key? il) (display (format "makekey(\"~a\")" il) out)
         (dict? il) (display (generate-dict il) out)
         (pair? (car il))
             (foreach-proc (fn (x) (il->c x lvl out)) il)
@@ -1243,7 +1247,7 @@
         (eq? (car il) 'c-call)
             (let ((proc-data (nth *ulambdas* (cadr il))))
                 (if (< (length (caddr il)) (nth proc-data 2))
-                    (error "Incorrect arity for user-defined lambda")
+                    (error (format "Incorrect arity for user-defined lambda ~a" (cadr il)))
                     (begin
                         (display (cmung (cadr il)) out)
                         (display "(" out)
