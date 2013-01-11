@@ -7,12 +7,11 @@
 - current\-input\-port, current\-output\-port, current\-error\-port
 - with\-output, with\-input, with\-error
 - get\/set current\-X\-port
-- define\-syntax
 
 * Enyalios
 - DONE: top level Symbol for procedures, added to lparams["env"]
-- top level static snil, strue, &c.
-- add static snil &c to top level Symbol
+- DONE: top level static snil, strue, &c.
+- DONE: add static snil &c to top level Symbol
 - DONE: add that top level Symbol to procedure calls
 - closures in HOFs
 - free analysis for closures
@@ -23,16 +22,17 @@
 - do\-loops \(I guess?)
 - fix apply!
 - letrec
-- let* fix \(doesn't correctly pass rewritten vars from above)
+- DONE: let* fix \(doesn't correctly pass rewritten vars from above)
 - fix load
 - define\-c\-syntax
 - IL\->JS, IL\->C++, IL\->JAVA
 - support %c, define\-alien for self\-hosting runtimes.
 
 * Hydra\-only
-- review user of map, and potentially replace with bespoke, Enyalios\-friendly equivalent
+- DONE: review user of map, and potentially replace with bespoke, Enyalios\-friendly equivalent
 - Core version without repl\/read, for use with IL\->JS
 
 * All
 - SRFI\-0\/7, for supporting different loads, different FFIs, different low-level runtimes...
 - Scheme48\-style modules.
+- define\-syntax

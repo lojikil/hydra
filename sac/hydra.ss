@@ -1329,21 +1329,19 @@
         (hydra@error? x) (display (format "ERROR: ~a" (cdr x)))
         else (display x)))
 
+(define (hydra@load-loop fh env)
+    (let ((o (read fh)))
+        (if (eq? o #e)
+            #v
+            (begin
+                (hydra@eval o env) 
+                (hydra@load-loop fh env)))))
+
 (define (hydra@load src-file env)
     "an implementation of the primitive procedure load"
-    ;(with f (open src-file :read)
-    ;    (with-exception-handler
-    ;        (fn (x) (display (format "An error occured while loading ~S: ~a\n" src-file x)) (close f))
-    ;        (fn ()
-    ;            (letrec ((loop (fn (expr)
-    ;                                (if (eq? expr #e)
-    ;                                    #v
-    ;                                    (begin
-    ;                                        (hydra@eval expr env)
-    ;                                        (loop (read f)))))))
-    ;                (loop (read f)))
-    ;            (close f)))))
-    #f)
+    (let ((f (open src-file :read)))
+        (hydra@load-loop f env)
+        (close f)))
                                     
 (define (hydra@repl env)
     (display "h; ")
