@@ -27,8 +27,8 @@ main(int ac, char **al)
     if(ac > 1)
     {
         args = makevector(ac - 1, nil);
-        for(idx = 1; idx < ac; idx++)
-            args->object.vec[idx] = makestring(al[idx]);
+        for(idx = 0; idx < (ac - 1); idx++)
+            args->object.vec[idx] = makestring(al[idx + 1]);
         hydra_main(args);
     }
     else

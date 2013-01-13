@@ -1378,7 +1378,7 @@
         (if (> (length args) 0)
             (begin
                 (hydra@add-env! '*command-line* (cslice args 1 (length args)) (list e))
-                (hydra@load (nth args 1) (list e)))
+                (hydra@load (nth args 0) (list e)))
             (begin
                 (hydra@add-env! '*command-line* '() (list e))
                 (hydra@repl (list e))))))
