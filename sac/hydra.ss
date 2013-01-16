@@ -428,6 +428,8 @@
                             else
                             (begin
                                 (display "in <else> of CALL\n")
+                                (display (car stack))
+                                (display "\n")
                                 #f))
                   (eq? instr 31) ;; environment-load; there is never a raw #f, so this is safe
                         (with r (hydra@lookup (hydra@operand c) env)
@@ -1372,7 +1374,6 @@
                     (hydra@repl env))))))))
 
 (define (hydra@main args)
-    (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2012.0/r0\n")
     (let ((e {}))
         (hydra@init-env e)
         (if (> (length args) 0)
@@ -1380,5 +1381,6 @@
                 (hydra@add-env! '*command-line* (cslice args 1 (length args)) (list e))
                 (hydra@load (nth args 0) (list e)))
             (begin
+                (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2012.0/r0\n")
                 (hydra@add-env! '*command-line* '() (list e))
                 (hydra@repl (list e))))))
