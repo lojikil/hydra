@@ -206,6 +206,12 @@
 ;; somewhere in the code, and need to be lifted.
 (define *ooblambdas* '())
 
+;; Includes; these are handled by their respective IL systems
+;; Not checked in any way shape or form; SRFI-0 would help
+;; here. A user can use the config language to select which
+;; includes they want to use, based on the output IL
+(define *includes* '())
+
 (define (show x (prefix "x: "))
     (display prefix)
     (write x)
@@ -770,6 +776,10 @@
                                 (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
                                 (cdr c))))))
         (eq? (car c) '%prim) (list #f (list 'c-%prim (cadr c)))
+        (eq? (car c) '%include)
+            (begin
+                (set! *includes* (append *includes* (list (cdr c))))
+                (list #f (list 'c-nop)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'quote)
@@ -993,6 +1003,26 @@
             (display (format " ~s " connector) out)
             (condition-connector (cdr c) connector out))))
 
+(define (optimizable-primitive? c)
+    (or
+        (and
+            (eq? (car c) 'c-primitive-fixed)
+            (eq? (cadr c) "eqp"))
+        #f))
+
+(define (optimize-eq code out)
+    (let* ((args (caddr code)) ; destructuring bind would be nice here...
+           (a0 (car args))
+           (a1 (cadr args)))
+        #f))
+
+(define (optimize-primitive o out)
+    (cond
+        (eq? (cadr c) "eqp")
+            (optimize-eq o out)
+        else
+            (error "unable to optimize primitive form")))
+
 (define (if-condition <cond> out)
     " if-condition handles processing of the <cond> portion of
       c-if/c-elif. It handles c-and & c-or, and potentially handle
@@ -1008,6 +1038,8 @@
                 (cdr <cond>)
                 "||"
                 out)
+        (optimizable-primitive? <cond>)
+            (optimize-primitive <cond> out)
         else
             (begin
                 (display "(" out)
@@ -1068,6 +1100,8 @@
             (foreach-proc (fn (x) (il->c x lvl out)) il)
         (eq? (car il) 'c-%prim)
             (display (cadr il) out)
+        (eq? (car il) 'c-nop) ;; do nothing :D
+            #v
         (eq? (car il) 'c-nil)
             (display "SNIL" out)
         (eq? (car il) 'c-quote)
@@ -1365,6 +1399,12 @@
           (env-name (gensym "enyalios"))
           (obj-code (enyalios@compile-loop code env-name)))
         (display (format "LOADED: ~a~%" in-file))
+        (foreach-proc
+            (fn (x)
+                (if (cadr x)
+                    (display (format "#include <~a>~%" (car x)) outf)
+                    (display (format "#include \"~a\"~%" (car x)) outf)))
+            *includes*)
         (enyalios@dump-prototypes (keys *ulambdas*) *ulambdas* outf)
         (display "Symbol *" outf)
         (display env-name outf)

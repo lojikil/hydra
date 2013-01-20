@@ -67,6 +67,12 @@
 ;; (%define)
 ;; - SRFIs to be added: 9, 22, 34, 35, 36, 57, 60, 89, 88 (already done, via Vesta's run time)
 
+;; Include files for C output
+;; once SRFI-0 support is here, use that to make things a bit
+;; nicer
+
+(%include "murt.h" #f)
+
 ;; mini-prelude
 ;; should be removed once Enyalios supports load better...
 
