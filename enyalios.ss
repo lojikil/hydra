@@ -1025,16 +1025,19 @@
             (and
                 (symbol? a0)
                 (integer? a1))
-                (begin ;; clean; should probably just use format
-                    (display "(" out)
-                    (display a0 out)
-                    (display "->type == NUMBER && NTYPE(" out)
-                    (display a0 out)
-                    (display ") == INTEGER && AINT(" out)
-                    (display a0 out)
-                    (display ") == " out)
-                    (display a1 out)
-                    (display ")" out))
+                (display
+                    (format
+                        "(~a->type == NUMBER && NTYPE(~a) == INTEGER && AINT(~a) == ~a)"
+                        a0 a0 a0 a1)
+                    out)
+            (and
+                (symbol? a0)
+                (real? a1))
+                (display
+                    (format
+                        "(~a->type == NUMBER && NTYPE(~a) == REAL && AREAL(~a) == ~a)"
+                        a0 a0 a0 a1)
+                    out)
             (and
                 (symbol? a0)
                 (string? a1))
