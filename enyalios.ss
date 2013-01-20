@@ -1014,11 +1014,36 @@
     (let* ((args (caddr code)) ; destructuring bind would be nice here...
            (a0 (car args))
            (a1 (cadr args)))
-        #f))
+        (cond
+            (and ;; two symbols? fall back on eqp
+                (symbol? a0) ;; might be able to do some sort of
+                (symbol? a1)) ;; type test, but still...
+                (begin
+                    (display "(" out)
+                    (il->c code 0 out)
+                    (display " == STRUE)" out))
+            (and
+                (symbol? a0)
+                (integer? a1))
+                (begin ;; clean; should probably just use format
+                    (display "(" out)
+                    (display a0 out)
+                    (display "->type == NUMBER && NTYPE(" out)
+                    (display a0 out)
+                    (display ") == INTEGER && AINT(" out)
+                    (display a0 out)
+                    (display ") == " out)
+                    (display a1 out)
+                    (display ")" out))
+            else
+                (begin
+                    (display "(" out)
+                    (il->c code 0 out)
+                    (display " == STRUE)" out)))))
 
 (define (optimize-primitive o out)
     (cond
-        (eq? (cadr c) "eqp")
+        (eq? (cadr o) "eqp")
             (optimize-eq o out)
         else
             (error "unable to optimize primitive form")))
