@@ -1035,6 +1035,14 @@
                     (display ") == " out)
                     (display a1 out)
                     (display ")" out))
+            (and
+                (symbol? a0)
+                (string? a1))
+                (display 
+                    (format
+                        "(~a->type == STRING && !strncmp(~a->object.str, \"~s\", ~a->length))"
+                        a0 a0 a1 a0)
+                    out)
             else
                 (begin
                     (display "(" out)
