@@ -29,8 +29,9 @@
 - support %c, define\-alien for self\-hosting runtimes.
 
 * Hydra\-only
-- DONE: review user of map, and potentially replace with bespoke, Enyalios\-friendly equivalent
+- DONE: review user of map, and potentially replace with bespoke, Enyalios\-friendly equivalent (SAC)
 - Core version without repl\/read, for use with IL\->JS
+- Move stack from pair to vector with fixed size, stack pointer, &c.
 
 * All
 - SRFI\-0\/7, for supporting different loads, different FFIs, different low-level runtimes...

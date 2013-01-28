@@ -206,7 +206,7 @@
         (= offset (- ip 1)) (append (list '(107) '(107)) (copy-code (cddr code) ip (+ offset 2)))
         else (append (list (car code)) (copy-code (cdr code) ip (+ offset 1)))))
 
-(define (hydra@vm code env ip stack dump)
+(define (hydra@vm code env ip sp stack dump)
      " process the actual instructions of a code object; the basic idea is that
        the user enters:
        h; (car (cdr (cons 1 (cons 2 '()))))
