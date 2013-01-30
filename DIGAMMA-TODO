@@ -27,11 +27,19 @@
 - define\-c\-syntax
 - IL\->JS, IL\->C++, IL\->JAVA
 - support %c, define\-alien for self\-hosting runtimes.
+- DONE: %include, %prim
+- inline of lift
+- if lift, do free analysis & closure conversion
+- if an inner proc is used in _tail position_, inline it (maybe only if tail rec?)
+- beter param shaddowing; no reliance on another var? no shaddowing
+- optimize more primitives: + - / * < > >= <=
+- possibly look into destructive parameter updates? (foo (+ i 1)) could be AINT(i) += 1
 
 * Hydra\-only
 - DONE: review user of map, and potentially replace with bespoke, Enyalios\-friendly equivalent (SAC)
 - Core version without repl\/read, for use with IL\->JS
-- Move stack from pair to vector with fixed size, stack pointer, &c.
+- Move stack from pair to vector with fixed size, stack pointer, &c. (testing)
+- hydra@{operand, instruction} => simple syntax
 
 * All
 - SRFI\-0\/7, for supporting different loads, different FFIs, different low-level runtimes...
