@@ -151,12 +151,12 @@
         c
         (ccons (proc (first c)) (map proc (rest c)))))
 
-(define (foreach proc c)
-    (if (empty? c)
-        #v
-        (begin
-            (proc (first c))
-            (foreach proc (rest c)))))
+;(define (foreach proc c)
+;    (if (empty? c)
+;        #v
+;        (begin
+;            (proc (first c))
+;            (foreach proc (rest c)))))
 
 (define (append-map f x)
     (if (null? x)
@@ -254,7 +254,13 @@
      (if (>= ip (length code))
         (if (null? dump)
             (car stack)
-            (hydra@vm (caar dump) (cadar dump) (+ (caddar dump) 1) (cons (car stack) (cadddar dump)) (cdr dump)))
+            (with top-dump (car dump)
+                (hydra@vm
+                    (nth top-dump 0)
+                    (nth top-dump 1)
+                    (+ (nth top-dump 2) 1)
+                    (cons (car stack) (nth top-dump 3))
+                    (cdr dump))))
          (let* ((c (nth code ip))
                 (instr (hydra@instruction c)))
 
@@ -865,7 +871,6 @@
                                 (nth cont-code 4))
                             (nth cont-code 5)))
                         ))))
-
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
