@@ -1008,6 +1008,9 @@
         (and
             (eq? (car c) 'c-primitive-fixed)
             (eq? (cadr c) "eqp"))
+        (and
+            (eq? (car c) 'c-primitive)
+            (eq? (cadr c) "fplus"))
         #f))
 
 (define (optimize-eq code out)
@@ -1052,10 +1055,56 @@
                     (il->c code 0 out)
                     (display " == STRUE)" out)))))
 
+(define (optimize-add o out)
+    " optimize the primitive \"fplus\" to be a bit more
+      performance-friendly. Things to look into:O
+      - constant folding: (+ x 3 4 5) should just be (+ x 10)
+      - turning (+ x y z) into fplus_nn(x, fplus_nn(y, z)) or the like (no intermediate list creation)
+      - look into other optimizations, like in-place addition (something like (add! x 10) or incf from CL)
+    "
+    (let ((args (caddr o))
+          (arg-len (length (caddr o))))
+        (cond
+            (>= arg-len 2)
+                (begin
+                    (display "fplus(list(" out)
+                    (display al out)
+                    (display ", " out)
+                    (comma-separated-c args out)
+                    (display "))" out))
+            (= arg-len 0) 
+                (display "makeintger(0)" out)
+            (= arg-len 1)
+                (cond
+                    (integer? a0)
+                        (display (format "makeinteger(~a)" a0) out)
+                    (rational? a0)
+                        (display
+                            (format
+                                "makerational(~a, ~a)"
+                                (numerator a0)
+                                (denomenator a0))
+                            out)
+                    (real? a0)
+                        (display (format "makereal(~a)" a0) out)
+                    (complex? a0)
+                        (display
+                            (format
+                                "makecomplex(~a, ~a)"
+                                (real-part a0)
+                                (imag-part a0))
+                            out)
+                    else
+                        (il->c a0 0 out))
+            (= arg-len 2)
+                "TO DO")))
+
 (define (optimize-primitive o out)
     (cond
         (eq? (cadr o) "eqp")
             (optimize-eq o out)
+        (eq? (cadr o) "fplus")
+            (optimize-add o out)
         else
             (error "unable to optimize primitive form")))
 
@@ -1247,8 +1296,10 @@
         (eq? (car il) 'c-primitive)
             (begin
                 (display (cadr il) out)
-                (if (null? (caddr il))
-                    (display "(SNIL)" out)
+                (cond
+                    (null? (caddr il)) (display "(SNIL)" out)
+                    (optimizable-primitive? il) (optimize-primitive il)
+                    else
                     (begin
                         (display "(list(" out)
                         (display (length (caddr il)) out)
