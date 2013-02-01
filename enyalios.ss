@@ -1062,13 +1062,15 @@
       - turning (+ x y z) into fplus_nn(x, fplus_nn(y, z)) or the like (no intermediate list creation)
       - look into other optimizations, like in-place addition (something like (add! x 10) or incf from CL)
     "
-    (let ((args (caddr o))
-          (arg-len (length (caddr o))))
+    (let* ((args (caddr o))
+          (arg-len (length (caddr o)))
+          (a0 (nth args 0 #f))
+          (a1 (nth args 1 #f)))
         (cond
             (>= arg-len 2)
                 (begin
                     (display "fplus(list(" out)
-                    (display al out)
+                    (display arg-len out)
                     (display ", " out)
                     (comma-separated-c args out)
                     (display "))" out))
