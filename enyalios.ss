@@ -1055,6 +1055,16 @@
                     (il->c code 0 out)
                     (display " == STRUE)" out)))))
 
+(define *tower-lookup* {
+    :Integer 0
+    :Rational 1
+    :Real 2
+    :Complex 3
+})
+
+(define (tower-order? o0 o1)
+    #f)
+
 (define (optimize-add o out)
     " optimize the primitive \"fplus\" to be a bit more
       performance-friendly. Things to look into:O
@@ -1064,8 +1074,7 @@
     "
     (let* ((args (caddr o))
           (arg-len (length (caddr o)))
-          (a0 (nth args 0 #f))
-          (a1 (nth args 1 #f)))
+          (a0 (nth args 0 #f)))
         (cond
             (>= arg-len 2)
                 (begin
@@ -1099,7 +1108,55 @@
                     else
                         (il->c a0 0 out))
             (= arg-len 2)
-                "TO DO")))
+                (let ((a1 (nth args 1)))
+                    " we can cheat here; since multiplication & addition are commutative, I can change the operands' order
+                      and make optimizations easier here than requiring a full table of numeric type heirarchies.
+                    "
+                    (if (numeric-tower-order? a0 a1)
+                        #v
+                        (begin
+                            (set! a0 (nth args 1))
+                            (set! a1 (nth args 0))))
+                    (cond
+                        (and (integer? a0) (integer? a1))
+                            (display (format "makeinteger(~a)" (+ a0 a1)) out)
+                        (and (integer? a0) (rational? a1))
+                            (display (format "makerational(~a, ~a)" (+ a0 (numerator a1)) (denomenator a1)) out)
+                        (and (integer? a0) (real? a1))
+                            (display (format "makereal(~a)" (+ a0 a1)) out)
+                        (and (integer? a0) (complex? a1))
+                            (display (format "makecomplex(~a, ~a)" (+ a0 (real-part a1)) (imag-part a1)) out)
+                        (and (rational? a0) (real? a1))
+                            (display (format "makereal(~a)" (+ a0 a1)) out)
+                        (and (rational? a0) (complex? a1))
+                            (display (format "makecomplex(~a, ~a)" (+ a0 (real-part a1)) (image-part a1)) out)
+                        (and (complex? a0) (complex? a1))
+                            (display
+                                (format
+                                    "makecomplex(~a, ~a)"
+                                    (+ (real-part a0) (real-part a1)) 
+                                    (+ (imag-part a0) (imag-part a1)))
+                                out)
+                        (integer? a0)
+                            (begin
+                                (display (format "fadd_in(~a, " a0) out)
+                                (il->c a1 0 out)
+                                (display ")" out))
+                        (rational? a0)
+                            (begin
+                                (display (format "fadd_qn(~a, ~a, " (numerator a0) (denomenator a0)) out)
+                                (il->c a1 0 out)
+                                (display ")" out))
+                        (real? a0)
+                            (begin
+                                (display (format "fadd_rn(~a, " a0) out)
+                                (il->c a1 0 out)
+                                (display ")" out))
+                        (complex? a0)
+                            (begin
+                                (display (format "fadd_cn(~a, ~a, " (real-part a0) (imag-part a0)) out)
+                                (il->c a1 0 out)
+                                (display ")" out)))))))
 
 (define (optimize-primitive o out)
     (cond
