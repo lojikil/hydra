@@ -1004,6 +1004,7 @@
             (condition-connector (cdr c) connector out))))
 
 (define (optimizable-primitive? c)
+    (show c "optimizable-primitive? c == ")
     (or
         (and
             (eq? (car c) 'c-primitive-fixed)
@@ -1063,11 +1064,21 @@
 })
 
 (define (tower-order? o0 o1)
-    #f)
+    (cond
+        (and (number? o0) (number? o1) (eq? (numeric-type o0) (numeric-type o1)))
+            #t
+        (and (integer? o0) (rational? o1)) #t
+        (and (integer? o0) (real? o1)) #t
+        (and (integer? o0) (complex? o1)) #t
+        (and (rational? o0) (real? o1)) #t
+        (and (rational? o0) (complex? o1)) #t
+        (and (real? o0) (complex? o1)) #t
+        (and (number? o0) (not (number? o1))) #t
+        else #f))
 
 (define (optimize-add o out)
     " optimize the primitive \"fplus\" to be a bit more
-      performance-friendly. Things to look into:O
+      performance-friendly. Things to look into:
       - constant folding: (+ x 3 4 5) should just be (+ x 10)
       - turning (+ x y z) into fplus_nn(x, fplus_nn(y, z)) or the like (no intermediate list creation)
       - look into other optimizations, like in-place addition (something like (add! x 10) or incf from CL)
@@ -1075,8 +1086,10 @@
     (let* ((args (caddr o))
           (arg-len (length (caddr o)))
           (a0 (nth args 0 #f)))
+        (show args "optimize-add args == ")
+        (show arg-len "optimize-add arg-len == ")
         (cond
-            (>= arg-len 2)
+            (> arg-len 2)
                 (begin
                     (display "fplus(list(" out)
                     (display arg-len out)
@@ -1112,7 +1125,8 @@
                     " we can cheat here; since multiplication & addition are commutative, I can change the operands' order
                       and make optimizations easier here than requiring a full table of numeric type heirarchies.
                     "
-                    (if (numeric-tower-order? a0 a1)
+                    (display "in arg-len == 2\n")
+                    (if (tower-order? a0 a1)
                         #v
                         (begin
                             (set! a0 (nth args 1))
@@ -1139,22 +1153,29 @@
                                 out)
                         (integer? a0)
                             (begin
-                                (display (format "fadd_in(~a, " a0) out)
+                                (display (format "fplus_in(~a, " a0) out)
                                 (il->c a1 0 out)
                                 (display ")" out))
                         (rational? a0)
                             (begin
-                                (display (format "fadd_qn(~a, ~a, " (numerator a0) (denomenator a0)) out)
+                                (display (format "fplus_qn(~a, ~a, " (numerator a0) (denomenator a0)) out)
                                 (il->c a1 0 out)
                                 (display ")" out))
                         (real? a0)
                             (begin
-                                (display (format "fadd_rn(~a, " a0) out)
+                                (display (format "fplus_rn(~a, " a0) out)
                                 (il->c a1 0 out)
                                 (display ")" out))
                         (complex? a0)
                             (begin
-                                (display (format "fadd_cn(~a, ~a, " (real-part a0) (imag-part a0)) out)
+                                (display (format "fplus_cn(~a, ~a, " (real-part a0) (imag-part a0)) out)
+                                (il->c a1 0 out)
+                                (display ")" out))
+                        else
+                            (begin
+                                (display "fplus_nn(" out)
+                                (il->c a0 0 out)
+                                (display ", " out)
                                 (il->c a1 0 out)
                                 (display ")" out)))))))
 
@@ -1353,18 +1374,17 @@
                 (display (cmung (cadr il)) out)
                 (display "()" out))
         (eq? (car il) 'c-primitive)
-            (begin
-                (display (cadr il) out)
-                (cond
-                    (null? (caddr il)) (display "(SNIL)" out)
-                    (optimizable-primitive? il) (optimize-primitive il)
-                    else
-                    (begin
-                        (display "(list(" out)
-                        (display (length (caddr il)) out)
-                        (display ", " out)
-                        (comma-separated-c (caddr il) out)
-                        (display "))" out))))
+            (cond
+                (null? (caddr il)) (display (format "~a(SNIL)" (cadr il) out))
+                (optimizable-primitive? il) (optimize-primitive il out)
+                else
+                (begin
+                    (display (cadr il) out)
+                    (display "(list(" out)
+                    (display (length (caddr il)) out)
+                    (display ", " out)
+                    (comma-separated-c (caddr il) out)
+                    (display "))" out)))
         (eq? (car il) 'c-primitive-fixed) ;; fixed arity primitive
             (begin
                 (display (cadr il) out)

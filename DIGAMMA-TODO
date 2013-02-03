@@ -33,6 +33,7 @@
 - if an inner proc is used in _tail position_, inline it (maybe only if tail rec?)
 - beter param shaddowing; no reliance on another var? no shaddowing
 - optimize more primitives: + - / * < > >= <=
+- open code fnumeq similar to eq?
 - possibly look into destructive parameter updates? (foo (+ i 1)) could be AINT(i) += 1
 
 * Hydra\-only

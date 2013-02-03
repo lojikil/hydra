@@ -3304,6 +3304,81 @@ fnum(SExp *tmp0)
 	return makeinteger(tmp0->object.n->nobject.rational.num);
 }
 SExp *
+fplus_in(int i, SExp n)
+{
+    SExp *ret = nil;
+    if(n->type != NUMBER)
+        return makeerror(1,0,"type class: + operates only on numbers...");
+    switch(NTYPE(n))
+    {
+        case INTEGER:
+            return makeinteger(i + AINT(n));
+        case REAL:
+            return makereal(i + AREAL(n));
+        case RATIONAL:
+            return makerational((i * DEN(n) + NUM(n)), DEN(n));
+        case COMPLEX:
+            return makecomplex(i + CEREAL(n), IMMAG(n));
+    }
+}
+SExp *
+fplus_nn(SExp *i, SExp *n)
+{
+    SExp *ret = nil;
+    if(n->type != NUMBER)
+        return makeerror(1,0,"type class: + operates only on numbers...");
+    switch(NTYPE(i))
+    {
+        case INTEGER:
+            switch(NTYPE(n))
+            {
+                case INTEGER:
+                    return makeinteger(AINT(i) + AINT(n));
+                case REAL:
+                    return makereal(AINT(i) + AREAL(n));
+                case RATIONAL:
+                    /*
+                       a      c
+                      --- +- ---
+                       b      d
+                          =
+                       ad +- bc
+                       --------
+                          bd
+                    */
+                    return makerational((AINT(i) * DEN(n) + NUM(n)), DEN(n)); // b == 1 for ints
+                case COMPLEX: /* nothing for now */
+            }
+        case REAL:
+            switch(NTYPE(n))
+            {
+                case INTEGER:
+                    return makereal(AREAL(i) + AINT(n));
+                case REAL:
+                    return makereal(AREAL(i) + AREAL(n));
+                case RATIONAL:
+                    return makereal(AREAL(i) + ((NUM(n) * 1.0) / (DEN(n) * 1.0)));
+                case COMPLEX:
+            }
+        case COMPLEX:
+            switch(NTYPE(n))
+            {
+                case INTEGER:
+                case REAL:
+                case RATIONAL:
+                case COMPLEX:
+            }
+        case RATIONAL:
+            switch(NTYPE(n))
+            {
+                case INTEGER:
+                case REAL:
+                case RATIONAL:
+                case COMPLEX:
+            }
+    }
+}
+SExp *
 fplus(SExp *rst)
 {
 	SExp *tmp0 = nil, *tmp1 = nil;
