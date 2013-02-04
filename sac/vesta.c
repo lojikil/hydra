@@ -3304,7 +3304,7 @@ fnum(SExp *tmp0)
 	return makeinteger(tmp0->object.n->nobject.rational.num);
 }
 SExp *
-fplus_in(int i, SExp n)
+fplus_in(int i, SExp *n)
 {
     SExp *ret = nil;
     if(n->type != NUMBER)
@@ -3348,6 +3348,7 @@ fplus_nn(SExp *i, SExp *n)
                     */
                     return makerational((AINT(i) * DEN(n) + NUM(n)), DEN(n)); // b == 1 for ints
                 case COMPLEX: /* nothing for now */
+                    return makecomplex(AINT(i) + CEREAL(n), IMMAG(n));
             }
         case REAL:
             switch(NTYPE(n))
@@ -3359,22 +3360,31 @@ fplus_nn(SExp *i, SExp *n)
                 case RATIONAL:
                     return makereal(AREAL(i) + ((NUM(n) * 1.0) / (DEN(n) * 1.0)));
                 case COMPLEX:
+                    return makecomplex(AREAL(i) + CEREAL(n), IMMAG(n));
             }
         case COMPLEX:
             switch(NTYPE(n))
             {
                 case INTEGER:
+                    return makecomplex(CEREAL(i) + AINT(n), IMMAG(i));
                 case REAL:
+                    return makecomplex(CEREAL(i) + AREAL(n), IMMAG(i));
                 case RATIONAL:
+                    return makecomplex(CEREAL(i) + ((NUM(n) * 1.0) / (DEN(n) * 1.0)), IMMAG(i));
                 case COMPLEX:
+                    return makecomplex(CEREAL(i) + CEREAL(n), IMMAG(i) + IMMAG(n));
             }
         case RATIONAL:
             switch(NTYPE(n))
             {
                 case INTEGER:
+                    return makerational((AINT(n) * DEN(i) + NUM(i)), DEN(i));
                 case REAL:
+                    return makereal(AREAL(i) + AREAL(n));
                 case RATIONAL:
+                    return makerational((NUM(i) * DEN(n)) + (NUM(n) * DEN(i)), DEN(i) * DEN(n));
                 case COMPLEX:
+                    return makecomplex(AREAL(i) + CEREAL(n), IMMAG(n));
             }
     }
 }

@@ -1405,6 +1405,16 @@
                 (cdr il))
         (eq? (car il) 'c-tailcall)
             (let ((proc-data (nth *ulambdas* (cadr il))))
+                ;; This section can be rewritten:
+                ;; use a map*/foreach*, which is just normal map in Scheme,
+                ;; to accept the three lists (params, shadows, code), then
+                ;; using this extra information, decide if code really needs
+                ;; to be shadowed or even addressed:
+                ;; (define (foo code ip i j)
+                ;; (foo code (+ ip 1) (+ i j) i)
+                ;; code -> no output
+                ;; ip -> fplus_in(1, ip)
+                ;; i, j shadowed output.
                 (cond
                     (< (length (caddr il)) (nth proc-data 2))
                         (error (format "Incorrect arity for user-defined lambda: ~a" (cadr il)))
@@ -1443,7 +1453,9 @@
                                     out))
                             (zip
                                 (nth proc-data 1)
-                                (nth proc-data 4))))))
+                                (nth proc-data 4)))
+                        (int->spaces lvl out)
+                        (display "continue;\n" out))))
         (eq? (car il) 'c-call)
             (let ((proc-data (nth *ulambdas* (cadr il))))
                 (if (< (length (caddr il)) (nth proc-data 2))

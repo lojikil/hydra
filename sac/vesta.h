@@ -398,6 +398,8 @@ SExp *fsqrt(SExp *);
 SExp *fden(SExp *);
 SExp *fnum(SExp *);
 SExp *fplus(SExp *);
+SExp *fplus_in(int, SExp *);
+SExp *fplus_nn(SExp *, SExp *);
 SExp *fmult(SExp *);
 SExp *fdivd(SExp *);
 SExp *fsubt(SExp *);
