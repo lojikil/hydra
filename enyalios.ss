@@ -148,6 +148,7 @@
     :keys ["fkeys" #f 1 1] 
     :partial-key? ["fpartial_key" #f 2 2]
     :cset! ["fcset" #f 3 3]
+    :dict-set! ["fdset" #f 3 3] ;; to be optimized away below
     :string ["fstring" #f 0 -1]
     :empty? ["fempty" #f 1 1]
     :gensym ["fgensym" #f 0 1] 
@@ -1012,6 +1013,9 @@
         (and
             (eq? (car c) 'c-primitive)
             (eq? (cadr c) "fplus"))
+        (and
+            (eq? (car c) 'c-primitive-fixed)
+            (eq? (cadr c) "fdset"))
         #f))
 
 (define (optimize-eq code out)
@@ -1051,10 +1055,7 @@
                         a0 a0 a1 a0)
                     out)
             else
-                (begin
-                    (display "(" out)
-                    (il->c code 0 out)
-                    (display " == STRUE)" out)))))
+                (display (format "(eqp(~a, ~a) == STRUE)" a0 a1) out))))
 
 (define *tower-lookup* {
     :Integer 0
@@ -1179,12 +1180,40 @@
                                 (il->c a1 0 out)
                                 (display ")" out)))))))
 
+(define (optimize-dset o out)
+    (let* ((vals (caddr o))
+          (d (car vals))
+          (key (cadr vals))
+          (obj (caddr vals)))
+        (if (not (symbol? d))
+            (begin
+                (display "fcset(" out)
+                (il->c d 0 out)
+                (display ", " out)
+                (il->c key 0 out)
+                (display ", " out)
+                (il->c obj 0 out)
+                (display ")" out))
+            (begin
+                (display "trie_put(" out)
+                (display d out)
+                (display "->object.trie, " out)
+                (cond
+                    (symbol? key) (display (cmung key) out)
+                    (or (key? key) (string? key)) (display (format "\"~a\"" key) out)
+                    else (il->c key 0 out))
+                (display ", " out)
+                (il->c obj 0 out)
+                (display ")" out)))))
+
 (define (optimize-primitive o out)
     (cond
         (eq? (cadr o) "eqp")
             (optimize-eq o out)
         (eq? (cadr o) "fplus")
             (optimize-add o out)
+        (eq? (cadr o) "fdset")
+            (optimize-dset o out)
         else
             (error "unable to optimize primitive form")))
 
@@ -1386,11 +1415,13 @@
                     (comma-separated-c (caddr il) out)
                     (display "))" out)))
         (eq? (car il) 'c-primitive-fixed) ;; fixed arity primitive
-            (begin
-                (display (cadr il) out)
-                (display "(" out)
-                (comma-separated-c (caddr il) out)
-                (display ")" out))
+            (if (optimizable-primitive? il)
+                (optimize-primitive il out)
+                (begin
+                    (display (cadr il) out)
+                    (display "(" out)
+                    (comma-separated-c (caddr il) out)
+                    (display ")" out)))
         (eq? (car il) 'c-begin)
             (foreach-proc
                 (fn (x)
