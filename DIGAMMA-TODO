@@ -38,6 +38,7 @@
 
 * Hydra\-only
 - DONE: review user of map, and potentially replace with bespoke, Enyalios\-friendly equivalent (SAC)
+- idea: what if, instead of defining a list of primitives, &c., we just code primitives iff there is no other hit in the env? Users could do (define car (fn ...)), but it would not require having "car" defined in the env; a lookup against car could just hit a "default handler" of sorts. 
 - Core version without repl\/read, for use with IL\->JS
 - Move stack from pair to vector with fixed size, stack pointer, &c. (testing)
 - hydra@{operand, instruction} => simple syntax
