@@ -1024,14 +1024,22 @@
            (a0 (car args))
            (a1 (cadr args)))
         (cond
-            status (display (format "eqp(~a, ~a)" a0 a1) out)
+            status ;; even here, could be a0 == a1 ? STRUE : SFALSE
+                (begin
+                    (display "eqp(" out)
+                    (il->c a0 0 out)
+                    (display ", " out)
+                    (il->c a1 0 out)
+                    (display ")" out))
             (and ;; two symbols? fall back on eqp
                 (symbol? a0) ;; might be able to do some sort of
                 (symbol? a1)) ;; type test, but still...
                 (begin
-                    (display "(" out)
-                    (il->c code 0 out)
-                    (display " == STRUE)" out))
+                    (display "eqp(" out)
+                    (il->c a0 0 out)
+                    (display ", " out)
+                    (il->c a1 0 out)
+                    (display ")" out))
             (and
                 (symbol? a0)
                 (integer? a1))
@@ -1057,7 +1065,12 @@
                         a0 a0 a1 a0)
                     out)
             else
-                (display (format "(eqp(~a, ~a) == STRUE)" a0 a1) out))))
+                (begin
+                    (display "(eqp(" out)
+                    (il->c a0 0 out)
+                    (display ", " out)
+                    (il->c a1 0 out)
+                    (display ") == STRUE)" out)))))
 
 (define *tower-lookup* {
     :Integer 0
@@ -1198,15 +1211,15 @@
                 (display ")" out))
             (begin
                 (display "trie_put(" out)
-                (display d out)
-                (display "->object.trie, " out)
                 (cond
                     (symbol? key) (display (cmung key) out)
                     (or (key? key) (string? key)) (display (format "\"~a\"" key) out)
                     else (il->c key 0 out))
                 (display ", " out)
                 (il->c obj 0 out)
-                (display ")" out)))))
+                (display ", " out)
+                (display d out)
+                (display "->object.dict)" out)))))
 
 (define (optimize-primitive o out (status #f))
     (cond
