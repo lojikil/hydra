@@ -1018,11 +1018,13 @@
             (eq? (cadr c) "fdset"))
         #f))
 
-(define (optimize-eq code out)
+(define (optimize-eq code out status)
+    (show status "optimize-eq stats == ")
     (let* ((args (caddr code)) ; destructuring bind would be nice here...
            (a0 (car args))
            (a1 (cadr args)))
         (cond
+            status (display (format "eqp(~a, ~a)" a0 a1) out)
             (and ;; two symbols? fall back on eqp
                 (symbol? a0) ;; might be able to do some sort of
                 (symbol? a1)) ;; type test, but still...
@@ -1206,10 +1208,10 @@
                 (il->c obj 0 out)
                 (display ")" out)))))
 
-(define (optimize-primitive o out)
+(define (optimize-primitive o out (status #f))
     (cond
         (eq? (cadr o) "eqp")
-            (optimize-eq o out)
+            (optimize-eq o out status)
         (eq? (cadr o) "fplus")
             (optimize-add o out)
         (eq? (cadr o) "fdset")
@@ -1416,7 +1418,7 @@
                     (display "))" out)))
         (eq? (car il) 'c-primitive-fixed) ;; fixed arity primitive
             (if (optimizable-primitive? il)
-                (optimize-primitive il out)
+                (optimize-primitive il out #t)
                 (begin
                     (display (cadr il) out)
                     (display "(" out)
