@@ -1082,6 +1082,50 @@ add_env(Symbol *inp, char *name, SExp *data)
 SExp *
 trie_put(char *str, SExp *value, Trie *head)
 {
+	Trie *tmp = nil;
+	int iter = 0;
+	if(strlen(str) == 0)
+	{
+		head->data = value;
+		return strue;
+	}
+	if(head->nodes == nil)
+	{
+		head->nodes = (Trie **)hmalloc(sizeof(Trie *) * 4); /* allocate 4, use one */
+		head->n_cur = 1;
+		head->n_len = 4;
+		head->nodes[0] = trie_alloc(str,value);
+		return strue;
+	}
+	for(iter = 0;iter < head->n_cur;iter++)
+	{
+		if(head->nodes[iter]->key == str[0])
+		{
+			trie_put(&str[1],value,head->nodes[iter]);
+			return strue;
+		}
+	}
+	/* ok, so the child list is not empty, and we didn't find a matching key, so
+	** we have to check now if we have room left in nodes or if it needs to be re-
+	** alloc'd, and talloc the remainder of the key...
+	*/
+	iter = head->n_cur;
+	if(iter < head->n_len)
+	{
+		head->nodes[iter] = trie_alloc(str,value);
+		head->n_cur++;
+	}
+	else
+	{
+		head->nodes = hrealloc(head->nodes,sizeof(Trie **) * (head->n_len + 4));
+		head->nodes[iter] = trie_alloc(str,value);
+		head->n_cur++;
+		head->n_len += 4;
+	}
+	return strue;
+}
+/*trie_put(char *str, SExp *value, Trie *head)
+{
 	Trie *tmp = head, *i_tmp = nil;
 	int iter = 0, str_offset = 0, str_len = 0;
     str_len = strlen(str);
@@ -1095,7 +1139,7 @@ trie_put(char *str, SExp *value, Trie *head)
 	    }
 	    if(tmp->nodes == nil)
 	    {
-		    tmp->nodes = (Trie **)hmalloc(sizeof(Trie *) * 4); /* allocate 4, use one */
+		    tmp->nodes = (Trie **)hmalloc(sizeof(Trie *) * 4); // allocate 4, use one 
 		    tmp->n_cur = 1;
 		    tmp->n_len = 4;
 		    tmp->nodes[0] = trie_alloc(&str[str_offset], value);
@@ -1115,10 +1159,10 @@ trie_put(char *str, SExp *value, Trie *head)
             tmp = i_tmp;
             continue;
         }
-	    /* ok, so the child list is not empty, and we didn't find a matching key, so
-	    ** we have to check now if we have room left in nodes or if it needs to be re-
-	    ** alloc'd, and talloc the remainder of the key...
-	    */
+	    // ok, so the child list is not empty, and we didn't find a matching key, so
+	    // we have to check now if we have room left in nodes or if it needs to be re-
+	    // alloc'd, and talloc the remainder of the key...
+	    //
 	    iter = tmp->n_cur;
 	    if(iter < tmp->n_len)
 	    {
@@ -1134,7 +1178,7 @@ trie_put(char *str, SExp *value, Trie *head)
 	    }
 	    return strue;
     }
-}
+}*/
 SExp *
 trie_get(char *key, Trie *head)
 {
