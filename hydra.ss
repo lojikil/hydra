@@ -160,6 +160,14 @@
 (define (hydra@operand c)
     (cadr c))
 
+(define (dict-copy k dict new-dict)
+    "shallow copy a dictionary"
+    (if (null? k)
+        new-dict
+        (begin
+            (cset! new-dict (car k) (nth dict (car k)))
+            (dict-copy (cdr k) dict new-dict))))
+
 (define (build-environment environment stack params)
     "Adds a new window to the environment, removes |params| items from the stack
      and binds those values in the new window. It returns a list of environment and
@@ -168,6 +176,8 @@
     ;; would probably be better to have an inner function that iterates over
     ;; the parameters & returns those that match. It would then be easier to 
     ;; have optional parameters...
+    ;; Oh! Don't just use environment, use (copy-dict environment)
+    ;; actually, need to copy entire frame? ugh. That's going to be ugly
     (let ((ls (length stack)) (lp (length params)) (nu-env {}))
         (if (< ls lp)
             (error "non-optional parameters are not statisfied by stack items in build-environment")
