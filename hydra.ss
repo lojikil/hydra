@@ -411,9 +411,12 @@
                             ;; need to support CALLing primitives too, since they could be passed
                             ;; in to HOFs...
                             (let ((env-and-stack (build-environment (nth (cadar stack) 0) (cdr stack) (nth (cadar stack) 2))))
+                                (display "stack: ")
+                                (write (cadar stack))
+                                (newline)
                                 (hydra@vm
                                     (nth (cadar stack) 1)
-                                    (car env-and-stack)
+                                    (show (car env-and-stack))
                                     0 '() 
                                     (cons (list code env ip (cadr env-and-stack)) dump)))
                             (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
@@ -855,6 +858,10 @@
                                 v
                                 (nth cont-code 4))
                             (nth cont-code 5)))
+                    (eq? instr 109) ;; %makeclosure
+                        (begin
+                            (cset! (cadar stack) 0 env)
+                            (hydra@vm code env (+ ip 1) stack dump))
                         ))))
 
 
@@ -1018,6 +1025,7 @@
     :call/cc (primitive . 106)
     :%nop (primitive . 107) ;;no operation 
     :%ap  (primitive . 108) ;; apply a continuation
+    :%makeclosure (primitive . 109)
 }))
 
 (define (hydra@lookup item env)
@@ -1083,7 +1091,7 @@
 
 (define (hydra@eval line env)
     "simple wrapper around hydra@vm & hydra@compile"
-    (hydra@vm (hydra@compile line env) env 0 '() '()))
+    (hydra@vm (show (hydra@compile line env)) env 0 '() '()))
 
 (define (hydra@compile-help sym iter-list env)
     " a helper function for hydra@compile, which collects
@@ -1185,7 +1193,8 @@
                                     #t
                                 (eq? (cdr v) 'primitive-syntax-fn)
                                     (list (list 3 ;; load
-                                        (compile-lambda rst env)))
+                                        (compile-lambda rst env))
+                                        (list (cdr (hydra@lookup '%makeclosure env))))
                                 (eq? (cdr v) 'primitive-syntax-lt)
                                     (append 
                                         (hydra@compile (car rst) env)
@@ -1364,7 +1373,7 @@
                     (top-level-print (hydra@lookup inp *tlenv*))
                     (display "\n")
                     (hydra@repl)))
-            (with r (hydra@eval inp *tlenv*) 
+            (with r (hydra@eval inp *tlenv*)
                 (if (eq? r #v)
                  (hydra@repl)
                  (begin
