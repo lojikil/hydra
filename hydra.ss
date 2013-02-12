@@ -858,240 +858,257 @@
                                 v
                                 (nth cont-code 4))
                             (nth cont-code 5)))
-                    (eq? instr 109) ;; %makeclosure
-                        (begin
-                            (cset! (cadar stack) 0 env)
-                            (hydra@vm code env (+ ip 1) stack dump))
-                        ))))
+                        (eq? instr 109) ;; %makeclosure
+                            ;; makeclosure should rebuild the lambda that it is "enclosing"
+                            ;; to ensure clean enclosing, rather than using cset, which just
+                            ;; gives us the same problem we have now... duh (well, when you
+                            ;; think about it, sure, but the naive approach? sure).
+                            (begin
+                                ;;(cset! (cadar stack) 0 env)
+                                (hydra@vm
+                                    code
+                                    env
+                                    (+ ip 1)
+                                    (cons
+                                        (list
+                                            3
+                                            (list 'compiled-lambda
+                                                (vector
+                                                    env
+                                                    (nth (cadar stack) 1)
+                                                    (nth (cadar stack) 2))))
+                                        (cdr stack))
+                                    dump))
+                            ))))
 
 
-; syntax to make the above nicer:
-; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
-; (define-instruction '() "jump" '() '() '() (if (car stack) ...))
-; this should also fill in the top-level environment for those that have non-null name
-; (define-instruction name short-description code-manip stack-manip IP-manip resulting code) 
+    ; syntax to make the above nicer:
+    ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
+    ; (define-instruction '() "jump" '() '() '() (if (car stack) ...))
+    ; this should also fill in the top-level environment for those that have non-null name
+    ; (define-instruction name short-description code-manip stack-manip IP-manip resulting code) 
 
-; (primitive 0) can still be defeated, I think:
-; (define foo '(primitive 0))
-; (foo '(1 2 3 4))
-; Definitely can be defeated. Really, need to move to some SRFI-9-ish system that
-; users cannot create their own versions of.
+    ; (primitive 0) can still be defeated, I think:
+    ; (define foo '(primitive 0))
+    ; (foo '(1 2 3 4))
+    ; Definitely can be defeated. Really, need to move to some SRFI-9-ish system that
+    ; users cannot create their own versions of.
 
-; there are two ways of dealing with arity, both have upsides & downsides:
+    ; there are two ways of dealing with arity, both have upsides & downsides:
 
-; 0 - encode arity of primitives here, in the actual primitive notation.
-;     + this allows hydra@compile to know the proper arity, and signal an error.
-;     + it also means that hydra@vm has to suddenly change: it must now unpack the actual opcode
-;       before running (this might not be too bad...)
-; 1 - encode the arity of primitives in a separate array.
-;     + this allows hydra@compile to remain unchanged, and only minimal changes to hydra@vm
-;     + this does not confer the benefits that the above does (that hydra@compile can
-;       know about the arity of primitives & signal failure during code generation).
+    ; 0 - encode arity of primitives here, in the actual primitive notation.
+    ;     + this allows hydra@compile to know the proper arity, and signal an error.
+    ;     + it also means that hydra@vm has to suddenly change: it must now unpack the actual opcode
+    ;       before running (this might not be too bad...)
+    ; 1 - encode the arity of primitives in a separate array.
+    ;     + this allows hydra@compile to remain unchanged, and only minimal changes to hydra@vm
+    ;     + this does not confer the benefits that the above does (that hydra@compile can
+    ;       know about the arity of primitives & signal failure during code generation).
 
-(define *tlenv* '({
-    :car (primitive . 0) ;; (primitive . 0) 
-    :cdr (primitive . 1)
-    :cons (primitive . 2)
-    :%load (primitive . 3) ;; 3 is load a value onto the stack
-    :%nil (primitive . 4) ;; 4 is push a nil onto the stack
-    :%- (primitive . 5) ;; primitive math operations with arity 2
-    :%+ (primitive . 6)
-    :%* (primitive . 7)
-    :%/ (primitive . 8)
-    :%< (primitive . 9)
-    :%> (primitive . 10)
-    :%<= (primitive . 11)
-    :%>= (primitive . 12)
-    :if (syntax . primitive-syntax-if)
-    :fn (syntax . primitive-syntax-fn)
-    :lambda (syntax . primitive-syntax-fn)
-    :quote (syntax . primitive-syntax-quote)
-    :quasi-quote (syntax . primitive-syntax-qquote)
-    :unquote (syntax . primitve-syntax-unquote)
-    :unquote-splice (syntax . primitive-syntax-unqsplice)
-    :length (primitive . 13)
-    :exact? (primitive . 14)
-    :inexact? (primitive . 15)
-    :display (primitive . 16)
-    :apply (primitive . 17)
-    :real? (primitive . 18)
-    :integer? (primitive . 19)
-    :complex? (primitive . 20)
-    :rational? (primitive . 21)
-    :gcd (primitive . 22)
-    :lcm (primitive . 23)
-    :numerator (primitive . 24)
-    :denomenator (primitive . 25)
-    :%= (primitive . 26) ;; probably has to place the value on stack rather than #t, #f for failure
-    :eq? (primitive . 27)
-    :%jmp (primitive . 28) ;; 28 is jump
-    :%cmp (primitive . 29) ;; 29 is compare
-    :%call (primitive . 30) ;; 30 is call
-    :%env-load (primitive . 31) ;; 31 is environment-load
-    :%tail-call (primitive . 32) ;; 32 is tail-call; is this necessary? operand to CALL?
-    :+ (syntax . primitive-syntax-plus) ;; variable arity syntax
-    :- (syntax . primitive-syntax-minus)
-    :* (syntax . primitive-syntax-mult)
-    :/ (syntax . primitive-syntax-div)
-    :< (syntax . primitive-syntax-lt)
-    :> (syntax . primitive-syntax-gt)
-    :<= (syntax . primitive-syntax-lte)
-    :>= (syntax . primitive-syntax-gte)
-    := (syntax . primitive-syntax-numeq)
-    :define (syntax . primitive-syntax-define)
-    :set! (syntax . primitive-syntax-set)
-    :define-syntax (syntax . primitive-syntax-defsyn)
-    :define-macro (syntax . primitive-syntax-defmac)
-    :%define (primitive . 33)
-    :%set! (primitive . 34)
-    :ceil (primitive . 35)
-    :floor (primitive . 36)
-    :truncate (primitive . 37)
-    :round (primitive . 38)
-    :inexact->exact (primitive . 39)
-    :quotient (primitive . 40)
-    :modulo (primitive . 41)
-    :& (primitive . 42)
-    :| (primitive . 43)
-    :^ (primitive . 44)
-    :~ (primitive . 45)
-    :%list (primitive . 46)
-    :list (syntax . primitive-syntax-list)
-    :%vector (primitive . 47)
-    :vector (syntax . primitive-syntax-vector)
-    :%make-vector (primitive . 48)
-    :make-vector (syntax  . primitive-syntax-makevector)
-    :%make-string (primitive . 49)
-    :make-string (syntax . primitive-syntax-makestring)
-    :%string (primitive . 50)
-    :string (syntax . primitive-syntax-string)
-    :%append (primitive . 51)
-    :append (syntax . primitive-syntax-append)
-    :first (primitive . 52)
-    :rest (primitive . 53)
-    :ccons (primitive . 54)
-    :nth (primitive . 55)
-    :keys (primitive . 56)
-    :partial-key? (primitive . 57)
-    :cset! (primitive . 58)
-    :empty? (primitive . 59)
-    :define-macro (syntax . primitive-syntax-defmac)
-    :gensym (primitive . 60)
-    :imag-part (primitive . 61)
-    :real-part (primitive . 62)
-    :make-rectangular (primitive . 63)
-    :make-polar (primitive . 64)
-    :magnitude (primitive . 65)
-    :argument (primitive . 66)
-    :conjugate (primitive . 67)
-    :conjugate! (primitive . 68)
-    :polar->rectangular (primitive . 69)
-    :rectangular->polar (primitive . 70)
-    :sin (primitive . 71)
-    :cos (primitive . 72)
-    :tan (primitive . 73)
-    :asin (primitive . 74)
-    :acos (primitive . 75)
-    :atan (primitive . 76)
-    :atan2 (primitive . 77)
-    :sinh (primitive . 78)
-    :cosh (primitive . 79)
-    :tanh (primitive . 80)
-    :exp (primitive . 81)
-    :ln (primitive . 82)
-    :abs (primitive . 83)
-    :sqrt (primitive . 84)
-    :exp2 (primitive . 85)
-    :expm1 (primitive . 86)
-    :log2 (primitive . 87)
-    :log10 (primitive . 88)
-    :<< (primitive . 89)
-    :>> (primitive . 90)
-    :string-append (primitive . 91)
-    :assq (primitive . 92)
-    :memq (primitive . 93)
-    :dict (primitive . 94)
-    :make-dict (primitive . 95)
-    :dict-has? (primitive . 96)
-    :coerce (primitive . 97)
-    :cupdate (primitive . 98)
-    :cslice (primitive . 99)
-    :tconc! (primitive . 100)
-    :make-tconc (primitive . 101)
-    :tconc-list (primitive . 102)
-    :tconc->pair (primitive . 103)
-    :tconc-splice (primitive . 104)
-    :rationalize (primitive . 105)
-    :call/cc (primitive . 106)
-    :%nop (primitive . 107) ;;no operation 
-    :%ap  (primitive . 108) ;; apply a continuation
-    :%makeclosure (primitive . 109)
-}))
+    (define *tlenv* '({
+        :car (primitive . 0) ;; (primitive . 0) 
+        :cdr (primitive . 1)
+        :cons (primitive . 2)
+        :%load (primitive . 3) ;; 3 is load a value onto the stack
+        :%nil (primitive . 4) ;; 4 is push a nil onto the stack
+        :%- (primitive . 5) ;; primitive math operations with arity 2
+        :%+ (primitive . 6)
+        :%* (primitive . 7)
+        :%/ (primitive . 8)
+        :%< (primitive . 9)
+        :%> (primitive . 10)
+        :%<= (primitive . 11)
+        :%>= (primitive . 12)
+        :if (syntax . primitive-syntax-if)
+        :fn (syntax . primitive-syntax-fn)
+        :lambda (syntax . primitive-syntax-fn)
+        :quote (syntax . primitive-syntax-quote)
+        :quasi-quote (syntax . primitive-syntax-qquote)
+        :unquote (syntax . primitve-syntax-unquote)
+        :unquote-splice (syntax . primitive-syntax-unqsplice)
+        :length (primitive . 13)
+        :exact? (primitive . 14)
+        :inexact? (primitive . 15)
+        :display (primitive . 16)
+        :apply (primitive . 17)
+        :real? (primitive . 18)
+        :integer? (primitive . 19)
+        :complex? (primitive . 20)
+        :rational? (primitive . 21)
+        :gcd (primitive . 22)
+        :lcm (primitive . 23)
+        :numerator (primitive . 24)
+        :denomenator (primitive . 25)
+        :%= (primitive . 26) ;; probably has to place the value on stack rather than #t, #f for failure
+        :eq? (primitive . 27)
+        :%jmp (primitive . 28) ;; 28 is jump
+        :%cmp (primitive . 29) ;; 29 is compare
+        :%call (primitive . 30) ;; 30 is call
+        :%env-load (primitive . 31) ;; 31 is environment-load
+        :%tail-call (primitive . 32) ;; 32 is tail-call; is this necessary? operand to CALL?
+        :+ (syntax . primitive-syntax-plus) ;; variable arity syntax
+        :- (syntax . primitive-syntax-minus)
+        :* (syntax . primitive-syntax-mult)
+        :/ (syntax . primitive-syntax-div)
+        :< (syntax . primitive-syntax-lt)
+        :> (syntax . primitive-syntax-gt)
+        :<= (syntax . primitive-syntax-lte)
+        :>= (syntax . primitive-syntax-gte)
+        := (syntax . primitive-syntax-numeq)
+        :define (syntax . primitive-syntax-define)
+        :set! (syntax . primitive-syntax-set)
+        :define-syntax (syntax . primitive-syntax-defsyn)
+        :define-macro (syntax . primitive-syntax-defmac)
+        :%define (primitive . 33)
+        :%set! (primitive . 34)
+        :ceil (primitive . 35)
+        :floor (primitive . 36)
+        :truncate (primitive . 37)
+        :round (primitive . 38)
+        :inexact->exact (primitive . 39)
+        :quotient (primitive . 40)
+        :modulo (primitive . 41)
+        :& (primitive . 42)
+        :| (primitive . 43)
+        :^ (primitive . 44)
+        :~ (primitive . 45)
+        :%list (primitive . 46)
+        :list (syntax . primitive-syntax-list)
+        :%vector (primitive . 47)
+        :vector (syntax . primitive-syntax-vector)
+        :%make-vector (primitive . 48)
+        :make-vector (syntax  . primitive-syntax-makevector)
+        :%make-string (primitive . 49)
+        :make-string (syntax . primitive-syntax-makestring)
+        :%string (primitive . 50)
+        :string (syntax . primitive-syntax-string)
+        :%append (primitive . 51)
+        :append (syntax . primitive-syntax-append)
+        :first (primitive . 52)
+        :rest (primitive . 53)
+        :ccons (primitive . 54)
+        :nth (primitive . 55)
+        :keys (primitive . 56)
+        :partial-key? (primitive . 57)
+        :cset! (primitive . 58)
+        :empty? (primitive . 59)
+        :define-macro (syntax . primitive-syntax-defmac)
+        :gensym (primitive . 60)
+        :imag-part (primitive . 61)
+        :real-part (primitive . 62)
+        :make-rectangular (primitive . 63)
+        :make-polar (primitive . 64)
+        :magnitude (primitive . 65)
+        :argument (primitive . 66)
+        :conjugate (primitive . 67)
+        :conjugate! (primitive . 68)
+        :polar->rectangular (primitive . 69)
+        :rectangular->polar (primitive . 70)
+        :sin (primitive . 71)
+        :cos (primitive . 72)
+        :tan (primitive . 73)
+        :asin (primitive . 74)
+        :acos (primitive . 75)
+        :atan (primitive . 76)
+        :atan2 (primitive . 77)
+        :sinh (primitive . 78)
+        :cosh (primitive . 79)
+        :tanh (primitive . 80)
+        :exp (primitive . 81)
+        :ln (primitive . 82)
+        :abs (primitive . 83)
+        :sqrt (primitive . 84)
+        :exp2 (primitive . 85)
+        :expm1 (primitive . 86)
+        :log2 (primitive . 87)
+        :log10 (primitive . 88)
+        :<< (primitive . 89)
+        :>> (primitive . 90)
+        :string-append (primitive . 91)
+        :assq (primitive . 92)
+        :memq (primitive . 93)
+        :dict (primitive . 94)
+        :make-dict (primitive . 95)
+        :dict-has? (primitive . 96)
+        :coerce (primitive . 97)
+        :cupdate (primitive . 98)
+        :cslice (primitive . 99)
+        :tconc! (primitive . 100)
+        :make-tconc (primitive . 101)
+        :tconc-list (primitive . 102)
+        :tconc->pair (primitive . 103)
+        :tconc-splice (primitive . 104)
+        :rationalize (primitive . 105)
+        :call/cc (primitive . 106)
+        :%nop (primitive . 107) ;;no operation 
+        :%ap  (primitive . 108) ;; apply a continuation
+        :%makeclosure (primitive . 109)
+    }))
 
-(define (hydra@lookup item env)
-    " look up item in the current environment, returning #f for not found"
-    (cond
-        (not (symbol? item)) item ;; to support ((fn (x) (+ x x)) (+ x x) 3)
-        (null? env) (hydra@error (format "unbound variable: ~a" item)) 
-        (dict-has? (car env) item) (nth (car env) item)
-        else (hydra@lookup item (cdr env))))
+    (define (hydra@lookup item env)
+        " look up item in the current environment, returning #f for not found"
+        (cond
+            (not (symbol? item)) item ;; to support ((fn (x) (+ x x)) (+ x x) 3)
+            (null? env) (hydra@error (format "unbound variable: ~a" item)) 
+            (dict-has? (car env) item) (nth (car env) item)
+            else (hydra@lookup item (cdr env))))
 
-(define (compile-lambda rst env)
-    (list 'compiled-lambda
-        (vector
-            (list-copy env)
-            (append-map
-                (fn (x) (hydra@compile x env))
-                (cdr rst))
-            (car rst)))) 
+    (define (compile-lambda rst env)
+        (list 'compiled-lambda
+            (vector
+                (list-copy env)
+                (append-map
+                    (fn (x) (hydra@compile x env))
+                    (cdr rst))
+                (car rst)))) 
 
-(define (hydra@lambda? x)
-    (and (pair? x) (eq? (car x) 'compiled-lambda)))
+    (define (hydra@lambda? x)
+        (and (pair? x) (eq? (car x) 'compiled-lambda)))
 
-(define (hydra@primitive? x)
-    (and (pair? x) (eq? (car x) 'primitive)))
+    (define (hydra@primitive? x)
+        (and (pair? x) (eq? (car x) 'primitive)))
 
-(define (hydra@syntax? x)
-    (and (pair? x) (eq? (car x) 'syntax)))
+    (define (hydra@syntax? x)
+        (and (pair? x) (eq? (car x) 'syntax)))
 
-(define (hydra@error? x)
-    (and (pair? x) (eq? (car x) 'error)))
+    (define (hydra@error? x)
+        (and (pair? x) (eq? (car x) 'error)))
 
-(define (hydra@continuation? x)
-    (and (pair? x) (eq? (car x) 'continuation)))
+    (define (hydra@continuation? x)
+        (and (pair? x) (eq? (car x) 'continuation)))
 
-(define (hydra@add-env! name value environment)
-    " adds name to the environment, but also returns
-      (load #v), so that the compiler adds the correct
-      value (this is in the semantics of Vesta, so I thought
-      it should be left in Hydra as well)"
-    (cset! (car environment) name value))
+    (define (hydra@add-env! name value environment)
+        " adds name to the environment, but also returns
+          (load #v), so that the compiler adds the correct
+          value (this is in the semantics of Vesta, so I thought
+          it should be left in Hydra as well)"
+        (cset! (car environment) name value))
 
-(define (hydra@set-env! name value environment)
-    " sets a value in the current environment, and returns
-      an error if that binding has not been previously defined"
-    (cond
-        (null? environment) (hydra@error (format "SET! error: undefined name \"~a\"" name))
-        (dict-has? (car environment) name)
-            (cset! (car environment) name value)
-        else (hydra@set-env! name value (cdr environment))))
+    (define (hydra@set-env! name value environment)
+        " sets a value in the current environment, and returns
+          an error if that binding has not been previously defined"
+        (cond
+            (null? environment) (hydra@error (format "SET! error: undefined name \"~a\"" name))
+            (dict-has? (car environment) name)
+                (cset! (car environment) name value)
+            else (hydra@set-env! name value (cdr environment))))
 
-(define (reverse-append x)
-    "append but in reverse"
-    (cond
-        (null? x) x
-        (null? (cdr x)) (car x)
-        else (append (reverse-append (cddr x)) (cadr x) (car x))))
+    (define (reverse-append x)
+        "append but in reverse"
+        (cond
+            (null? x) x
+            (null? (cdr x)) (car x)
+            else (append (reverse-append (cddr x)) (cadr x) (car x))))
 
-(define (show x) (display "show: ") (display x) (display "\n") x)
+    (define (show x) (display "show: ") (display x) (display "\n") x)
 
-(define (hydra@error msg)
-    "simple, hydra specific errors"
-    (list 'error msg))
+    (define (hydra@error msg)
+        "simple, hydra specific errors"
+        (list 'error msg))
 
-(define (hydra@eval line env)
-    "simple wrapper around hydra@vm & hydra@compile"
-    (hydra@vm (show (hydra@compile line env)) env 0 '() '()))
+    (define (hydra@eval line env)
+        "simple wrapper around hydra@vm & hydra@compile"
+        (hydra@vm (show (hydra@compile line env)) env 0 '() '()))
 
 (define (hydra@compile-help sym iter-list env)
     " a helper function for hydra@compile, which collects
