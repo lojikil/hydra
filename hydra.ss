@@ -186,7 +186,6 @@
                 (begin 
                     (foreach
                         (lambda (x)
-                            (display (format "adding ~a with value of ~a to the environment~%" (car x) (cadr x)))
                             (cset! nu-env (car x) (cadr x)))
                         (zip params (cslice stack 0 lp)))
                     (list (cons nu-env environment) (cslice stack lp ls)))))))
@@ -412,12 +411,9 @@
                             ;; need to support CALLing primitives too, since they could be passed
                             ;; in to HOFs...
                             (let ((env-and-stack (build-environment (nth (cadar stack) 0) (cdr stack) (nth (cadar stack) 2))))
-                                (display "stack: ")
-                                (write (cadar stack))
-                                (newline)
                                 (hydra@vm
                                     (nth (cadar stack) 1)
-                                    (show (car env-and-stack))
+                                    (car env-and-stack)
                                     0 '() 
                                     (cons (list code env ip (cadr env-and-stack)) dump)))
                             (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
@@ -1105,7 +1101,7 @@
 
 (define (hydra@eval line env)
     "simple wrapper around hydra@vm & hydra@compile"
-    (hydra@vm (show (hydra@compile line env)) env 0 '() '()))
+    (hydra@vm (hydra@compile line env) env 0 '() '()))
 
 (define (hydra@compile-help sym iter-list env)
     " a helper function for hydra@compile, which collects
