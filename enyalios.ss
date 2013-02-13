@@ -370,7 +370,7 @@
             (list #f name))))
 
 (define (merge-parameters lparams params)
-    (with ret (dict-copy (keys lparams) lparams {})
+    (with ret (dict-copy (keys lparams) lparams (dict))
         (cset! ret "parameters"
             (append params (nth lparams "parameters" '())))
         ret))
@@ -702,9 +702,9 @@
                         vars
                         (dict-copy
                             (keys rewrites)
-                            rewrites {})))
+                            rewrites (dict))))
            (body (compile-begin (cdr block) name tail? var-temps lparams))
-           (nulparams (dict-copy (keys lparams) lparams {})))
+           (nulparams (dict-copy (keys lparams) lparams (dict))))
         (cset! nulparams "letvals" (cons vars (nth lparams "letvals" '())))
         ;(display "\n\nlet.body == ")
         ;(write body)
@@ -1595,7 +1595,7 @@
                 (display (format "COMPILING: ~a~%" (cadr o)))
                 #v)
             (cons 
-                (cadr (generate-code o '() #f {} (dict "env" env-name)))
+                (cadr (generate-code o '() #f (dict) (dict "env" env-name)))
                 (enyalios@compile-loop (cdr code) env-name)))))
 
 (define (enyalios@dump-prototypes names d out) 
