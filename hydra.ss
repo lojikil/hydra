@@ -178,7 +178,7 @@
     ;; have optional parameters...
     ;; Oh! Don't just use environment, use (copy-dict environment)
     ;; actually, need to copy entire frame? ugh. That's going to be ugly
-    (let ((ls (length stack)) (lp (length params)) (nu-env {}))
+    (let ((ls (length stack)) (lp (length params)) (nu-env (dict)))
         (if (< ls lp)
             (error "non-optional parameters are not statisfied by stack items in build-environment")
             (if (= lp 0)
@@ -186,6 +186,7 @@
                 (begin 
                     (foreach
                         (lambda (x)
+                            (display (format "adding ~a with value of ~a to the environment~%" (car x) (cadr x)))
                             (cset! nu-env (car x) (cadr x)))
                         (zip params (cslice stack 0 lp)))
                     (list (cons nu-env environment) (cslice stack lp ls)))))))
@@ -870,17 +871,13 @@
                                 env
                                 (+ ip 1)
                                 (cons
-                                    (list
-                                        3
-                                        (list 'compiled-lambda
-                                            (vector
-                                                env
-                                                (nth (cadar stack) 1)
-                                                (nth (cadar stack) 2))))
+                                    (list 'compiled-lambda
+                                        (vector
+                                            (list-copy env)
+                                            (nth (cadar stack) 1)
+                                            (nth (cadar stack) 2)))
                                     (cdr stack))
-                                dump))
-                        ))))
-
+                                dump))))))
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
