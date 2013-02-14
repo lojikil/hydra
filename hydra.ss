@@ -244,11 +244,16 @@
      ;(display "ip: ")
      ;(display ip)
      ;(newline)
-     (if (>= ip (length code))
+    (cond
+        (or (eq? (type (car stack)) "Error")
+            (hydra@error? (car stack)))
+            (car stack)
+        (>= ip (length code))
         (if (null? dump)
             (car stack)
             (hydra@vm (caar dump) (cadar dump) (+ (caddar dump) 1) (cons (car stack) (cadddar dump)) (cdr dump)))
-         (let* ((c (nth code ip))
+        else
+        (let* ((c (nth code ip))
                 (instr (hydra@instruction c)))
 
                 ;(display "current instruction: ")

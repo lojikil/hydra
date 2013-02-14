@@ -1,4 +1,7 @@
 *.swp
 *test*.c
 *test*.ss.c
+hydra.ss.c
+hydra
 *.o
+sac/perf/*

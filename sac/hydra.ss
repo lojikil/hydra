@@ -251,7 +251,11 @@
      ;(display "ip: ")
      ;(display ip)
      ;(newline)
-     (if (>= ip (length code))
+     (cond
+        (or (eq? (type (car stack)) "Error")
+            (hydra@error? (car stack)))
+            (car stack)
+        (>= ip (length code))
         (if (null? dump)
             (car stack)
             (with top-dump (car dump)
@@ -261,6 +265,7 @@
                     (+ (nth top-dump 2) 1)
                     (cons (car stack) (nth top-dump 3))
                     (cdr dump))))
+         else
          (let* ((c (nth code ip))
                 (instr (hydra@instruction c)))
               (display (format "current ip: ~n~%" ip))
@@ -1102,7 +1107,7 @@
         (null? (cdr x)) (car x)
         else (append (reverse-append (cddr x)) (cadr x) (car x))))
 
-(define (show x) (display "show: ") (display x) (display "\n") x)
+(define (show x m) (display m) (display x) (display "\n") x)
 
 (define (hydra@error msg)
     "simple, hydra specific errors"
