@@ -263,10 +263,13 @@
                     (cdr dump))))
          (let* ((c (nth code ip))
                 (instr (hydra@instruction c)))
-
-                ;(display "current instruction: ")
-                ;(display (nth code ip))
-                ;(newline)   
+              (display (format "current ip: ~n~%" ip))
+              (display "current instruction: ")
+              (display (nth code ip))
+              (display "\n")
+              (display "current stack: ")
+              (write stack)
+              (display "\n")
               (cond ;; case would make a lot of sense here...
                   (eq? instr 0) ;; car
                         (hydra@vm code
@@ -424,9 +427,10 @@
                             ;; need to support CALLing primitives too, since they could be passed
                             ;; in to HOFs...
                             (let ((env-and-stack (build-environment (nth (cadar stack) 0) (cdr stack) (nth (cadar stack) 2))))
+                                (display "made it to call?\n")
                                 (hydra@vm
-                                    (nth (cadar stack) 1)
-                                    (car env-and-stack)
+                                    (show (nth (cadar stack) 1) "hydra@vm,nth(cadar(stack),1) ")
+                                    (show (car env-and-stack) "hydra@vm,call::car(env-and-stack) ")
                                     0 '() 
                                     (cons (list code env ip (cadr env-and-stack)) dump)))
                             (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
