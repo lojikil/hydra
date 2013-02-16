@@ -186,7 +186,7 @@
     ;; would probably be better to have an inner function that iterates over
     ;; the parameters & returns those that match. It would then be easier to 
     ;; have optional parameters...
-    (let ((ls (length stack)) (lp (length params)) (nu-env {}))
+    (let ((ls (length stack)) (lp (length params)) (nu-env (make-dict)))
         (if (< ls lp)
             (error "non-optional parameters are not statisfied by stack items in build-environment")
             (if (= lp 0)
@@ -268,13 +268,13 @@
          else
          (let* ((c (nth code ip))
                 (instr (hydra@instruction c)))
-              (display (format "current ip: ~n~%" ip))
-              (display "current instruction: ")
-              (display (nth code ip))
-              (display "\n")
-              (display "current stack: ")
-              (write stack)
-              (display "\n")
+              ;(display (format "current ip: ~n~%" ip))
+              ;(display "current instruction: ")
+              ;(display (nth code ip))
+              ;(display "\n")
+              ;(display "current stack: ")
+              ;(write stack)
+              ;(display "\n")
               (cond ;; case would make a lot of sense here...
                   (eq? instr 0) ;; car
                         (hydra@vm code
@@ -432,10 +432,9 @@
                             ;; need to support CALLing primitives too, since they could be passed
                             ;; in to HOFs...
                             (let ((env-and-stack (build-environment (nth (cadar stack) 0) (cdr stack) (nth (cadar stack) 2))))
-                                (display "made it to call?\n")
                                 (hydra@vm
-                                    (show (nth (cadar stack) 1) "hydra@vm,nth(cadar(stack),1) ")
-                                    (show (car env-and-stack) "hydra@vm,call::car(env-and-stack) ")
+                                    (nth (cadar stack) 1)
+                                    (car env-and-stack)
                                     0 '() 
                                     (cons (list code env ip (cadr env-and-stack)) dump)))
                             (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
@@ -879,7 +878,25 @@
                                 v
                                 (nth cont-code 4))
                             (nth cont-code 5)))
-                        ))))
+                    (eq? instr 109) ;; %makeclosure
+                        ;; makeclosure should rebuild the lambda that it is "enclosing"
+                        ;; to ensure clean enclosing, rather than using cset, which just
+                        ;; gives us the same problem we have now... duh (well, when you
+                        ;; think about it, sure, but the naive approach? sure).
+                        (begin
+                            ;;(cset! (cadar stack) 0 env)
+                            (hydra@vm
+                                code
+                                env
+                                (+ ip 1)
+                                (cons
+                                    (list 'compiled-lambda
+                                        (vector
+                                            (srfi1-list-copy env)
+                                            (nth (cadar stack) 1)
+                                            (nth (cadar stack) 2)))
+                                    (cdr stack))
+                                dump))))))
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
@@ -945,6 +962,7 @@
     (dict-set! env "%make-vector" '(primitive . 48))
     (dict-set! env "%make-string" '(primitive . 49))
     (dict-set! env "%ap" '(primitive . 108))
+    (dict-set! env "%makeclosure" '(primitive . 109))
     (dict-set! env "%append" '(primitive . 51))
     (dict-set! env "if" '(syntax . primitive-syntax-if))
     (dict-set! env "inexact?" '(primitive . 15))
@@ -1223,8 +1241,10 @@
                                 (eq? (cdr v) 'primitive-syntax-defmac)
                                     #t
                                 (eq? (cdr v) 'primitive-syntax-fn)
-                                    (list (list 3 ;; load
-                                        (compile-lambda rst env)))
+                                    (list
+                                        (list 3 ;; load
+                                            (compile-lambda rst env))
+                                        (list (cdr (hydra@lookup '%makeclosure env))))
                                 (eq? (cdr v) 'primitive-syntax-lt)
                                     (append 
                                         (hydra@compile (car rst) env)

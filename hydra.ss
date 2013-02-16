@@ -1207,8 +1207,9 @@
                                 (eq? (cdr v) 'primitive-syntax-defmac)
                                     #t
                                 (eq? (cdr v) 'primitive-syntax-fn)
-                                    (list (list 3 ;; load
-                                        (compile-lambda rst env))
+                                    (list
+                                        (list 3 ;; load
+                                            (compile-lambda rst env))
                                         (list (cdr (hydra@lookup '%makeclosure env))))
                                 (eq? (cdr v) 'primitive-syntax-lt)
                                     (append 

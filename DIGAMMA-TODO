@@ -2,6 +2,10 @@
 #+DATE: 15-DEC-2012
 #+AUTHOR: Stefan Edwards <sae@lojikil.com>
 
+* Runtime only
+
+- Add support for \#;(datum) comments
+
 * Vesta\/Hydra
 - engines
 - current\-input\-port, current\-output\-port, current\-error\-port
@@ -38,7 +42,7 @@
 
 * Hydra\-only
 - DONE: fix closures
-- port closure fix to Hydra\/SAC
+- DONE: port closure fix to Hydra\/SAC
 - DONE: review user of map, and potentially replace with bespoke, Enyalios\-friendly equivalent (SAC)
 - idea: what if, instead of defining a list of primitives, &c., we just code primitives iff there is no other hit in the env? Users could do (define car (fn ...)), but it would not require having "car" defined in the env; a lookup against car could just hit a "default handler" of sorts. 
 - DONE: Detect errors on the stack
