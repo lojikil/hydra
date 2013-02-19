@@ -268,13 +268,13 @@
          else
          (let* ((c (nth code ip))
                 (instr (hydra@instruction c)))
-              ;(display (format "current ip: ~n~%" ip))
-              ;(display "current instruction: ")
-              ;(display (nth code ip))
-              ;(display "\n")
-              ;(display "current stack: ")
-              ;(write stack)
-              ;(display "\n")
+              (display (format "current ip: ~n~%" ip))
+              (display "current instruction: ")
+              (display (nth code ip))
+              (display "\n")
+              (display "current stack: ")
+              (write stack)
+              (display "\n")
               (cond ;; case would make a lot of sense here...
                   (eq? instr 0) ;; car
                         (hydra@vm code
@@ -425,6 +425,7 @@
                             (hydra@vm code env (+ ip 1) (cdr stack) dump) ;; jump to the <then> portion
                             (hydra@vm code env (+ ip (hydra@operand c)) (cdr stack) dump))
                   (eq? instr 30) ;; call
+                        ;; need to make call check it's operand now...
                         (cond
                             (hydra@lambda? (car stack))
                             ;; create a list from the current registers, cons this to dump, and 
@@ -1174,9 +1175,16 @@
                                         '((4))
                                         (list (list 3 (car rst))))
                                 (eq? (cdr v) 'primitive-syntax-plus)
-                                    (append 
-                                        '((3 0))
-                                        (hydra@compile-help '%+ rst env))
+                                    (cond
+                                        (= (length rst) 1)
+                                            (append '((3 0))
+                                                (hydra@compile (car rst) env)
+                                                (list (list (hydra@lookup '%+ env))))
+                                        (> (length rst) 1)
+                                            (append 
+                                                (hydra@compile (car rst) env)
+                                                (hydra@compile-help '%+ (cdr rst) env))
+                                        else (list (list 3 0)))
                                 (eq? (cdr v) 'primitive-syntax-minus)
                                     (cond
                                         (= (length rst) 1)
@@ -1189,9 +1197,16 @@
                                                 (hydra@compile-help '%- (cdr rst) env))
                                         else (error "minus fail"))
                                 (eq? (cdr v) 'primitive-syntax-mult)
-                                    (append 
-                                        '((3 1))
-                                        (hydra@compile-help '%* rst env))
+                                    (cond
+                                        (= (length rst) 1)
+                                            (append '((3 0))
+                                                (hydra@compile (car rst) env)
+                                                (list (list (hydra@lookup '%* env))))
+                                        (> (length rst) 1)
+                                            (append 
+                                                (hydra@compile (car rst) env)
+                                                (hydra@compile-help '%* (cdr rst) env))
+                                        else (list (list 3 1)))
                                 (eq? (cdr v) 'primitive-syntax-div)
                                     (cond
                                         (= (length rst) 1)
@@ -1350,8 +1365,7 @@
                                     (list (list (cdr v))))
                             (hydra@lambda? v) ;; hydra closure
                                 (append (reverse-append (hydra@map rst env))
-                                            (list (list 3 v))
-                                            (list (list 30)))
+                                            (list (list 30 v)))
                             (hydra@continuation? v) ;; hydra continuation
                                 (append (reverse-append (hydra@map rst env))
                                     (list (list 3 v))
@@ -1359,8 +1373,7 @@
                             (symbol? fst) ;; fst is a symbol, but it has no mapping in our current env; write to environment-load
                                 (append (reverse-append
                                             (hydra@map rst env)) 
-                                            (list (list 31 fst))
-                                            (list (list 30)))
+                                            (list (list 30 fst)))
                             else (error "error: the only applicable types are primitive procedures, closures & syntax")))
 
             else (list (list 3 line)))))
