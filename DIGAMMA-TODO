@@ -39,6 +39,7 @@
 - optimize more primitives: + - / * < > >= <=
 - open code fnumeq similar to eq?
 - possibly look into destructive parameter updates? (foo (+ i 1)) could be AINT(i) += 1
+- This fails to work correctly: (let ((i 0)) (set! i 10)) [test more; you can see it in Hydra/SAC. Could be only when it is nested in an if]
 
 * Hydra\-only
 - DONE: fix closures

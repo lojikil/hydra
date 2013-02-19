@@ -268,13 +268,13 @@
          else
          (let* ((c (nth code ip))
                 (instr (hydra@instruction c)))
-              (display (format "current ip: ~n~%" ip))
-              (display "current instruction: ")
-              (display (nth code ip))
-              (display "\n")
-              (display "current stack: ")
-              (write stack)
-              (display "\n")
+              ;(display (format "current ip: ~n~%" ip))
+              ;(display "current instruction: ")
+              ;(display (nth code ip))
+              ;(display "\n")
+              ;(display "current stack: ")
+              ;(write stack)
+              ;(display "\n")
               (cond ;; case would make a lot of sense here...
                   (eq? instr 0) ;; car
                         (hydra@vm code
@@ -426,32 +426,41 @@
                             (hydra@vm code env (+ ip (hydra@operand c)) (cdr stack) dump))
                   (eq? instr 30) ;; call
                         ;; need to make call check it's operand now...
-                        (cond
-                            (hydra@lambda? (car stack))
-                            ;; create a list from the current registers, cons this to dump, and 
-                            ;; recurse over hydra@vm. 
-                            ;; need to support CALLing primitives too, since they could be passed
-                            ;; in to HOFs...
-                            (let ((env-and-stack (build-environment (nth (cadar stack) 0) (cdr stack) (nth (cadar stack) 2))))
-                                (hydra@vm
-                                    (nth (cadar stack) 1)
-                                    (car env-and-stack)
-                                    0 '() 
-                                    (cons (list code env ip (cadr env-and-stack)) dump)))
-                            (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
+                        (let ((call-proc (hydra@operand c)))
+                            (if (symbol? call-proc)
+                                (set! call-proc (hydra@lookup call-proc env))
+                                #v)
+                            ;(display "call-proc: ")
+                            ;(write call-proc)
+                            ;(newline)
+                            (cond
+                                (hydra@error? call-proc)
+                                    call-proc
+                                (hydra@lambda? call-proc)
+                                    ;; create a list from the current registers, cons this to dump, and 
+                                    ;; recurse over hydra@vm. 
+                                    ;; need to support CALLing primitives too, since they could be passed
+                                    ;; in to HOFs...
+                                    (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) stack (nth (cadr call-proc) 2))))
+                                        (hydra@vm
+                                            (nth (cadr call-proc) 1)
+                                            (car env-and-stack)
+                                            0 '() 
+                                            (cons (list code env ip (cadr env-and-stack)) dump)))
+                                (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
+                                    (begin
+                                        (display "in hydra@primitive\n\t")
+                                        (display (car stack))
+                                        (display "\n")
+                                        #t)
+                                ;;(hydra@procedure? (car stack))
+                                ;;    #t
+                                else
                                 (begin
-                                    (display "in hydra@primitive\n\t")
+                                    (display "in <else> of CALL\n")
                                     (display (car stack))
                                     (display "\n")
-                                    #t)
-                            ;;(hydra@procedure? (car stack))
-                            ;;    #t
-                            else
-                            (begin
-                                (display "in <else> of CALL\n")
-                                (display (car stack))
-                                (display "\n")
-                                #f))
+                                #f)))
                   (eq? instr 31) ;; environment-load; there is never a raw #f, so this is safe
                         (with r (hydra@lookup (hydra@operand c) env)
                             (if (eq? r #f)
