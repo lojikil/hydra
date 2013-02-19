@@ -822,7 +822,9 @@
                 #f
                 (list
                     'c-set!
-                    (cadr c)
+                    (if (dict-has? rewrites (cadr c))
+                        (nth rewrites (cadr c))
+                        (cadr c))
                     (cadr (generate-code (caddr c) name #f rewrites lparams))))
         (eq? (car c) 'apply)
             (compile-apply (cdr c) name tail? rewrites lparams)

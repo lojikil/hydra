@@ -25,6 +25,7 @@
 - named\-let
 - do\-loops \(I guess?)
 - fix apply!
+- DONE: (was actually an issue with set!) fix deeply nested let issue with if: (let ((foo 1)) (if (> foo 0) (set! foo 1) #v))
 - letrec
 - DONE: let* fix \(doesn't correctly pass rewritten vars from above)
 - fix load

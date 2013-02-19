@@ -463,8 +463,8 @@
                                 #f)))
                   (eq? instr 31) ;; environment-load; there is never a raw #f, so this is safe
                         (with r (hydra@lookup (hydra@operand c) env)
-                            (if (eq? r #f)
-                                #f
+                            (if (hydra@error? r)
+                                r
                                 (hydra@vm
                                     code 
                                     env
