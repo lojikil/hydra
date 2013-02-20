@@ -4,7 +4,8 @@
 
 * Runtime only
 
-- Add support for \#;(datum) comments
+- DONE: Add support for \#;(datum) comments
+- DONE: port that to Hydra\'s runtime
 
 * Vesta\/Hydra
 - engines
@@ -33,7 +34,7 @@
 - IL\->JS, IL\->C++, IL\->JAVA
 - support %c, define\-alien for self\-hosting runtimes.
 - DONE: %include, %prim
-- inline of lift
+- inline or lift
 - if lift, do free analysis & closure conversion
 - if an inner proc is used in _tail position_, inline it (maybe only if tail rec?)
 - beter param shaddowing; no reliance on another var? no shaddowing

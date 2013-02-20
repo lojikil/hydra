@@ -77,6 +77,7 @@
 #define TOK_BIN    25 /* #b10 */
 #define TOK_LEOF   26 /* #e */
 #define TOK_LVOID  27 /* #v */
+#define TOK_DATCOM 28 /* #;OBJECT */
 #define TOK_SERROR 97 /* EOF before end of string */
 #define TOK_HERROR 98 /* syntax error on hash object */
 #define TOK_EOF    99
