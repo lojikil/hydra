@@ -1093,7 +1093,7 @@
 (define (compile-lambda rst env)
     (list 'compiled-lambda
         (vector
-            (srfi1-list-copy env)
+            env
             (compile-lambda-helper (cdr rst) env)
             (car rst)))) 
 
