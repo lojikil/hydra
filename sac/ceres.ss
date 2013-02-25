@@ -18,8 +18,8 @@
 ;; mini-prelude
 ;; should be removed once Enyalios supports load better...
 
-(define (caar x) (car (car x)))
-(define (cadr x) (car (cdr x)))
+(define-syntax caar ((caar x) (car (car x))))
+(define-syntax cadr ((cadr x) (car (cdr x))))
 (define (cdar x) (cdr (car x)))
 (define (cddr x) (cdr (cdr x)))
 (define (caaar x) (car (car (car x))))
