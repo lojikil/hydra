@@ -24,5 +24,7 @@
             (match-pattern (cdr pat) (cdr form) env literals)
         (symbol? (car pat)) ;; need to check ... here
             (match-pattern (cdr pat) (cdr form) (cons (list past form) env) literals)
+        (pair? (car pat)) ;; same as above
+            #f
         else (equal? (car pat) (car form))
             (match-pattern (cdr pat) (cdr form) env literals)))
