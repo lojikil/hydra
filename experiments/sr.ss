@@ -32,6 +32,34 @@
         else (equal? (car pat) (car form))
             (match-pattern (cdr pat) (cdr form) env literals)))
 
+(define (syntax-expand2 rules form literals)
+    (if (null? rules)
+        (list #f '())
+        (with res (match-pattern (caar rules) form '() literals) ;; really need to get internal procs working in Enyalios
+            (if (not (eq? (car res) #f))
+                (list (cadr res) (cadar rules))
+                (syntax-expand2 (cdr rules) form '() literals)))))
+
+(define (build-syntax-result env form out)
+    (cond
+        (null? form) out
+        (symbol? (car form)) ;; need to check ... here & below in pair?
+            (with s (assq (car form) env)
+                (if (eq? s #f)
+                    (build-syntax-result env (cdr form) (append out (list (car form))))
+                    (build-syntax-result env (cdr form) (append out (list (cadr s))))))
+        (pair? (car form))
+            (build-syntax-result env
+                (cdr form)
+                (append out (build-syntax-result env (car form) '())))
+        else
+            (build-syntax-result env (cdr form) (append out (list (car form))))))
+
 (define (syntax-expand1 syn form)
     "uses the rules defined in syn to match against form via match-pattern above"
-    #f)
+    (let* ((literals (car syn))
+           (rules (cdr syn))
+           (result (syntax-expand2 rules form literals)))
+        (if (not (eq? (car result) #f))
+            (build-syntax (cadr result) (caddr result))
+            #f)))
