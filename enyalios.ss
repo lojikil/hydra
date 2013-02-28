@@ -201,6 +201,7 @@
 })
 
 (define *ulambdas* {})
+(define *usyntax* {})
 
 ;; Out-of-Bounds lambdas
 ;; these are lambdas that are defined
@@ -227,6 +228,9 @@
 
 (define (enyalios@ulambda? o)
     (dict-has? *ulambdas* o))
+
+(define (enyalios@usyntax? o)
+    (dict-has? *usyntax* o))
 
 (define (enyalios@var-prim? o)
     (or
@@ -781,6 +785,10 @@
             (begin
                 (set! *includes* (append *includes* (list (cdr c))))
                 (list #f (list 'c-nop)))
+        (eq? (car c) 'define-syntax)
+            (begin
+                (cset! *usyntax* (cadr c) (cddr c))
+                (list #f (list 'c-nop)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'quote)
@@ -842,6 +850,8 @@
         (or (eq? (car c) 'or)
             (eq? (car c) 'and))
             (compile-logic (cdr c) name tail? rewrites lparams (car c))
+        (enyalios@usyntax? (car c)) ;; user-defined syntax?
+            #f ;; need to call syntax-expand1 on the syntax, and then generate-code all over again
         (enyalios@primitive? (car c)) (compile-primitive c name tail? rewrites lparams) ; all other primitive forms
         (enyalios@procedure? (car c)) (compile-primitive-procedure c name tail? rewrites lparams) ; primitive procs, like display
         (enyalios@var-prim? (car c)) (compile-variable-primitive c name tail? rewrites lparams) ; list & friends
