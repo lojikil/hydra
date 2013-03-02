@@ -55,6 +55,7 @@
 ;; - (+ x y) -> fplus(list(2,x,y));
 ;; - (apply + (some-fn)) -> fplus(some_fn());
 
+(load "experiments/sr.ss")
 
 (define *procedures* {
     ;; [ c-proc min max ]
@@ -787,7 +788,7 @@
                 (list #f (list 'c-nop)))
         (eq? (car c) 'define-syntax)
             (begin
-                (cset! *usyntax* (cadr c) (cddr c))
+                (cset! *usyntax* (cadr c) (show (cdr c) "define-syntax capture: "))
                 (list #f (list 'c-nop)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
@@ -851,7 +852,12 @@
             (eq? (car c) 'and))
             (compile-logic (cdr c) name tail? rewrites lparams (car c))
         (enyalios@usyntax? (car c)) ;; user-defined syntax?
-            #f ;; need to call syntax-expand1 on the syntax, and then generate-code all over again
+            (generate-code
+                (show (show (syntax-expand1 (show (nth *usyntax* (car c)) "syntax: ") c)) "result of syntax: ")
+                name
+                tail?
+                rewrites
+                lparams)
         (enyalios@primitive? (car c)) (compile-primitive c name tail? rewrites lparams) ; all other primitive forms
         (enyalios@procedure? (car c)) (compile-primitive-procedure c name tail? rewrites lparams) ; primitive procs, like display
         (enyalios@var-prim? (car c)) (compile-variable-primitive c name tail? rewrites lparams) ; list & friends
@@ -1032,6 +1038,7 @@
 
 (define (optimize-eq code out status)
     (show status "optimize-eq stats == ")
+    (show code "optimize-eq code == ")
     (let* ((args (caddr code)) ; destructuring bind would be nice here...
            (a0 (car args))
            (a1 (cadr args)))
@@ -1248,6 +1255,9 @@
     " if-condition handles processing of the <cond> portion of
       c-if/c-elif. It handles c-and & c-or, and potentially handle
       optimizations to if statements (like rewriting flt to flt_XX)"
+    (display "in if-condition: ")
+    (write <cond>)
+    (newline)
     (cond
         (eq? (car <cond>) 'c-and) 
             (condition-connector
@@ -1331,7 +1341,7 @@
             (begin
                 (int->spaces lvl out)
                 (display "if(" out)
-                (if-condition (cadr il) out)
+                (if-condition (cadr (show il "about to call if-condition: ")) out)
                 (display "){\n" out)
                 (il->c (cddr il) (+ lvl 1) out)
                 (int->spaces lvl out)

@@ -105,25 +105,25 @@
 (define-syntax cdddar () ((cdddar x) (cdr (cdr (cdr (car x))))))
 (define-syntax cddddr () ((cddddr x) (cdr (cdr (cdr (cdr x))))))
 
-(define-syntax null? ((null? n) (eq? n '())))
-(define-syntax pair? ((pair? n) (eq? (type n) "Pair")))
-(define-syntax vector? ((vector? n) (eq? (type n) "Vector")))
-(define-syntax dict? ((dict? n) (eq? (type n) "Dictionary")))
-(define-syntax symbol? ((symbol? n) (eq? (type n) "Symbol")))
-(define-syntax key? ((key? n) (eq? (type n) "Key")))
-(define-syntax number? ((number? n) (eq? (type n) "Number")))
-(define-syntax string? ((string? n) (eq? (type n) "String")))
-(define-syntax bool? ((bool? n) (eq? (type n) "Boolean")))
-(define-syntax goal? ((goal? n) (eq? (type n) "Goal")))
+(define-syntax null? () ((null? n) (eq? n '())))
+(define-syntax pair? () ((pair? n) (eq? (type n) "Pair")))
+(define-syntax vector? () ((vector? n) (eq? (type n) "Vector")))
+(define-syntax dict? () ((dict? n) (eq? (type n) "Dictionary")))
+(define-syntax symbol? () ((symbol? n) (eq? (type n) "Symbol")))
+(define-syntax key? () ((key? n) (eq? (type n) "Key")))
+(define-syntax number? () ((number? n) (eq? (type n) "Number")))
+(define-syntax string? () ((string? n) (eq? (type n) "String")))
+(define-syntax bool? () ((bool? n) (eq? (type n) "Boolean")))
+(define-syntax goal? () ((goal? n) (eq? (type n) "Goal")))
 (define (not x)
         (cond
             (eq? x #s) #u
             (eq? x #f) #t
             (eq? x #u) #s
             else #f))
-(define-syntax zero? ((zero? n) (= n 0)))
-(define-syntax eof-object? ((eof-object? n) (eq? n #e)))
-(define-syntax void? ((void? x) (eq? x #v)))
+(define-syntax zero? () ((zero? n) (= n 0)))
+(define-syntax eof-object? () ((eof-object? n) (eq? n #e)))
+(define-syntax void? () ((void? x) (eq? x #v)))
 
 (define (zip xs ys)
 	(if (null? xs)
