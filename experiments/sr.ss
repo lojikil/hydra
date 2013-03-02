@@ -29,8 +29,10 @@
         (pair? (car pat)) ;; same as above
             (match-pattern (cdr pat) (cdr form)
                 (append (match-pattern (car pat) (car form) '() literals) env) literals)
-        else (equal? (car pat) (car form))
-            (match-pattern (cdr pat) (cdr form) env literals)))
+        else
+            (if (equal? (car pat) (car form))
+                (match-pattern (cdr pat) (cdr form) env literals)
+                (list #f '()))))
 
 (define (syntax-expand2 rules form literals)
     (if (null? rules)
