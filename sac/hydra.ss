@@ -171,6 +171,22 @@
 (define-syntax hydra@operand ()
     ((hydra@operand c) (cadr c)))
 
+(define-syntax hydra@lambda? ()  ((hydra@lambda? x)
+    (and (pair? x) (eq? (car x) 'compiled-lambda))))
+
+(define-syntax hydra@primitive? () ((hydra@primitive? x)
+    (and (pair? x) (eq? (car x) 'primitive))))
+
+(define-syntax hydra@syntax? () ((hydra@syntax? x)
+    (and (pair? x) (eq? (car x) 'syntax))))
+
+(define-syntax hydra@error? () ((hydra@error? x)
+    (and (pair? x) (eq? (car x) 'error))))
+
+(define-syntax hydra@continuation? () ((hydra@continuation? x)
+    (and (pair? x) (eq? (car x) 'continuation))))
+
+
 (define (loop-set-env! env params vals)
     (if (null? params)
         #v
@@ -1096,21 +1112,6 @@
             env
             (compile-lambda-helper (cdr rst) env)
             (car rst)))) 
-
-(define-syntax hydra@lambda? ()  ((hydra@lambda? x)
-    (and (pair? x) (eq? (car x) 'compiled-lambda))))
-
-(define-syntax hydra@primitive? () ((hydra@primitive? x)
-    (and (pair? x) (eq? (car x) 'primitive))))
-
-(define-syntax hydra@syntax? () ((hydra@syntax? x)
-    (and (pair? x) (eq? (car x) 'syntax))))
-
-(define-syntax hydra@error? () ((hydra@error? x)
-    (and (pair? x) (eq? (car x) 'error))))
-
-(define-syntax hydra@continuation? () ((hydra@continuation? x)
-    (and (pair? x) (eq? (car x) 'continuation))))
 
 (define (hydra@add-env! name value environment)
     " adds name to the environment, but also returns

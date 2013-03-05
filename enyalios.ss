@@ -642,7 +642,7 @@
             (cons
                 ir-type
                 (map
-                    (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
+                    (fn (x) (show (cadr (generate-code x '() #f rewrites lparams)) "inside compile-logic: "))
                     block)))))
 
 (define (compile-apply block name tail? rewrites lparams)
@@ -789,7 +789,7 @@
                 (list #f (list 'c-nop)))
         (eq? (car c) 'define-syntax)
             (begin
-                (cset! *usyntax* (cadr c) (show (cdr c) "define-syntax capture: "))
+                (cset! *usyntax* (cadr c) (show (cddr c) "define-syntax capture: "))
                 (list #f (list 'c-nop)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
