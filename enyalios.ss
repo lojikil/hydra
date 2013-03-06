@@ -201,6 +201,7 @@
     ;;:tconc-splice! ["tconc_splice"]
 })
 
+(define *profiling* #f)
 (define *ulambdas* {})
 (define *usyntax* {})
 
@@ -641,7 +642,7 @@
             (cons
                 ir-type
                 (map
-                    (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
+                    (fn (x) (show (cadr (generate-code x '() #f rewrites lparams)) "inside compile-logic: "))
                     block)))))
 
 (define (compile-apply block name tail? rewrites lparams)
@@ -788,7 +789,7 @@
                 (list #f (list 'c-nop)))
         (eq? (car c) 'define-syntax)
             (begin
-                (cset! *usyntax* (cadr c) (show (cdr c) "define-syntax capture: "))
+                (cset! *usyntax* (cadr c) (show (cddr c) "define-syntax capture: "))
                 (list #f (list 'c-nop)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
@@ -1375,6 +1376,13 @@
                 (display "}\n" out))
         (eq? (car il) 'c-return)
             (begin
+                (if *profiling*
+                    (begin
+                        (int->spaces lvl out)
+                        (display "gettimeofday(&time, NULL);\n" out)
+                        (int->spaces lvl out)
+                        (display "printf(\"end %s::%d%d\\n\", __FUNCTION__, time.tv_sec, time.tv_usec);\n" out))
+                    #v)
                 (int->spaces lvl out)
                 (display "return " out)
                 (il->c (cadr il) 0 out)
@@ -1407,6 +1415,15 @@
                             ", ")
                         out))
                 (display "){\n" out)
+                (if *profiling*
+                    (begin
+                        (int->spaces lvl out)
+                        (display "struct timeval time;\n" out)
+                        (int->spaces lvl out)
+                        (display "gettimeofday(&time, NULL);\n" out)
+                        (int->spaces lvl out)
+                        (display "printf(\"start %s::%d%d\\n\", __FUNCTION__, time.tv_sec, time.tv_usec);\n" out))
+                    #v)
                 (il->c (cadddr il) (+ lvl 1) out)
                 (display "}\n" out))
         (eq? (car il) 'c-shadow-params)
