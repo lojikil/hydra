@@ -215,11 +215,15 @@
 ;; here. A user can use the config language to select which
 ;; includes they want to use, based on the output IL
 (define *includes* '())
+(define *debug* #f)
 
 (define (show x (prefix "x: "))
-    (display prefix)
-    (write x)
-    (newline)
+    (if *debug*
+        (begin
+            (display prefix)
+        (write x)
+        (newline))
+        #v)
     x)
 
 (define (enyalios@primitive? o)
@@ -1161,7 +1165,7 @@
                     " we can cheat here; since multiplication & addition are commutative, I can change the operands' order
                       and make optimizations easier here than requiring a full table of numeric type heirarchies.
                     "
-                    (display "in arg-len == 2\n")
+                    (show "" "in arg-len == 2\n")
                     (if (tower-order? a0 a1)
                         #v
                         (begin
@@ -1256,9 +1260,7 @@
     " if-condition handles processing of the <cond> portion of
       c-if/c-elif. It handles c-and & c-or, and potentially handle
       optimizations to if statements (like rewriting flt to flt_XX)"
-    (display "in if-condition: ")
-    (write <cond>)
-    (newline)
+    (show <cond> "in if-condition: ")
     (cond
         (eq? (car <cond>) 'c-and) 
             (condition-connector
