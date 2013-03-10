@@ -462,7 +462,7 @@
 (define (cond-unzip block conds thens)
     (cond
         (null? block) (list (tconc->pair conds) (tconc->pair thens))
-        (null? (cdr block)) (error "incorrectly formated COND block")
+        (null? (cdr block)) (error "incorrectly formated COND/CASE block")
         else
             (begin
                 (tconc! conds (car block))
@@ -527,6 +527,29 @@
                                     (cons 'c-elif x)))
                             (zip cond-list then-list))))))))
                     
+(define (compile-case block name tail? rewrites lparams)
+    " compiles a CASE form into IL.
+      PARAMETERS:
+      block: scheme code
+      name : current function name in TCO
+      tail? : boolean for tail calls
+      rewrites : any let renames.
+      lparams : dict containing function information (used outside of compile-cond)
+
+      RETURNS : 
+      (RECURSE? AST+)
+    "
+    (let* ((seps (cond-unzip block (make-tconc '()) (make-tconc '())))
+           (init-cond (generate-code (caar seps) name #f rewrites lparams))
+           (init-then (generate-code (caadr seps) name tail? rewrites lparams))
+           (cond-list (cdar seps))
+           (then-list (cdadr seps))
+           (tail-rec? #f))
+       (if (car init-then)
+            (set! tail-rec? #t)
+            #v)
+        #f))
+
 (define (il-syntax? c)
     (cond
         (not (pair? c))
@@ -797,6 +820,7 @@
                 (list #f (list 'c-nop)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
+        (eq? (car c) 'case) (compile-case (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'quote)
             (if (null? (cadr c))
                 '(#f (c-nil))
