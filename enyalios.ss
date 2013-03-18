@@ -539,7 +539,7 @@
       RETURNS : 
       (RECURSE? AST+)
     "
-    (let* ((seps (cond-unzip block (make-tconc '()) (make-tconc '())))
+    (let* ((seps (cond-unzip (cdr block) (make-tconc '()) (make-tconc '())))
            (cond-list (car seps))
            (then-list (cadr seps))
            (tail-rec? #f))
@@ -554,9 +554,11 @@
                 then-list))
         (list
             tail-rec?
-            (list
+            (cons
                 'c-case
-                    (zip cond-list then-list)))))
+                    (cons
+                        (cadr (generate-code (car block) name #f rewrites lparams))
+                        (zip cond-list then-list))))))
 
 (define (il-syntax? c)
     (cond
