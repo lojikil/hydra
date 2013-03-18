@@ -570,6 +570,7 @@
             (eq? (car c) 'c-if)
             (eq? (car c) 'c-elif)
             (eq? (car c) 'c-else)
+            (eq? (car c) 'c-case)
             (eq? (car c) 'c-begin)
             (eq? (car c) 'c-set!)
             (eq? (car c) 'c-return)
@@ -1399,6 +1400,8 @@
                 (il->c (cdr il) (+ lvl 1) out)
                 (int->spaces lvl out)
                 (display "}\n" out))
+        (eq? (car il) 'c-case)
+            #f
         (eq? (car il) 'c-and)
             (stand-alone-logic->c (cdr il) lvl out #t)
         (eq? (car il) 'c-or)
