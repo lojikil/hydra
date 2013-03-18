@@ -540,15 +540,23 @@
       (RECURSE? AST+)
     "
     (let* ((seps (cond-unzip block (make-tconc '()) (make-tconc '())))
-           (init-cond (generate-code (caar seps) name #f rewrites lparams))
-           (init-then (generate-code (caadr seps) name tail? rewrites lparams))
-           (cond-list (cdar seps))
-           (then-list (cdadr seps))
+           (cond-list (car seps))
+           (then-list (cadr seps))
            (tail-rec? #f))
-       (if (car init-then)
-            (set! tail-rec? #t)
-            #v)
-        #f))
+        (set! then-list
+            (map
+                (fn (x)
+                    (with res (generate-code x name tail? rewrites lparams)
+                        (if (car res)
+                            (set! tail-rec? #t)
+                            #v)
+                        (returnable (cadr res) tail?)))
+                then-list))
+        (list
+            tail-rec?
+            (list
+                'c-case
+                    (zip cond-list then-list)))))
 
 (define (il-syntax? c)
     (cond
