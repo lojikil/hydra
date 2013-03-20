@@ -1335,6 +1335,19 @@
                     (display "STRUE : " out)
                     (stand-alone-logic->c (cdr il) lvl out connector))))))
 
+(define (ir->c-case il lvl out)
+    "outputs a set of GOTOs and a hashtable to contain the jump table.
+     still need to look into memoizing this so that it is only built
+     the first time it is run."
+    (let* ((table-name (gensym 'jmptab))
+           (seps (cond-unzip (cdr il) (make-tconc '()) (make-tconc '())))
+           (states (car (seps)))
+           (code (cadr seps))
+           (init (car il)))
+        (int->spaces lvl out)
+        (display (format "AVLTree *~a = avl_alloc();\n" table-name) out)
+        #f)) 
+
 (define (il->c il lvl out)
     (cond
         (null? il) #v
@@ -1401,7 +1414,7 @@
                 (int->spaces lvl out)
                 (display "}\n" out))
         (eq? (car il) 'c-case)
-            #f
+            (ir->c-case (cdr il) lvl out) 
         (eq? (car il) 'c-and)
             (stand-alone-logic->c (cdr il) lvl out #t)
         (eq? (car il) 'c-or)
