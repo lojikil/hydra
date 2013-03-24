@@ -1340,20 +1340,37 @@
      still need to look into memoizing this so that it is only built
      the first time it is run."
     (let* ((table-name (gensym 'jmptab))
+           (base (gensym 'base))
+           (offset (gensym 'offset))
+           (tmp (gensym 'tmp))
            (seps (cond-unzip (cdr il) (make-tconc '()) (make-tconc '())))
            (states (car (seps)))
            (code (cadr seps))
            (init (car il)))
         (int->spaces lvl out)
-        (display (format "static AVLTree *~a = nil;\n" table-name) out)
+        (display (format "static AVLNode *~a = nil;\n" table-name) out)
+        (int->spaces lvl out)
+        (display (format "void *~a = nil;\n" offset) out)
+        (int->spaces lvl out)
         (display (format "if(~a == nil)\n{\n" tablename) out)
         ;; need to do two things:
         ;; - iterate over each item in states (which could be (1 2 3))
         ;; - figure out how to type a set of states to a GOTO table... 
         (foreach
             (fn (x)
+                (int->spaces (+ lvl 1) out)
                 (display (format "avl_insert(~a, ~a, ~a);~%" table-name x #f) out))
             states)
+        (int->spaces lvl out)
+        (display "}\n" out)
+        (int->spaces lvl out)
+        (display (format "SExp *~a = ~a;\n" tmp (il->c init 0 out)) out)
+        (int->spaces lvl out)
+        (display (format "if(avl_containsp(~a, ~a)){\n" table-name tmp out)
+        (int->spaces (+ lvl 1) out)
+        (display (format "~a = avl_get(~a, ~a);\n" offset table-name tmp) out)
+        (int->spaces lvl out)
+        (display "}\n" out)
         ;; and here, need to tie code together with GOTO states.
         (foreach
             (fn (x)
