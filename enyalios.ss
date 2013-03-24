@@ -1345,8 +1345,20 @@
            (code (cadr seps))
            (init (car il)))
         (int->spaces lvl out)
-        (display (format "AVLTree *~a = avl_alloc();\n" table-name) out)
-        #f)) 
+        (display (format "static AVLTree *~a = nil;\n" table-name) out)
+        (display (format "if(~a == nil)\n{\n" tablename) out)
+        ;; need to do two things:
+        ;; - iterate over each item in states (which could be (1 2 3))
+        ;; - figure out how to type a set of states to a GOTO table... 
+        (foreach
+            (fn (x)
+                (display (format "avl_insert(~a, ~a, ~a);~%" table-name x #f) out))
+            states)
+        ;; and here, need to tie code together with GOTO states.
+        (foreach
+            (fn (x)
+                (display "..." out))
+            code)))
 
 (define (il->c il lvl out)
     (cond
