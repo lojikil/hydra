@@ -1335,6 +1335,17 @@
                     (display "STRUE : " out)
                     (stand-alone-logic->c (cdr il) lvl out connector))))))
 
+(define (goto-labels n l)
+    (cond
+        (empty? n)
+            (tconc->pair l)
+        (eq? (car n) 'else)
+            (tconc->pair l)
+        else
+        (begin
+            (tconc! l (gensym 'labl))
+            (goto-labels (cdr n) l))))
+
 (define (ir->c-case il lvl out)
     "outputs a set of GOTOs and a hashtable to contain the jump table.
      still need to look into memoizing this so that it is only built
@@ -1345,7 +1356,8 @@
            (tmp (gensym 'tmp))
            (seps (cond-unzip (cdr il) (make-tconc '()) (make-tconc '())))
            (states (car (seps)))
-           (code (cadr seps))
+           (labels (goto-labels states (make-tconc '())))
+           (codes (cadr seps))
            (init (car il)))
         (int->spaces lvl out)
         (display (format "static AVLNode *~a = nil;\n" table-name) out)
@@ -1356,26 +1368,29 @@
         ;; need to do two things:
         ;; - iterate over each item in states (which could be (1 2 3))
         ;; - figure out how to type a set of states to a GOTO table... 
-        (foreach
-            (fn (x)
-                (int->spaces (+ lvl 1) out)
-                (display (format "avl_insert(~a, ~a, ~a);~%" table-name x #f) out))
-            states)
+        (foreach*
+            (fn (state label)
+                (foreach (fn (z)
+                    (int->spaces (+ lvl 1) out)
+                    (display (format "avl_insert(~a, ~a, &&~a);~%" table-name z label) out))
+                    state))
+            (list states labels))
         (int->spaces lvl out)
         (display "}\n" out)
         (int->spaces lvl out)
         (display (format "SExp *~a = ~a;\n" tmp (il->c init 0 out)) out)
         (int->spaces lvl out)
-        (display (format "if(avl_containsp(~a, ~a)){\n" table-name tmp out)
+        (display (format "if(avl_containsp(~a, ~a)){\n" table-name tmp out))
         (int->spaces (+ lvl 1) out)
         (display (format "~a = avl_get(~a, ~a);\n" offset table-name tmp) out)
         (int->spaces lvl out)
         (display "}\n" out)
         ;; and here, need to tie code together with GOTO states.
-        (foreach
-            (fn (x)
-                (display "..." out))
-            code)))
+        (foreach*
+            (fn (label code)
+               (display (format "~a:\n" label) out)
+               (il->c code lvl out))
+            (list labels codes))))
 
 (define (il->c il lvl out)
     (cond
