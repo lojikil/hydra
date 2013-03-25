@@ -1354,7 +1354,7 @@
            (base (gensym 'base))
            (offset (gensym 'offset))
            (tmp (gensym 'tmp))
-           (seps (cond-unzip (cdr il) (make-tconc '()) (make-tconc '())))
+           (seps (unzip (show (cdr il) "ir->c-case::unzip ")))
            (states (car seps))
            (labels (goto-labels states (make-tconc '())))
            (codes (cadr seps))
