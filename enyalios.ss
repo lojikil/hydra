@@ -1355,7 +1355,7 @@
            (offset (gensym 'offset))
            (tmp (gensym 'tmp))
            (seps (cond-unzip (cdr il) (make-tconc '()) (make-tconc '())))
-           (states (car (seps)))
+           (states (car seps))
            (labels (goto-labels states (make-tconc '())))
            (codes (cadr seps))
            (init (car il)))
@@ -1364,7 +1364,7 @@
         (int->spaces lvl out)
         (display (format "void *~a = nil;\n" offset) out)
         (int->spaces lvl out)
-        (display (format "if(~a == nil)\n{\n" tablename) out)
+        (display (format "if(~a == nil)\n{\n" table-name) out)
         ;; need to do two things:
         ;; - iterate over each item in states (which could be (1 2 3))
         ;; - figure out how to type a set of states to a GOTO table... 
@@ -1380,7 +1380,7 @@
         (int->spaces lvl out)
         (display (format "SExp *~a = ~a;\n" tmp (il->c init 0 out)) out)
         (int->spaces lvl out)
-        (display (format "if(avl_containsp(~a, ~a)){\n" table-name tmp out))
+        (display (format "if(avl_containsp(~a, ~a)){\n" table-name tmp) out)
         (int->spaces (+ lvl 1) out)
         (display (format "~a = avl_get(~a, ~a);\n" offset table-name tmp) out)
         (int->spaces lvl out)
