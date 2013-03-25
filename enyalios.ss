@@ -1370,10 +1370,12 @@
         ;; - figure out how to type a set of states to a GOTO table... 
         (foreach*
             (fn (state label)
-                (foreach (fn (z)
-                    (int->spaces (+ lvl 1) out)
-                    (display (format "avl_insert(~a, ~a, &&~a);~%" table-name z label) out))
-                    state))
+                (if (eq? state 'else)
+                    #v
+                    (foreach (fn (z)
+                        (int->spaces (+ lvl 1) out)
+                        (display (format "avl_insert(~a, ~a, &&~a);~%" table-name z label) out))
+                        state)))
             (list states labels))
         (int->spaces lvl out)
         (display "}\n" out)
