@@ -1335,16 +1335,18 @@
                     (display "STRUE : " out)
                     (stand-alone-logic->c (cdr il) lvl out connector))))))
 
-(define (goto-labels n l)
+(define (goto-labels n l base)
     (cond
         (empty? n)
             (tconc->pair l)
         (eq? (car n) 'else)
-            (tconc->pair l)
+            (begin
+                (tconc! l base)
+                (tconc->pair l))
         else
         (begin
             (tconc! l (gensym 'labl))
-            (goto-labels (cdr n) l))))
+            (goto-labels (cdr n) l base))))
 
 (define (ir->c-case il lvl out)
     "outputs a set of GOTOs and a hashtable to contain the jump table.
@@ -1356,7 +1358,7 @@
            (tmp (gensym 'tmp))
            (seps (unzip (show (cdr il) "ir->c-case::unzip ")))
            (states (car seps))
-           (labels (goto-labels states (make-tconc '())))
+           (labels (goto-labels states (make-tconc '()) base))
            (codes (cadr seps))
            (init (car il)))
         (int->spaces lvl out)
@@ -1364,7 +1366,7 @@
         (int->spaces lvl out)
         (display (format "void *~a = nil;\n" offset) out)
         (int->spaces lvl out)
-        (display (format "if(~a == nil)\n{\n" table-name) out)
+        (display (format "if(~a == nil){\n" table-name) out)
         ;; need to do two things:
         ;; - iterate over each item in states (which could be (1 2 3))
         ;; - figure out how to type a set of states to a GOTO table... 
@@ -1380,7 +1382,9 @@
         (int->spaces lvl out)
         (display "}\n" out)
         (int->spaces lvl out)
-        (display (format "SExp *~a = ~a;\n" tmp (il->c init 0 out)) out)
+        (display (format "SExp *~a = " tmp) out)
+        (il->c init 0 out)
+        (display ";\n" out)
         (int->spaces lvl out)
         (display (format "if(avl_containsp(~a, ~a)){\n" table-name tmp) out)
         (int->spaces (+ lvl 1) out)
