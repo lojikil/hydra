@@ -1388,7 +1388,7 @@
         (int->spaces lvl out)
         (display (format "if(avl_containsp(~a, ~a)){\n" table-name tmp) out)
         (int->spaces (+ lvl 1) out)
-        (display (format "~a = avl_get(~a, ~a);\n" offset table-name tmp) out)
+        (display (format "~a = avl_get(~a, AINT(~a));\n" offset table-name tmp) out)
         (int->spaces lvl out)
         (display "}\n" out)
         ;; and here, need to tie code together with GOTO states.
