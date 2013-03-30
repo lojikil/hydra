@@ -385,13 +385,13 @@ SExp *trie_partial(Trie *, char *, int); /* partial-key? */
 
 /* AVL tree functions */
 AVLNode *makeavlnode(int);
-int avl_containsp(int, AVLNode *,int);
-int avl_insert(int, AVLNode *, SExp *);
-SExp *avl_get(int, AVLNode *);
+int avl_containsp(AVLNode *,int);
+int avl_insert(AVLNode *, int, SExp *);
+SExp *avl_get(AVLNode *, int);
 int weight(AVLNode *);
-Node *balance(AVLNode *);
-Node *rotate_left(AVLNode *);
-Node *rotate_right(AVLNode *);
+AVLNode *balance(AVLNode *);
+AVLNode *rotate_left(AVLNode *);
+AVLNode *rotate_right(AVLNode *);
 
 /* wrapper around llprinc */
 void princ(SExp *); /* for history's sake */

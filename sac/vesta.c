@@ -1368,7 +1368,7 @@ makeavlnode(int val)
 }
 
 int
-avl_containsp(int value, AVLNode *tree, int mode)
+avl_containsp(AVLNode *tree, int value)
 /* avl_containsp for value in a given tree, returning
  * 1 if it is found and 0 otherwise. If mode
  * is true, print both the values & the directions
@@ -1379,17 +1379,17 @@ avl_containsp(int value, AVLNode *tree, int mode)
         return 1;
     else if(tree->left != nil && value < tree->key)
     {
-        return avl_containsp(value,tree->left,mode);
+        return avl_containsp(tree->left, value);
     }
     else if(tree->right != nil && value > tree->key)
     {
-        return avl_containsp(value,tree->right,mode);
+        return avl_containsp(tree->right, value);
     }
     return 0;
 }
 
 int
-avl_insert(int value, AVLNode *tree, SExp *data)
+avl_insert(AVLNode *tree, int value, SExp *data)
 /* insert value in to the tree, 
  * returning 0 if the key is new
  * to the tree and 1 otherwise
@@ -1409,7 +1409,7 @@ avl_insert(int value, AVLNode *tree, SExp *data)
             tree->left->data = data;
             return 1;
         }
-        return insert(value,tree->left);
+        return avl_insert(tree->left, value, data);
     }
     else if(value > tree->key)
     {
@@ -1420,8 +1420,21 @@ avl_insert(int value, AVLNode *tree, SExp *data)
             tree->right->data = data;
             return 1;
         }
-        return insert(value, tree->right);
+        return avl_insert(tree->right, value, data);
     }
+}
+
+SExp *
+avl_get(AVLNode *tree, int key)
+{
+    if(tree == nil)
+        return snil;
+    if(tree->key == key)
+        return tree->data;
+    if(key < tree->key)
+        return avl_get(tree->left, key);
+    if(key > tree->key)
+        return avl_get(tree->right, key);
 }
 
 int
