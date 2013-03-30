@@ -235,6 +235,13 @@ typedef struct _SEXP
 	} object;
 } SExp;
 
+typedef struct _NODE
+{
+    int data;
+    struct _NODE *parent;
+    struct _NODE *left;
+    struct _NODE *right;
+} AVLNode;
 
 /* A hybrid trie/cons-list based approach... */
 /* Eventually, this should be a vector w/ copying... */
@@ -326,6 +333,7 @@ SExp *makestring(const char *);
 SExp *makeatom(char *);
 SExp *makekey(char *);
 SExp *makeenv(Symbol *); /* wrap an Environment in an SEXP */
+
 /* memory functions */
 int gc_init();
 Symbol *init_env();
@@ -373,6 +381,16 @@ Trie *trie_alloc(char *,SExp *);
 Trie *trie_clone(Trie *); /* useful for things like structs where trie should be inherited... */
 void trie_walk(Trie *,int);
 SExp *trie_partial(Trie *, char *, int); /* partial-key? */
+
+/* AVL tree functions */
+AVLNode *makeavlnode(int);
+int avl_containsp(int, AVLNode *,int);
+int avl_insert(int, AVLNode *, SExp *);
+SExp *avl_get(int, AVLNode *);
+int weight(AVLNode *);
+Node *balance(AVLNode *);
+Node *rotate_left(AVLNode *);
+Node *rotate_right(AVLNode *);
 
 /* wrapper around llprinc */
 void princ(SExp *); /* for history's sake */

@@ -1350,6 +1350,178 @@ trie_hasp(Trie *head, char *key)
 		return sfalse;
 	return strue;
 }
+
+AVLNode *
+makenode(int val)
+/* given an integer, create a node
+ * with that integer as its data member,
+ * and correctly set left,right to nil
+ */
+{
+    AVLNode *ret = hmalloc(sizeof(AVLNode));
+    ret->data = val;
+    ret->left = nil;
+    ret->right = nil;
+    return ret;
+}
+
+int
+avl_containsp(int value, AVLNode *tree, int mode)
+/* avl_containsp for value in a given tree, returning
+ * 0 if it is found and 1 otherwise. If mode
+ * is true, print both the values & the directions
+ * taken as we avl_containsp for value
+ */
+{
+    if(tree->data == value)
+        return 0;
+    else if(tree->left != nil && value < tree->data)
+    {
+        return avl_containsp(value,tree->left,mode);
+    }
+    else if(tree->right != nil && value > tree->data)
+    {
+        return avl_containsp(value,tree->right,mode);
+    }
+    return 1;
+}
+
+int
+insert(int value, AVLNode *tree)
+/* insert value in to the tree, 
+ * returning 0 if the data is new
+ * to the tree and 1 otherwise
+ */
+{
+    if(tree->data == 0)
+    {
+        tree->data = value;
+        return 0;
+    }
+    if(tree->data == value)
+        return 1;
+    else if(value < tree->data)
+    {
+        if(tree->left == nil)
+        {
+            tree->left = makenode(value);
+            tree->left->parent = tree;
+        }
+        return insert(value,tree->left);
+    }
+    else if(value > tree->data)
+    {
+        if(tree->right == nil)
+        {
+            tree->right = makenode(value);
+            tree->right->parent = tree;
+        }
+        return insert(value, tree->right);
+    }
+}
+
+int
+weight(AVLNode *tree)
+/* the weight of a tree is
+ * weight(left node) - weight(right node);
+ */
+{
+    int left = 0, right = 0;
+    if(tree == nil)
+        return 1;
+    if(tree->left != nil)
+        left = 1 + weight(tree->left);
+    if(tree->right != nil)
+        right = 1 + weight(tree->right);
+    return left + right;
+}
+
+AVLNode *
+rotate_left(AVLNode *p)
+/* left rotate via the following rules:
+ * let q := p.right;
+ * q is to be the new root
+ * p.right := q.left;
+ * q.left := p
+ */
+{
+    AVLNode *q = nil, *tmpp = nil;
+    if(p == nil || p->right == nil)
+        return p;
+    tmpp = p->parent;
+    q = p->right;
+    p->right = q->left;
+    q->left = p;
+    p->parent = q;
+    q->parent = tmpp;
+    return q;
+}
+
+AVLNode *
+rotate_right(AVLNode *q)
+/* right rotate via the following rules:
+ * let p := q.left
+ * P is to be the new root
+ * q.left := p.right
+ * p.right := q
+ */
+{
+    AVLNode *p = nil, *tmpq = nil;
+    if(q == nil || q->left == nil)
+        return q;
+    tmpq = q->parent;
+    p = q->left;
+    q->left = p->right;
+    p->right = q;
+    q->parent = p;
+    p->parent = tmpq;
+    return p;
+}
+
+AVLNode *
+balance(AVLNode *tree)
+/* balance should walk up tree
+ * until it reaches the root node.
+ * it should be called from insert 
+ * at the point of insertion & walk
+ * up the tree from there.
+ */
+{
+    int factorl = weight(tree->left), factorr = weight(tree->right);
+    int factor = factorl - factorr;
+    if(factor <= -2)
+    {
+        /*factorl = weight(tree->left), factorr = weight(tree->right);
+        factor = factorl - factorr;*/
+        if(factorr >= 1)
+        {
+            tree->right = rotate_right(tree->right);
+            tree = rotate_left(tree);
+        }
+        else if(factorr <= -1)
+        {
+            tree = rotate_left(tree);
+        }
+    }
+    else if(factor >= 2)
+    {
+        /*factorl = weight(tree->left), factorr = weight(tree->right);
+        factor = factorl - factorr;*/
+        if(factorl <= -1)
+        {
+            tree->left = rotate_left(tree->left);
+            tree = rotate_right(tree);
+        }
+        else if(factorl >= 1)
+        {
+            tree = rotate_right(tree);
+        }
+    }
+    if(tree->parent != nil)
+        return balance(tree->parent);
+    return tree;
+}
+
 SExp *
 newline(SExp *s, Symbol *env)
 {
