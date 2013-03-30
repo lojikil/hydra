@@ -1352,7 +1352,7 @@ trie_hasp(Trie *head, char *key)
 }
 
 AVLNode *
-makenode(int val)
+makeavlnode(int val)
 /* given an integer, create a node
  * with that integer as its key member,
  * and correctly set left,right to nil
@@ -1360,21 +1360,23 @@ makenode(int val)
 {
     AVLNode *ret = hmalloc(sizeof(AVLNode));
     ret->key = val;
+    ret->data = nil;
     ret->left = nil;
     ret->right = nil;
+    ret->parent = nil;
     return ret;
 }
 
 int
 avl_containsp(int value, AVLNode *tree, int mode)
 /* avl_containsp for value in a given tree, returning
- * 0 if it is found and 1 otherwise. If mode
+ * 1 if it is found and 0 otherwise. If mode
  * is true, print both the values & the directions
  * taken as we avl_containsp for value
  */
 {
     if(tree->key == value)
-        return 0;
+        return 1;
     else if(tree->left != nil && value < tree->key)
     {
         return avl_containsp(value,tree->left,mode);
@@ -1383,7 +1385,7 @@ avl_containsp(int value, AVLNode *tree, int mode)
     {
         return avl_containsp(value,tree->right,mode);
     }
-    return 1;
+    return 0;
 }
 
 int
@@ -1393,20 +1395,19 @@ avl_insert(int value, AVLNode *tree, SExp *data)
  * to the tree and 1 otherwise
  */
 {
-    if(tree->key == 0)
-    {
-        tree->key = value;
-        tree->data = data;
-        return 0;
-    }
     if(tree->key == value)
+    {
+        tree->data = data;
         return 1;
+    }
     else if(value < tree->key)
     {
         if(tree->left == nil)
         {
             tree->left = makeavlnode(value);
             tree->left->parent = tree;
+            tree->left->data = data;
+            return 1;
         }
         return insert(value,tree->left);
     }
@@ -1416,6 +1417,8 @@ avl_insert(int value, AVLNode *tree, SExp *data)
         {
             tree->right = makeavlnode(value);
             tree->right->parent = tree;
+            tree->right->data = data;
+            return 1;
         }
         return insert(value, tree->right);
     }
