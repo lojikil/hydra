@@ -1354,12 +1354,12 @@ trie_hasp(Trie *head, char *key)
 AVLNode *
 makenode(int val)
 /* given an integer, create a node
- * with that integer as its data member,
+ * with that integer as its key member,
  * and correctly set left,right to nil
  */
 {
     AVLNode *ret = hmalloc(sizeof(AVLNode));
-    ret->data = val;
+    ret->key = val;
     ret->left = nil;
     ret->right = nil;
     return ret;
@@ -1373,13 +1373,13 @@ avl_containsp(int value, AVLNode *tree, int mode)
  * taken as we avl_containsp for value
  */
 {
-    if(tree->data == value)
+    if(tree->key == value)
         return 0;
-    else if(tree->left != nil && value < tree->data)
+    else if(tree->left != nil && value < tree->key)
     {
         return avl_containsp(value,tree->left,mode);
     }
-    else if(tree->right != nil && value > tree->data)
+    else if(tree->right != nil && value > tree->key)
     {
         return avl_containsp(value,tree->right,mode);
     }
@@ -1387,33 +1387,34 @@ avl_containsp(int value, AVLNode *tree, int mode)
 }
 
 int
-insert(int value, AVLNode *tree)
+avl_insert(int value, AVLNode *tree, SExp *data)
 /* insert value in to the tree, 
- * returning 0 if the data is new
+ * returning 0 if the key is new
  * to the tree and 1 otherwise
  */
 {
-    if(tree->data == 0)
+    if(tree->key == 0)
     {
-        tree->data = value;
+        tree->key = value;
+        tree->data = data;
         return 0;
     }
-    if(tree->data == value)
+    if(tree->key == value)
         return 1;
-    else if(value < tree->data)
+    else if(value < tree->key)
     {
         if(tree->left == nil)
         {
-            tree->left = makenode(value);
+            tree->left = makeavlnode(value);
             tree->left->parent = tree;
         }
         return insert(value,tree->left);
     }
-    else if(value > tree->data)
+    else if(value > tree->key)
     {
         if(tree->right == nil)
         {
-            tree->right = makenode(value);
+            tree->right = makeavlnode(value);
             tree->right->parent = tree;
         }
         return insert(value, tree->right);

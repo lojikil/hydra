@@ -237,7 +237,8 @@ typedef struct _SEXP
 
 typedef struct _NODE
 {
-    int data;
+    int key;
+    SExp *data;
     struct _NODE *parent;
     struct _NODE *left;
     struct _NODE *right;
