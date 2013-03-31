@@ -248,6 +248,13 @@
 (define (enyalios@parameter-call? o lparams)
     (not (eq? (memq o (nth lparams "parameters" '())) #f)))
 
+(define (member*? x l)    
+    (cond
+        (null? l) #f
+        (pair? (car l)) (or (member*? x (car l)) (member*? x (cdr l)))
+        (eq? (car l) x) #t
+        else (member*? x (cdr l))))
+
 (define (count-arities p req opt)
     (cond
         (null? p) (list req opt)
@@ -1610,6 +1617,8 @@
                 ;; code -> no output
                 ;; ip -> fplus_in(1, ip)
                 ;; i, j shadowed output.
+                ;; TODO: check if this can be cleaned up; don't need to necessarily
+                ;; shadow parameters that need not be.
                 (cond
                     (< (length (caddr il)) (nth proc-data 2))
                         (error (format "Incorrect arity for user-defined lambda: ~a" (cadr il)))

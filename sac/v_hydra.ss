@@ -76,54 +76,54 @@
 ;; mini-prelude
 ;; should be removed once Enyalios supports load better...
 
-(define (caar x) (car (car x)))
-(define (cadr x) (car (cdr x)))
-(define (cdar x) (cdr (car x)))
-(define (cddr x) (cdr (cdr x)))
-(define (caaar x) (car (car (car x))))
-(define (caadr x) (car (car (cdr x))))
-(define (cadar x) (car (cdr (car x))))
-(define (caddr x) (car (cdr (cdr x))))
-(define (cdaar x) (cdr (car (car x))))
-(define (cdadr x) (cdr (car (cdr x))))
-(define (cddar x) (cdr (cdr (car x))))
-(define (cdddr x) (cdr (cdr (cdr x))))
-(define (caaaar x) (car (car (car (car x)))))
-(define (caaadr x) (car (car (car (cdr x)))))
-(define (caadar x) (car (car (cdr (car x)))))
-(define (caaddr x) (car (car (cdr (cdr x)))))
-(define (cadaar x) (car (cdr (car (car x)))))
-(define (cadadr x) (car (cdr (car (cdr x)))))
-(define (caddar x) (car (cdr (cdr (car x)))))
-(define (cadddr x) (car (cdr (cdr (cdr x)))))
-(define (cdaaar x) (cdr (car (car (car x)))))
-(define (cdaadr x) (cdr (car (car (cdr x)))))
-(define (cdadar x) (cdr (car (cdr (car x)))))
-(define (cdaddr x) (cdr (car (cdr (cdr x)))))
-(define (cddaar x) (cdr (cdr (car (car x)))))
-(define (cddadr x) (cdr (cdr (car (cdr x)))))
-(define (cdddar x) (cdr (cdr (cdr (car x)))))
-(define (cddddr x) (cdr (cdr (cdr (cdr x)))))
+(define-syntax caar () ((caar x) (car (car x))))
+(define-syntax cadr () ((cadr x) (car (cdr x))))
+(define-syntax cdar () ((cdar x) (cdr (car x))))
+(define-syntax cddr () ((cddr x) (cdr (cdr x))))
+(define-syntax caaar () ((caaar x) (car (car (car x)))))
+(define-syntax caadr () ((caadr x) (car (car (cdr x)))))
+(define-syntax cadar () ((cadar x) (car (cdr (car x)))))
+(define-syntax caddr () ((caddr x) (car (cdr (cdr x)))))
+(define-syntax cdaar () ((cdaar x) (cdr (car (car x)))))
+(define-syntax cdadr () ((cdadr x) (cdr (car (cdr x)))))
+(define-syntax cddar () ((cddar x) (cdr (cdr (car x)))))
+(define-syntax cdddr () ((cdddr x) (cdr (cdr (cdr x)))))
+(define-syntax caaaar () ((caaaar x) (car (car (car (car x))))))
+(define-syntax caaadr () ((caaadr x) (car (car (car (cdr x))))))
+(define-syntax caadar () ((caadar x) (car (car (cdr (car x))))))
+(define-syntax caaddr () ((caaddr x) (car (car (cdr (cdr x))))))
+(define-syntax cadaar () ((cadaar x) (car (cdr (car (car x))))))
+(define-syntax cadadr () ((cadadr x) (car (cdr (car (cdr x))))))
+(define-syntax caddar () ((caddar x) (car (cdr (cdr (car x))))))
+(define-syntax cadddr () ((cadddr x) (car (cdr (cdr (cdr x))))))
+(define-syntax cdaaar () ((cdaaar x) (cdr (car (car (car x))))))
+(define-syntax cdaadr () ((cdaadr x) (cdr (car (car (cdr x))))))
+(define-syntax cdadar () ((cdadar x) (cdr (car (cdr (car x))))))
+(define-syntax cdaddr () ((cdaddr x) (cdr (car (cdr (cdr x))))))
+(define-syntax cddaar () ((cddaar x) (cdr (cdr (car (car x))))))
+(define-syntax cddadr () ((cddadr x) (cdr (cdr (car (cdr x))))))
+(define-syntax cdddar () ((cdddar x) (cdr (cdr (cdr (car x))))))
+(define-syntax cddddr () ((cddddr x) (cdr (cdr (cdr (cdr x))))))
 
-(define (null? n) (eq? n '()))
-(define (pair? n) (eq? (type n) "Pair"))
-(define (vector? n) (eq? (type n) "Vector"))
-(define (dict? n) (eq? (type n) "Dictionary"))
-(define (symbol? n) (eq? (type n) "Symbol"))
-(define (key? n) (eq? (type n) "Key"))
-(define (number? n) (eq? (type n) "Number"))
-(define (string? n) (eq? (type n) "String"))
-(define (bool? n) (eq? (type n) "Boolean"))
-(define (goal? n) (eq? (type n) "Goal"))
+(define-syntax null? () ((null? n) (eq? n '())))
+(define-syntax pair? () ((pair? n) (eq? (type n) "Pair")))
+(define-syntax vector? () ((vector? n) (eq? (type n) "Vector")))
+(define-syntax dict? () ((dict? n) (eq? (type n) "Dictionary")))
+(define-syntax symbol? () ((symbol? n) (eq? (type n) "Symbol")))
+(define-syntax key? () ((key? n) (eq? (type n) "Key")))
+(define-syntax number? () ((number? n) (eq? (type n) "Number")))
+(define-syntax string? () ((string? n) (eq? (type n) "String")))
+(define-syntax bool? () ((bool? n) (eq? (type n) "Boolean")))
+(define-syntax goal? () ((goal? n) (eq? (type n) "Goal")))
 (define (not x)
         (cond
             (eq? x #s) #u
             (eq? x #f) #t
             (eq? x #u) #s
             else #f))
-(define (zero? n) (= n 0))
-(define (eof-object? n) (eq? n #e))
-(define (void? x) (eq? x #v))
+(define-syntax zero? () ((zero? n) (= n 0)))
+(define-syntax eof-object? () ((eof-object? n) (eq? n #e)))
+(define-syntax void? () ((void? x) (eq? x #v)))
 
 (define (zip xs ys)
 	(if (null? xs)
@@ -138,7 +138,7 @@
         l
         (cons (car l) (srfi1-list-copy (cdr l)))))
 
-(define (cadddar x) (car (cdddar x)))
+(define-syntax cadddar () ((cadddar x) (car (cdddar x))))
 
 ;; cheat: implement "frationalize" within hydra
 ;; work around until I get it working within C
@@ -151,12 +151,12 @@
         c
         (ccons (proc (first c)) (map proc (rest c)))))
 
-(define (foreach proc c)
-    (if (empty? c)
-        #v
-        (begin
-            (proc (first c))
-            (foreach proc (rest c)))))
+;(define (foreach proc c)
+;    (if (empty? c)
+;        #v
+;        (begin
+;            (proc (first c))
+;            (foreach proc (rest c)))))
 
 (define (append-map f x)
     (if (null? x)
@@ -165,11 +165,27 @@
 
 ;; end mini-prelude.
 
-(define (hydra@instruction c)
-    (car c))
+(define-syntax hydra@instruction () 
+    ((hydra@instruction c) (car c)))
 
-(define (hydra@operand c)
-    (cadr c))
+(define-syntax hydra@operand ()
+    ((hydra@operand c) (cadr c)))
+
+(define-syntax hydra@lambda? ()  ((hydra@lambda? x)
+    (and (pair? x) (eq? (car x) 'compiled-lambda))))
+
+(define-syntax hydra@primitive? () ((hydra@primitive? x)
+    (and (pair? x) (eq? (car x) 'primitive))))
+
+(define-syntax hydra@syntax? () ((hydra@syntax? x)
+    (and (pair? x) (eq? (car x) 'syntax))))
+
+(define-syntax hydra@error? () ((hydra@error? x)
+    (and (pair? x) (eq? (car x) 'error))))
+
+(define-syntax hydra@continuation? () ((hydra@continuation? x)
+    (and (pair? x) (eq? (car x) 'continuation))))
+
 
 (define (loop-set-env! env params vals)
     (if (null? params)
@@ -186,7 +202,7 @@
     ;; would probably be better to have an inner function that iterates over
     ;; the parameters & returns those that match. It would then be easier to 
     ;; have optional parameters...
-    (let ((ls (length stack)) (lp (length params)) (nu-env {}))
+    (let ((ls (length stack)) (lp (length params)) (nu-env (make-dict)))
         (if (< ls lp)
             (error "non-optional parameters are not statisfied by stack items in build-environment")
             (if (= lp 0)
@@ -251,203 +267,227 @@
      ;(display "ip: ")
      ;(display ip)
      ;(newline)
-     (if (>= ip (length code))
+     (cond
+        (or (eq? (type (car stack)) "Error")
+            (hydra@error? (car stack)))
+            (car stack)
+        (>= ip (length code))
         (if (null? dump)
             (car stack)
-            (hydra@vm (caar dump) (cadar dump) (+ (caddar dump) 1) (cons (car stack) (cadddar dump)) (cdr dump)))
+            (with top-dump (car dump)
+                (hydra@vm
+                    (nth top-dump 0)
+                    (nth top-dump 1)
+                    (+ (nth top-dump 2) 1)
+                    (cons (car stack) (nth top-dump 3))
+                    (cdr dump))))
+         else
          (let* ((c (nth code ip))
                 (instr (hydra@instruction c)))
-
-                ;(display "current instruction: ")
-                ;(display (nth code ip))
-                ;(newline)   
-              (cond ;; case would make a lot of sense here...
-                  (eq? instr 0) ;; car
+              ;(display (format "current ip: ~n~%" ip))
+              ;(display "current instruction: ")
+              ;(display (nth code ip))
+              ;(display "\n")
+              ;(display "current stack: ")
+              ;(write stack)
+              ;(display "\n")
+              (case instr 
+                    (0) ;; car
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (car (car stack)) (cdr stack)) dump)
-                  (eq? instr 1) ;; cdr
+                    (1) ;; cdr
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (cdr (car stack)) (cdr stack)) dump)
-                  (eq? instr 2) ;; cons
+                    (2) ;; cons
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (cons (car stack)
                                                 (cadr stack))
                                        (cddr stack)) dump)
-                  (eq? instr 3) ;; load
+                    (3) ;; load
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (hydra@operand c) stack) dump)
-                  (eq? instr 4) ;; nil
+                    (4) ;; nil
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons '() stack) dump)
-                  (eq? instr 5) ;; -
+                    (5) ;; -
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (- (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 6) ;; +
+                    (6) ;; +
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (+ (car stack) (cadr stack)) (cddr stack)) dump)
-                  (eq? instr 7) ;; * 
+                    (7) ;; * 
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (* (car stack) (cadr stack)) (cddr stack)) dump)
-                  (eq? instr 8) ;; / 
+                    (8) ;; / 
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (/ (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 9) ;;  < 
+                    (9) ;;  < 
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (< (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 10) ;; >
+                    (10) ;; >
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (> (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 11) ;; <= 
+                    (11) ;; <= 
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (<= (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 12) ;; >= 
+                    (12) ;; >= 
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (>= (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 13) ;; length
+                    (13) ;; length
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (length (car stack)) (cdr stack)) dump)
-                  (eq? instr 14) ;; exact?
+                    (14) ;; exact?
                         (hydra@vm code
                                   env
                                   (+ ip 1)
                                   (cons (exact? (car stack)) (cdr stack)) dump)
-                  (eq? instr 15) ;; inexact?
+                    (15) ;; inexact?
                         (hydra@vm code
                                   env
                                   (+ ip 1)
                                   (cons (inexact? (car stack)) (cdr stack)) dump)
-                  (eq? instr 16) ;; display
+                    (16) ;; display
                     (begin
                         (display (car stack))
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons #v (cdr stack)) dump))
-                  (eq? instr 18) ;; real?
+                    (18) ;; real?
                         (hydra@vm code
                                   env
                                   (+ ip 1)
                                   (cons (real? (car stack)) (cdr stack)) dump)
-                  (eq? instr 19) ;; integer?
+                    (19) ;; integer?
                         (hydra@vm code
                                   env
                                   (+ ip 1)
                                   (cons (integer? (car stack)) (cdr stack)) dump)
-                  (eq? instr 20) ;; complex?
+                    (20) ;; complex?
                         (hydra@vm code
                                   env
                                   (+ ip 1)
                                   (cons (complex? (car stack)) (cdr stack)) dump)
-                  (eq? instr 21) ;; rational?
+                    (21) ;; rational?
                         (hydra@vm code
                                   env
                                   (+ ip 1)
                                   (cons (rational? (car stack)) (cdr stack)) dump)
-                  (eq? instr 22) ;; gcd
+                    (22) ;; gcd
                         (hydra@vm code
                                   env
                                   (+ ip 1)
                                   (cons (gcd (car stack) (cadr stack)) (cddr stack)) dump)
-                  (eq? instr 23) ;; lcm
+                    (23) ;; lcm
                         (hydra@vm code
                                   env
                                   (+ ip 1)
                                   (cons (lcm (car stack) (cadr stack)) (cddr stack)) dump)
-                  (eq? instr 24) ;; numerator 
+                    (24) ;; numerator 
                         (hydra@vm code
                                   env
                                   (+ ip 1)
                                   (cons (numerator (car stack)) (cdr stack)) dump)
-                  (eq? instr 25) ;; denomenator
+                    (25) ;; denomenator
                         (hydra@vm code
                                   env
                                   (+ ip 1)
                                   (cons (denomenator (car stack)) (cdr stack)) dump)
-                  (eq? instr 26) ;; = 
+                    (26) ;; = 
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (= (car stack) (cadr stack)) (cddr stack)) dump)
-                  (eq? instr 27) ;; eq?
+                    (27) ;; eq?
                         (hydra@vm code
                                  env
                                  (+ ip 1)
                                  (cons (eq? (car stack) (cadr stack)) (cddr stack)) dump)
-                  (eq? instr 28) ;; jump
+                    (28) ;; jump
                         (hydra@vm code
                                  env
                                  (+ ip (hydra@operand c))
                                  stack dump)
-                  (eq? instr 29) ;; cmp
+                    (29) ;; cmp
                         (if (car stack) ;; if the top of the stack is true
                             (hydra@vm code env (+ ip 1) (cdr stack) dump) ;; jump to the <then> portion
                             (hydra@vm code env (+ ip (hydra@operand c)) (cdr stack) dump))
-                  (eq? instr 30) ;; call
-                        (cond
-                            (hydra@lambda? (car stack))
-                            ;; create a list from the current registers, cons this to dump, and 
-                            ;; recurse over hydra@vm. 
-                            ;; need to support CALLing primitives too, since they could be passed
-                            ;; in to HOFs...
-                            (let ((env-and-stack (build-environment (nth (cadar stack) 0) (cdr stack) (nth (cadar stack) 2))))
-                                (hydra@vm
-                                    (nth (cadar stack) 1)
-                                    (car env-and-stack)
-                                    0 '() 
-                                    (cons (list code env ip (cadr env-and-stack)) dump)))
-                            (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
+                    (30) ;; call
+                        ;; need to make call check it's operand now...
+                        (let ((call-proc (hydra@operand c)))
+                            (if (symbol? call-proc)
+                                (set! call-proc (hydra@lookup call-proc env))
+                                #v)
+                            ;(display "call-proc: ")
+                            ;(write call-proc)
+                            ;(newline)
+                            (cond
+                                (hydra@error? call-proc)
+                                    call-proc
+                                (hydra@lambda? call-proc)
+                                    ;; create a list from the current registers, cons this to dump, and 
+                                    ;; recurse over hydra@vm. 
+                                    ;; need to support CALLing primitives too, since they could be passed
+                                    ;; in to HOFs...
+                                    (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) stack (nth (cadr call-proc) 2))))
+                                        (hydra@vm
+                                            (nth (cadr call-proc) 1)
+                                            (car env-and-stack)
+                                            0 '() 
+                                            (cons (list code env ip (cadr env-and-stack)) dump)))
+                                (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
+                                    (begin
+                                        (display "in hydra@primitive\n\t")
+                                        (display (car stack))
+                                        (display "\n")
+                                        #t)
+                                ;;(hydra@procedure? (car stack))
+                                ;;    #t
+                                else
                                 (begin
-                                    (display "in hydra@primitive\n\t")
+                                    (display "in <else> of CALL\n")
                                     (display (car stack))
                                     (display "\n")
-                                    #t)
-                            ;;(hydra@procedure? (car stack))
-                            ;;    #t
-                            else
-                            (begin
-                                (display "in <else> of CALL\n")
-                                (display (car stack))
-                                (display "\n")
-                                #f))
-                  (eq? instr 31) ;; environment-load; there is never a raw #f, so this is safe
+                                #f)))
+                    (31) ;; environment-load; there is never a raw #f, so this is safe
                         (with r (hydra@lookup (hydra@operand c) env)
-                            (if (eq? r #f)
-                                #f
+                            (if (hydra@error? r)
+                                r
                                 (hydra@vm
                                     code 
                                     env
                                     (+ ip 1) 
                                     (cons r stack)
                                     dump)))
-                  (eq? instr 32) ;; tail-call 
+                    (32) ;; tail-call 
                         (if (and (not (null? stack)) (eq? (caar stack) 'compiled-lambda))
                             (hydra@vm
                                 (nth (cdar stack) 0)
@@ -455,76 +495,76 @@
                                 0 '() 
                                 dump)
                             #f)
-                  (eq? instr 33) ;; %define
+                    (33) ;; %define
                         (begin
                             (hydra@add-env! (car stack) (cadr stack) env)
                             (hydra@vm
                                 code env (+ ip 1)
                                 (cons #v stack)
                                 dump))
-                  (eq? instr 34) ;; %set!
+                    (34) ;; %set!
                         (begin
                             (hydra@set-env! (car stack) (cadr stack) env)
                             (hydra@vm
                                 code env (+ ip 1)
                                 (cons #v stack)
                                 dump))
-                  (eq? instr 35) ;; ceil
+                    (35) ;; ceil
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (ceil (car stack)) (cdr stack)) dump)
-                  (eq? instr 36) ;; floor
+                    (36) ;; floor
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (floor (car stack)) (cdr stack)) dump)
-                  (eq? instr 37) ;; truncate
+                    (37) ;; truncate
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (truncate (car stack)) (cdr stack)) dump)
-                  (eq? instr 38) ;; round
+                    (38) ;; round
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (round (car stack)) (cdr stack)) dump)
-                  (eq? instr 39) ;; inexact->exact
+                    (39) ;; inexact->exact
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (inexact->exact (car stack)) (cdr stack)) dump)
-                  (eq? instr 40) ;; quotient
+                    (40) ;; quotient
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (quotient (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 41) ;; modulo
+                    (41) ;; modulo
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (modulo (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 42) ;; &
+                    (42) ;; &
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (& (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 43) ;; |
+                    (43) ;; |
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (| (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 44) ;; ^
+                    (44) ;; ^
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (^ (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 45) ;; ~
+                    (45) ;; ~
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (~ (car stack)) (cdr stack)) dump)
-                  (eq? instr 46) ;; %list
+                    (46) ;; %list
                         ;; take N items off the stack, create a list, and return it
                         (hydra@vm code
                             env
@@ -532,7 +572,7 @@
                             (cons
                                 (cslice (cdr stack) 0 (car stack))
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
-                  (eq? instr 47) ;; %vector
+                    (47) ;; %vector
                         ;; take N items off the stack, create a list, and return it
                         (hydra@vm code
                             env
@@ -540,303 +580,303 @@
                             (cons
                                 (coerce (cslice (cdr stack) 0 (car stack)) 'vector)
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
-                  (eq? instr 48) ;; %make-vector
+                    (48) ;; %make-vector
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (make-vector (car stack) (cadr stack)) (cddr stack)) dump)
-                  (eq? instr 49) ;; %make-string
+                    (49) ;; %make-string
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (make-string (car stack) (cadr stack)) (cddr stack)) dump)
-                  (eq? instr 50) ;; %string
+                    (50) ;; %string
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons
                                 (apply string (cslice (cdr stack) 0 (car stack)))
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
-                  (eq? instr 51) ;; %append
+                    (51) ;; %append
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons
                                 (apply append (cslice (cdr stack) 0 (car stack)))
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
-                  (eq? instr 52) ;; first
+                    (52) ;; first
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (first (car stack)) (cdr stack)) dump)
-                  (eq? instr 53) ;; rest
+                    (53) ;; rest
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (rest (car stack)) (cdr stack)) dump)
-                  (eq? instr 54) ;; ccons
+                    (54) ;; ccons
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (ccons (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 55) ;; %nth
+                    (55) ;; %nth
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (nth (caddr stack) (cadr stack) (car stack)) (cdddr stack)) dump)
-                  (eq? instr 56) ;; keys
+                    (56) ;; keys
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (keys (car stack)) (cdr stack)) dump)
-                  (eq? instr 57) ;; partial-key?
+                    (57) ;; partial-key?
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (partial-key? (cadr stack) (car stack)) (cddr stack)) dump)
-                  (eq? instr 58) ;; cset!
+                    (58) ;; cset!
                         (begin
                             (cset! (caddr stack) (cadr stack) (car stack))
                             (hydra@vm code
                                 env
                                 (+ ip 1)
                                 (cons #v (cdddr stack)) dump))
-                  (eq? instr 59) ;; empty?
+                    (59) ;; empty?
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (empty? (car stack)) (cdr stack)) dump)
-                  (eq? instr 60) ;; gensym
+                    (60) ;; gensym
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (gensym (car stack)) (cdr stack)) dump)
-                  (eq? instr 61) ;; imag-part
+                    (61) ;; imag-part
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (imag-part (car stack)) (cdr stack)) dump)
-                  (eq? instr 62) ;; real-part
+                    (62) ;; real-part
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (real-part (car stack)) (cdr stack)) dump)
-                    (eq? instr 63) ;; make-rectangular
+                    (63) ;; make-rectangular
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (make-rectangular (car stack) (cadr stack)) (cddr stack)) dump)
-                    (eq? instr 64) ;; make-polar
+                    (64) ;; make-polar
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (make-polar (car stack) (cadr stack)) (cddr stack)) dump)
-                    (eq? instr 65) ;; magnitude
+                    (65) ;; magnitude
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (magnitude (car stack)) (cdr stack)) dump)
-                    (eq? instr 66) ;; argument
+                    (66) ;; argument
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (argument (car stack)) (cdr stack)) dump)
-                    (eq? instr 67) ;; conjugate
+                    (67) ;; conjugate
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (conjugate (car stack)) (cdr stack)) dump)
-                    (eq? instr 68) ;; conjugate
+                    (68) ;; conjugate
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (conjugate! (car stack)) (cdr stack)) dump)
-                    (eq? instr 69) ;; polar->rectangular
+                    (69) ;; polar->rectangular
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (polar->rectangular (car stack)) (cdr stack)) dump)
-                    (eq? instr 70) ;; rectangular->polar
+                    (70) ;; rectangular->polar
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (rectangular->polar (car stack)) (cdr stack)) dump)
-                    (eq? instr 71) ;; sin
+                    (71) ;; sin
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (sin (car stack)) (cdr stack)) dump)
-                    (eq? instr 72) ;; cos
+                    (72) ;; cos
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (cos (car stack)) (cdr stack)) dump)
-                    (eq? instr 73) ;; tan
+                    (73) ;; tan
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (tan (car stack)) (cdr stack)) dump)
-                    (eq? instr 74) ;; asin
+                    (74) ;; asin
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (asin (car stack)) (cdr stack)) dump)
-                    (eq? instr 75) ;; acos
+                    (75) ;; acos
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (acos (car stack)) (cdr stack)) dump)
-                    (eq? instr 76) ;; atan
+                    (76) ;; atan
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (atan (car stack)) (cdr stack)) dump)
-                    (eq? instr 77) ;; atan2
+                    (77) ;; atan2
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (atan2 (cadr stack) (car stack)) (cddr stack)) dump)
-                    (eq? instr 78) ;; sinh
+                    (78) ;; sinh
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (sinh (car stack)) (cdr stack)) dump)
-                    (eq? instr 79) ;; cosh
+                    (79) ;; cosh
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (cosh (car stack)) (cdr stack)) dump)
-                    (eq? instr 80) ;; tanh
+                    (80) ;; tanh
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (tanh (car stack)) (cdr stack)) dump)
-                    (eq? instr 81) ;; exp
+                    (81) ;; exp
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (exp (car stack)) (cdr stack)) dump)
-                    (eq? instr 82) ;; ln
+                    (82) ;; ln
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (ln (car stack)) (cdr stack)) dump)
-                    (eq? instr 83) ;; abs
+                    (83) ;; abs
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (abs (car stack)) (cdr stack)) dump)
-                    (eq? instr 84) ;; sqrt
+                    (84) ;; sqrt
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (sqrt (car stack)) (cdr stack)) dump)
-                    (eq? instr 85) ;; exp2
+                    (85) ;; exp2
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
-                    (eq? instr 86) ;; expm1
+                    (86) ;; expm1
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (expm1 (car stack)) (cdr stack)) dump)
-                    (eq? instr 87) ;; log2
+                    (87) ;; log2
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (log2 (car stack)) (cdr stack)) dump)
-                    (eq? instr 88) ;; log10
+                    (88) ;; log10
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (log10 (car stack)) (cdr stack)) dump)
-                    (eq? instr 89) ;; <<
+                    (89) ;; <<
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (<< (car stack) (cadr stack)) (cddr stack)) dump)
-                    (eq? instr 90) ;; >>
+                    (90) ;; >>
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (>> (car stack) (cadr stack)) (cddr stack)) dump)
-                    (eq? instr 91) ;; %string-append
+                    (91) ;; %string-append
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
-                    (eq? instr 92) ;; assq
+                    (92) ;; assq
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (assq (car stack) (cadr stack)) (cddr stack)) dump)
-                    (eq? instr 93) ;; memq
+                    (93) ;; memq
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (memq (car stack) (cadr stack)) (cddr stack)) dump)
-                    (eq? instr 94) ;; %dict
+                    (94) ;; %dict
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
-                    (eq? instr 95) ;; make-dict
+                    (95) ;; make-dict
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (make-dict) stack) dump)
-                    (eq? instr 96) ;; dict-has?
+                    (96) ;; dict-has?
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (dict-has? (car stack) (cadr stack)) (cddr stack)) dump)
-                    (eq? instr 97) ;; coerce
+                    (97) ;; coerce
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (coerce (car stack) (cadr stack)) (cddr stack)) dump)
-                    (eq? instr 98) ;; cupdate
+                    (98) ;; cupdate
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (cupdate (car stack) (cadr stack) (caddr stack)) (cdddr stack)) dump)
-                    (eq? instr 99) ;; cslice
+                    (99) ;; cslice
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (cslice (car stack) (cadr stack) (caddr stack)) (cdddr stack)) dump)
-                    (eq? instr 100) ;; tconc!
+                    (100) ;; tconc!
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
-                    (eq? instr 101) ;; make-tconc
+                    (101) ;; make-tconc
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
-                    (eq? instr 102) ;; tconc-list
+                    (102) ;; tconc-list
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
-                    (eq? instr 103) ;; tconc->pair
+                    (103) ;; tconc->pair
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
-                    (eq? instr 104) ;; tconc-splice
+                    (104) ;; tconc-splice
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
-                    (eq? instr 105) ;; rationalize
+                    (105) ;; rationalize
                         (hydra@vm code
                             env
                             (+ ip 1)
                             (cons (rationalize (car stack) (cadr stack)) (cddr stack)) dump)
-                    (eq? instr 106) ;; call/cc
+                    (106) ;; call/cc
                         (let ((retcode (hydra@vm (cons (list 3 (car stack)) (list (list 30)))
                                         env
                                         0
@@ -847,13 +887,13 @@
                             (+ ip 1)
                             (cons retcode (cdr stack))
                             dump))
-                    (eq? instr 107) ;; %nop
+                    (107) ;; %nop
                         (hydra@vm code
                             env
                             (+ ip 1)
                             stack
                             dump)
-                    (eq? instr 108) ;; %ap
+                    (108) ;; %ap
                         (let ((cont-code (car stack))
                               (v (cadr stack)))
                          (hydra@vm 
@@ -864,8 +904,25 @@
                                 v
                                 (nth cont-code 4))
                             (nth cont-code 5)))
-                        ))))
-
+                    (109) ;; %makeclosure
+                        ;; makeclosure should rebuild the lambda that it is "enclosing"
+                        ;; to ensure clean enclosing, rather than using cset, which just
+                        ;; gives us the same problem we have now... duh (well, when you
+                        ;; think about it, sure, but the naive approach? sure).
+                        (begin
+                            ;;(cset! (cadar stack) 0 env)
+                            (hydra@vm
+                                code
+                                env
+                                (+ ip 1)
+                                (cons
+                                    (list 'compiled-lambda
+                                        (vector
+                                            (srfi1-list-copy env)
+                                            (nth (cadar stack) 1)
+                                            (nth (cadar stack) 2)))
+                                    (cdr stack))
+                                dump))))))
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
@@ -891,141 +948,148 @@
 ;       know about the arity of primitives & signal failure during code generation).
 
 (define (hydra@init-env env)
-    (cset! env "car" '(primitive . 0))
-    (cset! env "call/cc" '(primitive . 106))
-    (cset! env "cdr" '(primitive . 1))
-    (cset! env "cons" '(primitive . 2))
-    (cset! env "conjugate" '(primitive . 67))
-    (cset! env "conjugate!" '(primitive . 68))
-    (cset! env "complex?" '(primitive . 20))
-    (cset! env "cos" '(primitive . 72))
-    (cset! env "cosh" '(primitive . 79))
-    (cset! env "coerce" '(primitive . 97))
-    (cset! env "ceil" '(primitive . 35))
-    (cset! env "ccons" '(primitive . 54))
-    (cset! env "cset!" '(primitive . 58))
-    (cset! env "cslice" '(primitive . 99))
-    (cset! env "cupdate" '(primitive . 98))
-    (cset! env "%load" '(primitive . 3))
-    (cset! env "%list" '(primitive . 46))
-    (cset! env "%nil" '(primitive . 4))
-    (cset! env "%nop" '(primitive . 107))
-    (cset! env "%-" '(primitive . 5))
-    (cset! env "%+" '(primitive . 6))
-    (cset! env "%*" '(primitive . 7))
-    (cset! env "%/" '(primitive . 8))
-    (cset! env "%<" '(primitive . 9))
-    (cset! env "%<=" '(primitive . 11))
-    (cset! env "%>" '(primitive . 10))
-    (cset! env "%>=" '(primitive . 12))
-    (cset! env "%=" '(primitive . 26))
-    (cset! env "%jmp" '(primitive . 28))
-    (cset! env "%cmp" '(primitive . 29))
-    (cset! env "%call" '(primitive . 30))
-    (cset! env "%env-load" '(primitive . 31))
-    (cset! env "%tail-call" '(primitive . 32))
-    (cset! env "%define" '(primitive . 33))
-    (cset! env "%set!" '(primitive . 34))
-    (cset! env "%string" '(primitive . 50))
-    (cset! env "%vector" '(primitive . 47))
-    (cset! env "%make-vector" '(primitive . 48))
-    (cset! env "%make-string" '(primitive . 49))
-    (cset! env "%ap" '(primitive . 108))
-    (cset! env "%append" '(primitive . 51))
-    (cset! env "if" '(syntax . primitive-syntax-if))
-    (cset! env "inexact?" '(primitive . 15))
-    (cset! env "inexact->exact" '(primitive . 39))
-    (cset! env "integer?" '(primitive . 19))
-    (cset! env "imag-part" '(primitive . 61))
-    (cset! env "fn" '(syntax . primitive-syntax-fn))
-    (cset! env "floor" '(primitive . 36))
-    (cset! env "first" '(primitive . 52))
-    (cset! env "lambda" '(syntax . primitive-syntax-fn))
-    (cset! env "length" '(primitive . 13))
-    (cset! env "lcm" '(primitive . 23))
-    (cset! env "list" '(syntax . primitive-syntax-list))
-    (cset! env "ln" '(primitive . 82))
-    (cset! env "log2" '(primitive . 87))
-    (cset! env "log10" '(primitive . 88))
-    (cset! env "quote" '(syntax . primitive-syntax-quote))
-    (cset! env "quotient" '(primitive . 40))
-    (cset! env "quasi-quote" '(syntax . primitive-syntax-qquote))
-    (cset! env "unquote" '(syntax . primitve-syntax-unquote))
-    (cset! env "unquote-splice" '(syntax . primitive-syntax-unqsplice))
-    (cset! env "exact?" '(primitive . 14))
-    (cset! env "exp" '(primitive . 81))
-    (cset! env "exp2" '(primitive . 85))
-    (cset! env "expm1" '(primitive . 86))
-    (cset! env "eq?" '(primitive . 27))
-    (cset! env "empty?" '(primitive . 59))
-    (cset! env "display" '(primitive . 16))
-    (cset! env "dict" '(primitive . 94))
-    (cset! env "dict-has?" '(primitive . 96))
-    (cset! env "denomenator" '(primitive . 25))
-    (cset! env "define" '(syntax . primitive-syntax-define))
-    (cset! env "define-syntax" '(syntax . primitive-syntax-defsyn))
-    (cset! env "define-macro" '(syntax . primitive-syntax-defmac))
-    (cset! env "apply" '(primitive . 17))
-    (cset! env "append" '(syntax . primitive-syntax-append))
-    (cset! env "argument" '(primitive . 66))
-    (cset! env "asin" '(primitive . 74))
-    (cset! env "assq" '(primitive . 92))
-    (cset! env "acos" '(primitive . 75))
-    (cset! env "atan" '(primitive . 76))
-    (cset! env "atan2" '(primitive . 77))
-    (cset! env "abs" '(primitive . 83))
-    (cset! env "real?" '(primitive . 18))
-    (cset! env "real-part" '(primitive . 62))
-    (cset! env "rest" '(primitive . 53))
-    (cset! env "rectangular->polar" '(primitive . 70))
-    (cset! env "rational?" '(primitive . 21))
-    (cset! env "rationalize" '(primitive . 105))
-    (cset! env "round" '(primitive . 38))
-    (cset! env "gcd" '(primitive . 22))
-    (cset! env "gensym" '(primitive . 60))
-    (cset! env "numerator" '(primitive . 24))
-    (cset! env "nth" '(primitive . 55))
-    (cset! env "+" '(syntax . primitive-syntax-plus))
-    (cset! env "-" '(syntax . primitive-syntax-minus))
-    (cset! env "*" '(syntax . primitive-syntax-mult))
-    (cset! env "/" '(syntax . primitive-syntax-div))
-    (cset! env "<" '(syntax . primitive-syntax-lt))
-    (cset! env "<=" '(syntax . primitive-syntax-lte))
-    (cset! env "<<" '(primitive . 89))
-    (cset! env ">" '(syntax . primitive-syntax-gt))
-    (cset! env ">=" '(syntax . primitive-syntax-gte))
-    (cset! env ">>" '(primitive . 90))
-    (cset! env "=" '(syntax . primitive-syntax-numeq))
-    (cset! env "set!" '(syntax . primitive-syntax-set))
-    (cset! env "string" '(syntax . primitive-syntax-string))
-    (cset! env "string-append" '(primitive . 91))
-    (cset! env "sin" '(primitive . 71))
-    (cset! env "sinh" '(primitive . 78))
-    (cset! env "sqrt" '(primitive . 84))
-    (cset! env "truncate" '(primitive . 37))
-    (cset! env "tan" '(primitive . 73))
-    (cset! env "tanh" '(primitive . 80))
-    (cset! env "tconc!" '(primitive . 100))
-    (cset! env "tconc-list" '(primitive . 102))
-    (cset! env "tconc->pair" '(primitive . 103))
-    (cset! env "tconc-splice" '(primitive . 104))
-    (cset! env "modulo" '(primitive . 41))
-    (cset! env "make-vector" '(syntax . primitive-syntax-makevector))
-    (cset! env "make-string" '(syntax . primitive-syntax-makestring))
-    (cset! env "make-rectangular" '(primitive . 63))
-    (cset! env "make-polar" '(primitive . 64))
-    (cset! env "make-dict" '(primitive . 95))
-    (cset! env "make-tconc" '(primitive . 101))
-    (cset! env "magnitude" '(primitive . 65))
-    (cset! env "memq" '(primitive . 93))
-    (cset! env "&" '(primitive . 42))
-    (cset! env "|" '(primitive . 43))
-    (cset! env "^" '(primitive . 44))
-    (cset! env "~" '(primitive . 45))
-    (cset! env "vector" '(syntax . primitive-syntax-vector))
-    (cset! env "keys" '(primitive . 56))
-    (cset! env "partial-key?" '(primitive . 57))
-    (cset! env "polar->rectangular" '(primitive . 69)))
+    (dict-set! env "car" '(primitive . 0))
+    (dict-set! env "call/cc" '(primitive . 106))
+    (dict-set! env "cdr" '(primitive . 1))
+    (dict-set! env "cons" '(primitive . 2))
+    (dict-set! env "conjugate" '(primitive . 67))
+    (dict-set! env "conjugate!" '(primitive . 68))
+    (dict-set! env "complex?" '(primitive . 20))
+    (dict-set! env "cos" '(primitive . 72))
+    (dict-set! env "cosh" '(primitive . 79))
+    (dict-set! env "coerce" '(primitive . 97))
+    (dict-set! env "ceil" '(primitive . 35))
+    (dict-set! env "ccons" '(primitive . 54))
+    (dict-set! env "cset!" '(primitive . 58))
+    (dict-set! env "cslice" '(primitive . 99))
+    (dict-set! env "cupdate" '(primitive . 98))
+    (dict-set! env "%load" '(primitive . 3))
+    (dict-set! env "%list" '(primitive . 46))
+    (dict-set! env "%nil" '(primitive . 4))
+    (dict-set! env "%nop" '(primitive . 107))
+    (dict-set! env "%-" '(primitive . 5))
+    (dict-set! env "%+" '(primitive . 6))
+    (dict-set! env "%*" '(primitive . 7))
+    (dict-set! env "%/" '(primitive . 8))
+    (dict-set! env "%<" '(primitive . 9))
+    (dict-set! env "%<=" '(primitive . 11))
+    (dict-set! env "%>" '(primitive . 10))
+    (dict-set! env "%>=" '(primitive . 12))
+    (dict-set! env "%=" '(primitive . 26))
+    (dict-set! env "%jmp" '(primitive . 28))
+    (dict-set! env "%cmp" '(primitive . 29))
+    (dict-set! env "%call" '(primitive . 30))
+    (dict-set! env "%env-load" '(primitive . 31))
+    (dict-set! env "%tail-call" '(primitive . 32))
+    (dict-set! env "%define" '(primitive . 33))
+    (dict-set! env "%set!" '(primitive . 34))
+    (dict-set! env "%string" '(primitive . 50))
+    (dict-set! env "%vector" '(primitive . 47))
+    (dict-set! env "%make-vector" '(primitive . 48))
+    (dict-set! env "%make-string" '(primitive . 49))
+    (dict-set! env "%ap" '(primitive . 108))
+    (dict-set! env "%makeclosure" '(primitive . 109))
+    (dict-set! env "%append" '(primitive . 51))
+    (dict-set! env "if" '(syntax . primitive-syntax-if))
+    (dict-set! env "inexact?" '(primitive . 15))
+    (dict-set! env "inexact->exact" '(primitive . 39))
+    (dict-set! env "integer?" '(primitive . 19))
+    (dict-set! env "imag-part" '(primitive . 61))
+    (dict-set! env "fn" '(syntax . primitive-syntax-fn))
+    (dict-set! env "floor" '(primitive . 36))
+    (dict-set! env "first" '(primitive . 52))
+    (dict-set! env "lambda" '(syntax . primitive-syntax-fn))
+    (dict-set! env "length" '(primitive . 13))
+    (dict-set! env "lcm" '(primitive . 23))
+    (dict-set! env "list" '(syntax . primitive-syntax-list))
+    (dict-set! env "ln" '(primitive . 82))
+    (dict-set! env "log2" '(primitive . 87))
+    (dict-set! env "log10" '(primitive . 88))
+    (dict-set! env "quote" '(syntax . primitive-syntax-quote))
+    (dict-set! env "quotient" '(primitive . 40))
+    (dict-set! env "quasi-quote" '(syntax . primitive-syntax-qquote))
+    (dict-set! env "unquote" '(syntax . primitve-syntax-unquote))
+    (dict-set! env "unquote-splice" '(syntax . primitive-syntax-unqsplice))
+    (dict-set! env "exact?" '(primitive . 14))
+    (dict-set! env "exp" '(primitive . 81))
+    (dict-set! env "exp2" '(primitive . 85))
+    (dict-set! env "expm1" '(primitive . 86))
+    (dict-set! env "eq?" '(primitive . 27))
+    (dict-set! env "empty?" '(primitive . 59))
+    (dict-set! env "display" '(primitive . 16))
+    (dict-set! env "dict" '(primitive . 94))
+    (dict-set! env "dict-has?" '(primitive . 96))
+    (dict-set! env "denomenator" '(primitive . 25))
+    (dict-set! env "define" '(syntax . primitive-syntax-define))
+    (dict-set! env "define-syntax" '(syntax . primitive-syntax-defsyn))
+    (dict-set! env "define-macro" '(syntax . primitive-syntax-defmac))
+    (dict-set! env "apply" '(primitive . 17))
+    (dict-set! env "append" '(syntax . primitive-syntax-append))
+    (dict-set! env "argument" '(primitive . 66))
+    (dict-set! env "asin" '(primitive . 74))
+    (dict-set! env "assq" '(primitive . 92))
+    (dict-set! env "acos" '(primitive . 75))
+    (dict-set! env "atan" '(primitive . 76))
+    (dict-set! env "atan2" '(primitive . 77))
+    (dict-set! env "abs" '(primitive . 83))
+    (dict-set! env "real?" '(primitive . 18))
+    (dict-set! env "real-part" '(primitive . 62))
+    (dict-set! env "rest" '(primitive . 53))
+    (dict-set! env "rectangular->polar" '(primitive . 70))
+    (dict-set! env "rational?" '(primitive . 21))
+    (dict-set! env "rationalize" '(primitive . 105))
+    (dict-set! env "round" '(primitive . 38))
+    (dict-set! env "gcd" '(primitive . 22))
+    (dict-set! env "gensym" '(primitive . 60))
+    (dict-set! env "numerator" '(primitive . 24))
+    (dict-set! env "nth" '(primitive . 55))
+    (dict-set! env "+" '(syntax . primitive-syntax-plus))
+    (dict-set! env "-" '(syntax . primitive-syntax-minus))
+    (dict-set! env "*" '(syntax . primitive-syntax-mult))
+    (dict-set! env "/" '(syntax . primitive-syntax-div))
+    (dict-set! env "<" '(syntax . primitive-syntax-lt))
+    (dict-set! env "<=" '(syntax . primitive-syntax-lte))
+    (dict-set! env "<<" '(primitive . 89))
+    (dict-set! env ">" '(syntax . primitive-syntax-gt))
+    (dict-set! env ">=" '(syntax . primitive-syntax-gte))
+    (dict-set! env ">>" '(primitive . 90))
+    (dict-set! env "=" '(syntax . primitive-syntax-numeq))
+    (dict-set! env "set!" '(syntax . primitive-syntax-set))
+    (dict-set! env "string" '(syntax . primitive-syntax-string))
+    (dict-set! env "string-append" '(primitive . 91))
+    (dict-set! env "sin" '(primitive . 71))
+    (dict-set! env "sinh" '(primitive . 78))
+    (dict-set! env "sqrt" '(primitive . 84))
+    (dict-set! env "truncate" '(primitive . 37))
+    (dict-set! env "tan" '(primitive . 73))
+    (dict-set! env "tanh" '(primitive . 80))
+    (dict-set! env "tconc!" '(primitive . 100))
+    (dict-set! env "tconc-list" '(primitive . 102))
+    (dict-set! env "tconc->pair" '(primitive . 103))
+    (dict-set! env "tconc-splice" '(primitive . 104))
+    (dict-set! env "modulo" '(primitive . 41))
+    (dict-set! env "make-vector" '(syntax . primitive-syntax-makevector))
+    (dict-set! env "make-string" '(syntax . primitive-syntax-makestring))
+    (dict-set! env "make-rectangular" '(primitive . 63))
+    (dict-set! env "make-polar" '(primitive . 64))
+    (dict-set! env "make-dict" '(primitive . 95))
+    (dict-set! env "make-tconc" '(primitive . 101))
+    (dict-set! env "magnitude" '(primitive . 65))
+    (dict-set! env "memq" '(primitive . 93))
+    (dict-set! env "&" '(primitive . 42))
+    (dict-set! env "|" '(primitive . 43))
+    (dict-set! env "^" '(primitive . 44))
+    (dict-set! env "~" '(primitive . 45))
+    (dict-set! env "vector" '(syntax . primitive-syntax-vector))
+    (dict-set! env "keys" '(primitive . 56))
+    (dict-set! env "partial-key?" '(primitive . 57))
+    (dict-set! env "polar->rectangular" '(primitive . 69))
+    (dict-set! env "read" '(procedure . "read"))
+    (dict-set! env "write" '(procedure . "write"))
+    (dict-set! env "foo" '(procedure . "fo"))
+    (dict-set! env "write-buffer" '(procedure . "write-buffer"))
+    (dict-set! env "read-buffer" '(procecure . "read-buffer"))
+    (dict-set! env "read-string" '(procedure . "read-string")))
 
 (define (hydra@lookup item env)
     " look up item in the current environment, returning #f for not found"
@@ -1045,24 +1109,9 @@
 (define (compile-lambda rst env)
     (list 'compiled-lambda
         (vector
-            (srfi1-list-copy env)
+            env
             (compile-lambda-helper (cdr rst) env)
             (car rst)))) 
-
-(define (hydra@lambda? x)
-    (and (pair? x) (eq? (car x) 'compiled-lambda)))
-
-(define (hydra@primitive? x)
-    (and (pair? x) (eq? (car x) 'primitive)))
-
-(define (hydra@syntax? x)
-    (and (pair? x) (eq? (car x) 'syntax)))
-
-(define (hydra@error? x)
-    (and (pair? x) (eq? (car x) 'error)))
-
-(define (hydra@continuation? x)
-    (and (pair? x) (eq? (car x) 'continuation)))
 
 (define (hydra@add-env! name value environment)
     " adds name to the environment, but also returns
@@ -1087,7 +1136,7 @@
         (null? (cdr x)) (car x)
         else (append (reverse-append (cddr x)) (cadr x) (car x))))
 
-(define (show x) (display "show: ") (display x) (display "\n") x)
+(define (show x m) (display m) (display x) (display "\n") x)
 
 (define (hydra@error msg)
     "simple, hydra specific errors"
@@ -1136,9 +1185,16 @@
                                         '((4))
                                         (list (list 3 (car rst))))
                                 (eq? (cdr v) 'primitive-syntax-plus)
-                                    (append 
-                                        '((3 0))
-                                        (hydra@compile-help '%+ rst env))
+                                    (cond
+                                        (= (length rst) 1)
+                                            (append '((3 0))
+                                                (hydra@compile (car rst) env)
+                                                (list (list (hydra@lookup '%+ env))))
+                                        (> (length rst) 1)
+                                            (append 
+                                                (hydra@compile (car rst) env)
+                                                (hydra@compile-help '%+ (cdr rst) env))
+                                        else (list (list 3 0)))
                                 (eq? (cdr v) 'primitive-syntax-minus)
                                     (cond
                                         (= (length rst) 1)
@@ -1151,9 +1207,16 @@
                                                 (hydra@compile-help '%- (cdr rst) env))
                                         else (error "minus fail"))
                                 (eq? (cdr v) 'primitive-syntax-mult)
-                                    (append 
-                                        '((3 1))
-                                        (hydra@compile-help '%* rst env))
+                                    (cond
+                                        (= (length rst) 1)
+                                            (append '((3 0))
+                                                (hydra@compile (car rst) env)
+                                                (list (list (hydra@lookup '%* env))))
+                                        (> (length rst) 1)
+                                            (append 
+                                                (hydra@compile (car rst) env)
+                                                (hydra@compile-help '%* (cdr rst) env))
+                                        else (list (list 3 1)))
                                 (eq? (cdr v) 'primitive-syntax-div)
                                     (cond
                                         (= (length rst) 1)
@@ -1203,8 +1266,10 @@
                                 (eq? (cdr v) 'primitive-syntax-defmac)
                                     #t
                                 (eq? (cdr v) 'primitive-syntax-fn)
-                                    (list (list 3 ;; load
-                                        (compile-lambda rst env)))
+                                    (list
+                                        (list 3 ;; load
+                                            (compile-lambda rst env))
+                                        (list (cdr (hydra@lookup '%makeclosure env))))
                                 (eq? (cdr v) 'primitive-syntax-lt)
                                     (append 
                                         (hydra@compile (car rst) env)
@@ -1310,8 +1375,7 @@
                                     (list (list (cdr v))))
                             (hydra@lambda? v) ;; hydra closure
                                 (append (reverse-append (hydra@map rst env))
-                                            (list (list 3 v))
-                                            (list (list 30)))
+                                            (list (list 30 v)))
                             (hydra@continuation? v) ;; hydra continuation
                                 (append (reverse-append (hydra@map rst env))
                                     (list (list 3 v))
@@ -1319,8 +1383,7 @@
                             (symbol? fst) ;; fst is a symbol, but it has no mapping in our current env; write to environment-load
                                 (append (reverse-append
                                             (hydra@map rst env)) 
-                                            (list (list 31 fst))
-                                            (list (list 30)))
+                                            (list (list 30 fst)))
                             else (error "error: the only applicable types are primitive procedures, closures & syntax")))
 
             else (list (list 3 line)))))
