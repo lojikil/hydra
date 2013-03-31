@@ -1427,14 +1427,18 @@ avl_insert(AVLNode *tree, int value, SExp *data)
 SExp *
 avl_get(AVLNode *tree, int key)
 {
-    if(tree == nil)
-        return snil;
-    if(tree->key == key)
-        return tree->data;
-    if(key < tree->key)
-        return avl_get(tree->left, key);
-    if(key > tree->key)
-        return avl_get(tree->right, key);
+    AVLNode *tmp = tree;
+    while(1)
+    {
+        if(tmp == nil)
+            return nil;
+        if(tmp->key == key)
+            return tmp->data;
+        if(key < tmp->key)
+            tmp = tmp->left;
+        if(key > tmp->key)
+            tmp = tmp->right;
+    }
 }
 
 int

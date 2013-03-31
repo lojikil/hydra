@@ -1367,6 +1367,8 @@
         (display (format "void *~a = nil;\n" offset) out)
         (int->spaces lvl out)
         (display (format "if(~a == nil){\n" table-name) out)
+        (int->spaces (+ lvl 1) out)
+        (display (format "~a = makeavlnode(0);\n" table-name) out)
         ;; need to do two things:
         ;; - iterate over each item in states (which could be (1 2 3))
         ;; - figure out how to type a set of states to a GOTO table... 
@@ -1386,16 +1388,22 @@
         (il->c init 0 out)
         (display ";\n" out)
         (int->spaces lvl out)
-        (display (format "if(avl_containsp(~a, ~a)){\n" table-name tmp) out)
+        (display (format "~a = (void *)avl_get(~a, AINT(~a));\n" offset table-name tmp) out)
         (int->spaces (+ lvl 1) out)
-        (display (format "~a = avl_get(~a, AINT(~a));\n" offset table-name tmp) out)
+        (display (format "if(~a != nil){\n" offset tmp) out)
+        (int->spaces (+ lvl 1) out)
+        (display (format "goto *~a;~%" offset) out)
         (int->spaces lvl out)
         (display "}\n" out)
         ;; and here, need to tie code together with GOTO states.
         (foreach*
             (fn (label code)
                (display (format "~a:\n" label) out)
-               (il->c code lvl out))
+               (int->spaces lvl out)
+               (display "{\n" out)
+               (il->c code lvl out)
+               (int->spaces lvl out)
+               (display "}\n" out))
             (list labels codes))))
 
 (define (il->c il lvl out)
