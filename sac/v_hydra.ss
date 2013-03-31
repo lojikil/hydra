@@ -1142,9 +1142,9 @@
     "simple, hydra specific errors"
     (list 'error msg))
 
-(define (hydra@eval line env)
+(define (hydra@eval line env stk)
     "simple wrapper around hydra@vm & hydra@compile"
-    (hydra@vm (hydra@compile line env) env 0 '() '()))
+    (hydra@vm (hydra@compile line env) env 0 stk '()))
 
 (define (hydra@compile-help sym iter-list env)
     " a helper function for hydra@compile, which collects
@@ -1400,13 +1400,13 @@
         (hydra@error? x) (display (format "ERROR: ~a" (cdr x)))
         else (display x)))
 
-(define (hydra@load-loop fh env)
+(define (hydra@load-loop fh env stk)
     (let ((o (read fh)))
         (if (eq? o #e)
             #v
             (begin
-                (hydra@eval o env) 
-                (hydra@load-loop fh env)))))
+                (hydra@eval o env stk) 
+                (hydra@load-loop fh env stk)))))
 
 (define (hydra@load src-file env)
     "an implementation of the primitive procedure load"
@@ -1414,7 +1414,7 @@
         (hydra@load-loop f env)
         (close f)))
                                     
-(define (hydra@repl env)
+(define (hydra@repl env stk)
     (display "h; ")
     (with inp (read)
      (if (and (eq? (type inp) "Pair") (eq? (car inp) 'unquote))
@@ -1423,33 +1423,34 @@
          (eq? (cadr inp) 'q) #v
          (eq? (cadr inp) 'quit) #v
          (eq? (cadr inp) 'bye) #v
-         (eq? (cadr inp) 'dribble) (begin (hydra@repl env))
-         (eq? (cadr inp) 'save) (begin (hydra@repl env))
-         (eq? (cadr inp) 'save-and-die) (begin (hydra@repl env))
-         else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (hydra@repl env)))
+         (eq? (cadr inp) 'dribble) (begin (hydra@repl env stk))
+         (eq? (cadr inp) 'save) (begin (hydra@repl env stk))
+         (eq? (cadr inp) 'save-and-die) (begin (hydra@repl env stk))
+         else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (hydra@repl env stk)))
         (if (not (pair? inp))
             (if (eq? inp #v)
-                (hydra@repl env)
+                (hydra@repl env stk)
                 (begin
                     (top-level-print (hydra@lookup inp env))
                     (display "\n")
                     (hydra@repl env)))
-            (with r (hydra@eval inp env) 
+            (with r (hydra@eval inp env stk) 
                 (if (eq? r #v)
-                 (hydra@repl env)
+                 (hydra@repl env stk)
                  (begin
                     (top-level-print r)
                     (display "\n")
-                    (hydra@repl env))))))))
+                    (hydra@repl env stk))))))))
 
 (define (hydra@main args)
-    (let ((e {}))
+    (let ((e {})
+          (stack (make-vector 1000)))
         (hydra@init-env e)
         (if (> (length args) 0)
             (begin
                 (hydra@add-env! '*command-line* (cslice args 1 (length args)) (list e))
-                (hydra@load (nth args 0) (list e)))
+                (hydra@load (nth args 0) (list e) stack))
             (begin
                 (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2012.0/r0\n")
                 (hydra@add-env! '*command-line* '() (list e))
-                (hydra@repl (list e))))))
+                (hydra@repl (list e) stack)))))
