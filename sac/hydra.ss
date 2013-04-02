@@ -186,6 +186,8 @@
 (define-syntax hydra@continuation? () ((hydra@continuation? x)
     (and (pair? x) (eq? (car x) 'continuation))))
 
+(define-syntax hydra@procedure? () ((hydra@procedure? x)
+    (and (pair? x) (eq? (car x) 'procedure))))
 
 (define (loop-set-env! env params vals)
     (if (null? params)
@@ -375,12 +377,16 @@
                                   (+ ip 1)
                                   (cons (inexact? (car stack)) (cdr stack)) dump)
                     (16) ;; display
-                    (begin
-                        (display (car stack))
-                        (hydra@vm code
-                                 env
-                                 (+ ip 1)
-                                 (cons #v (cdr stack)) dump))
+                    (let* ((arity (car stack))
+                           (args (cslice (cdr stack) 0 arity))
+                           (stk (cslice (cdr stack) arity (length (cdr stack))))
+                           (ret (procedure-runner (hydra@operand c) arity args)))
+                           (hydra@vm
+                                code
+                                env
+                                (+ ip 1)
+                                (cons ret stk)
+                                dump))
                     (18) ;; real?
                         (hydra@vm code
                                   env
@@ -1352,6 +1358,12 @@
                                             (list (list 28 else-len)) ;; jump else
                                             <else>)) 
                                 else #t)
+                            (hydra@procedure? fst) ;; need to add some method of checking proc arity here.
+                                (let* ((rlen (length rst)))
+                                    (append
+                                        (reverse-append (hydra@map rst env))
+                                        (list (list 3 rlen)) ;; arity of procedure args
+                                        (list (list 16 (car fst)))))
                             (pair? fst) 
                                 ;; fst is a pair, so we just blindly attempt to compile it.
                                 ;; May cause an error that has to be caught in CALL. some lifting might fix this...
