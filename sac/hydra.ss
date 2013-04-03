@@ -224,6 +224,9 @@
         (= offset (- ip 1)) (append (list '(107) '(107)) (copy-code (cddr code) ip (+ offset 2)))
         else (append (list (car code)) (copy-code (cdr code) ip (+ offset 1)))))
 
+(define (procedure-runner proc arity args)
+    #f)
+
 (define (hydra@vm code env ip stack dump)
      " process the actual instructions of a code object; the basic idea is that
        the user enters:
@@ -276,23 +279,25 @@
         (>= ip (length code))
         (if (null? dump)
             (car stack)
-            (with top-dump (car dump)
-                (hydra@vm
-                    (nth top-dump 0)
-                    (nth top-dump 1)
-                    (+ (nth top-dump 2) 1)
-                    (cons (car stack) (nth top-dump 3))
-                    (cdr dump))))
+            (hydra@vm
+                (nth dump 0)
+                (nth dump 1)
+                (+ (nth dump 2) 1)
+                (cons (car stack) (nth dump 3))
+                (cslice dump 4 (length dump))))
          else
          (let* ((c (nth code ip))
                 (instr (hydra@instruction c)))
-              ;(display (format "current ip: ~n~%" ip))
-              ;(display "current instruction: ")
-              ;(display (nth code ip))
-              ;(display "\n")
-              ;(display "current stack: ")
-              ;(write stack)
-              ;(display "\n")
+              (display (format "current ip: ~n~%" ip))
+              (display "current instruction: ")
+              (display (nth code ip))
+              (display "\n")
+              (display "current stack: ")
+              (write stack)
+              (display "\n")
+              (display "current dump: ")
+              (write dump)
+              (display "\n")
               (case instr 
                     (0) ;; car
                         (hydra@vm code
@@ -452,9 +457,9 @@
                             (if (symbol? call-proc)
                                 (set! call-proc (hydra@lookup call-proc env))
                                 #v)
-                            ;(display "call-proc: ")
-                            ;(write call-proc)
-                            ;(newline)
+                            (display "call-proc: ")
+                            (write call-proc)
+                            (newline)
                             (cond
                                 (hydra@error? call-proc)
                                     call-proc
@@ -464,11 +469,12 @@
                                     ;; need to support CALLing primitives too, since they could be passed
                                     ;; in to HOFs...
                                     (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) stack (nth (cadr call-proc) 2))))
+                                        (display "in hydra@lambda?\n")
                                         (hydra@vm
                                             (nth (cadr call-proc) 1)
                                             (car env-and-stack)
                                             0 '() 
-                                            (cons (list code env ip (cadr env-and-stack)) dump)))
+                                            (cons code (cons env (cons ip (cons (cadr env-and-stack) dump))))))
                                 (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
                                     (begin
                                         (display "in hydra@primitive\n\t")
