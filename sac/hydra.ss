@@ -151,12 +151,12 @@
         c
         (ccons (proc (first c)) (map proc (rest c)))))
 
-;(define (foreach proc c)
-;    (if (empty? c)
-;        #v
-;        (begin
-;            (proc (first c))
-;            (foreach proc (rest c)))))
+(define (foreach proc c)
+    (if (empty? c)
+        #v
+        (begin
+            (proc (first c))
+            (foreach proc (rest c)))))
 
 (define (append-map f x)
     (if (null? x)
@@ -476,7 +476,7 @@
                                         (newline)
                                         (write ip)
                                         (newline)
-                                        (write (cadr env-and-stack))
+                                        (write env-and-stack)
                                         (newline)
                                         (hydra@vm
                                             (nth (cadr call-proc) 1)
@@ -499,6 +499,14 @@
                                 #f)))
                     (31) ;; environment-load; there is never a raw #f, so this is safe
                         (with r (hydra@lookup (hydra@operand c) env)
+                            (display "env-load::r == ")
+                            (write r)
+                            (newline)
+                            (display (hydra@operand c))
+                            (newline)
+                            (display env)
+                            (newline)
+                            (foreach (fn (x) (write (keys x)) (newline)) env)
                             (if (hydra@error? r)
                                 r
                                 (hydra@vm
