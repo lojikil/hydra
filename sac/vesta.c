@@ -6270,6 +6270,8 @@ fcslice(SExp *col, SExp *start, SExp *end)
 				j = col->length + j + 1;
 			else if(j > pairlength(col))
 				return makeerror(1,0,"cslice's END parameter is longer than the collexion it is operating on");
+            else if(j == pairlength(col))
+                return snil;
 			i = AINT(start);
 			if(i < 0)
 				i = col->length + i;

@@ -277,7 +277,7 @@
             (hydra@error? (car stack)))
             (car stack)
         (>= ip (length code))
-        (if (null? dump)
+        (if (null? (show dump "dump:: "))
             (car stack)
             (hydra@vm
                 (nth dump 0)
@@ -470,6 +470,14 @@
                                     ;; in to HOFs...
                                     (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) stack (nth (cadr call-proc) 2))))
                                         (display "in hydra@lambda?\n")
+                                        (write code)
+                                        (newline)
+                                        (write env)
+                                        (newline)
+                                        (write ip)
+                                        (newline)
+                                        (write (cadr env-and-stack))
+                                        (newline)
                                         (hydra@vm
                                             (nth (cadr call-proc) 1)
                                             (car env-and-stack)
