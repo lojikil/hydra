@@ -193,7 +193,7 @@
     (if (null? params)
         #v
         (begin
-            (cset! env (car params) (car vals))
+            (cset! env (forced-show (car params) "l-s-e! param => ") (forced-show (car vals) "l-s-e! val => "))
             (loop-set-env! env (cdr params) (cdr vals)))))
 
 (define (build-environment environment stack params)
@@ -205,6 +205,9 @@
     ;; the parameters & returns those that match. It would then be easier to 
     ;; have optional parameters...
     (let ((ls (length stack)) (lp (length params)) (nu-env (make-dict)))
+        (display (format "lp => ~a, ls => ~a~%stack => " lp ls))
+        (write stack)
+        (newline)
         (if (< ls lp)
             (error "non-optional parameters are not statisfied by stack items in build-environment")
             (if (= lp 0)
@@ -212,8 +215,8 @@
                 (begin 
                     (loop-set-env!
                         nu-env
-                        params (cslice stack 0 lp))
-                    (list (cons nu-env environment) (cslice stack lp ls)))))))
+                        params stack)
+                    (forced-show (list (cons nu-env environment) (cslice stack lp ls)) "build-env return => "))))))
 
 (define (copy-code code ip offset)
     " copies the spine of code, but at ip & ip+1, insert %nop instructions
@@ -1119,12 +1122,21 @@
     (dict-set! env "read-buffer" '(procecure . "read-buffer"))
     (dict-set! env "read-string" '(procedure . "read-string")))
 
+(define (forced-show x m)
+    (display m)
+    (write x)
+    (display "\n")
+    x)
+
 (define (hydra@lookup item env)
     " look up item in the current environment, returning #f for not found"
+    (display "in hydra@lookup::")
+    (display item)
+    (newline)
     (cond
         (not (symbol? item)) item ;; to support ((fn (x) (+ x x)) (+ x x) 3)
         (null? env) (hydra@error (format "unbound variable: ~a" item)) 
-        (dict-has? (car env) item) (nth (car env) item)
+        (dict-has? (car env) item) (forced-show (nth (car env) item) "hydra@lookup result ::= ")
         else (hydra@lookup item (cdr env))))
 
 (define (compile-lambda-helper lst env)
