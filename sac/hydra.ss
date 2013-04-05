@@ -193,7 +193,7 @@
     (if (null? params)
         #v
         (begin
-            (cset! env (forced-show (car params) "l-s-e! param => ") (forced-show (car vals) "l-s-e! val => "))
+            (cset! env (car params) (car vals))
             (loop-set-env! env (cdr params) (cdr vals)))))
 
 (define (build-environment environment stack params)
@@ -205,9 +205,6 @@
     ;; the parameters & returns those that match. It would then be easier to 
     ;; have optional parameters...
     (let ((ls (length stack)) (lp (length params)) (nu-env (make-dict)))
-        (display (format "lp => ~a, ls => ~a~%stack => " lp ls))
-        (write stack)
-        (newline)
         (if (< ls lp)
             (error "non-optional parameters are not statisfied by stack items in build-environment")
             (if (= lp 0)
@@ -216,7 +213,7 @@
                     (loop-set-env!
                         nu-env
                         params stack)
-                    (forced-show (list (cons nu-env environment) (cslice stack lp ls)) "build-env return => "))))))
+                    (list (cons nu-env environment) (cslice stack lp ls)))))))
 
 (define (copy-code code ip offset)
     " copies the spine of code, but at ip & ip+1, insert %nop instructions
@@ -280,7 +277,7 @@
             (hydra@error? (car stack)))
             (car stack)
         (>= ip (length code))
-        (if (null? (show dump "dump:: "))
+        (if (null? dump)
             (car stack)
             (hydra@vm
                 (nth dump 0)
@@ -291,16 +288,16 @@
          else
          (let* ((c (nth code ip))
                 (instr (hydra@instruction c)))
-              (display (format "current ip: ~n~%" ip))
-              (display "current instruction: ")
-              (display (nth code ip))
-              (display "\n")
-              (display "current stack: ")
-              (write stack)
-              (display "\n")
-              (display "current dump: ")
-              (write dump)
-              (display "\n")
+              ;(display (format "current ip: ~n~%" ip))
+              ;(display "current instruction: ")
+              ;(display (nth code ip))
+              ;(display "\n")
+              ;(display "current stack: ")
+              ;(write stack)
+              ;(display "\n")
+              ;(display "current dump: ")
+              ;(write dump)
+              ;(display "\n")
               (case instr 
                     (0) ;; car
                         (hydra@vm code
@@ -460,9 +457,6 @@
                             (if (symbol? call-proc)
                                 (set! call-proc (hydra@lookup call-proc env))
                                 #v)
-                            (display "call-proc: ")
-                            (write call-proc)
-                            (newline)
                             (cond
                                 (hydra@error? call-proc)
                                     call-proc
@@ -472,15 +466,6 @@
                                     ;; need to support CALLing primitives too, since they could be passed
                                     ;; in to HOFs...
                                     (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) stack (nth (cadr call-proc) 2))))
-                                        (display "in hydra@lambda?\n")
-                                        (write code)
-                                        (newline)
-                                        (write env)
-                                        (newline)
-                                        (write ip)
-                                        (newline)
-                                        (write env-and-stack)
-                                        (newline)
                                         (hydra@vm
                                             (nth (cadr call-proc) 1)
                                             (car env-and-stack)
@@ -1122,21 +1107,12 @@
     (dict-set! env "read-buffer" '(procecure . "read-buffer"))
     (dict-set! env "read-string" '(procedure . "read-string")))
 
-(define (forced-show x m)
-    (display m)
-    (write x)
-    (display "\n")
-    x)
-
 (define (hydra@lookup item env)
     " look up item in the current environment, returning #f for not found"
-    (display "in hydra@lookup::")
-    (display item)
-    (newline)
     (cond
         (not (symbol? item)) item ;; to support ((fn (x) (+ x x)) (+ x x) 3)
         (null? env) (hydra@error (format "unbound variable: ~a" item)) 
-        (dict-has? (car env) item) (forced-show (nth (car env) item) "hydra@lookup result ::= ")
+        (dict-has? (car env) item) (nth (car env) item) 
         else (hydra@lookup item (cdr env))))
 
 (define (compile-lambda-helper lst env)
