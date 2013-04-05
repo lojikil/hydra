@@ -487,14 +487,6 @@
                                 #f)))
                     (31) ;; environment-load; there is never a raw #f, so this is safe
                         (with r (hydra@lookup (hydra@operand c) env)
-                            (display "env-load::r == ")
-                            (write r)
-                            (newline)
-                            (display (hydra@operand c))
-                            (newline)
-                            (display env)
-                            (newline)
-                            (foreach (fn (x) (write (keys x)) (newline)) env)
                             (if (hydra@error? r)
                                 r
                                 (hydra@vm
