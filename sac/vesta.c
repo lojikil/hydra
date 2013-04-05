@@ -6265,14 +6265,14 @@ fcslice(SExp *col, SExp *start, SExp *end)
 				ret->object.vec[base] = col->object.vec[i];
 			break;
 		case PAIR:
+			i = AINT(start);
 			j = AINT(end);
 			if(j < 0)
 				j = col->length + j + 1;
 			else if(j > pairlength(col))
 				return makeerror(1,0,"cslice's END parameter is longer than the collexion it is operating on");
-            else if(j == pairlength(col))
+            else if(j == pairlength(col) && i == j)
                 return snil;
-			i = AINT(start);
 			if(i < 0)
 				i = col->length + i;
 			/* should probably have it where if you say cslice(col,-1,4), it copies the 
