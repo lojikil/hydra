@@ -191,7 +191,7 @@
 
 (define (loop-set-env! env params vals)
     (if (null? params)
-        #v
+        vals
         (begin
             (cset! env (car params) (car vals))
             (loop-set-env! env (cdr params) (cdr vals)))))
@@ -209,11 +209,11 @@
             (error "non-optional parameters are not statisfied by stack items in build-environment")
             (if (= lp 0)
                 (list (cons nu-env environment) (cdr stack))
-                (begin 
+                (with new-stack
                     (loop-set-env!
                         nu-env
                         params stack)
-                    (list (cons nu-env environment) (cslice stack lp ls)))))))
+                    (list (cons nu-env environment) new-stack))))))
 
 (define (copy-code code ip offset)
     " copies the spine of code, but at ip & ip+1, insert %nop instructions
@@ -277,14 +277,16 @@
             (hydra@error? (car stack)))
             (car stack)
         (>= ip (length code))
-        (if (null? dump)
+        (if (= (car dump) 0)
             (car stack)
-            (hydra@vm
-                (nth dump 0)
-                (nth dump 1)
-                (+ (nth dump 2) 1)
-                (cons (car stack) (nth dump 3))
-                (cslice dump 4 (length dump))))
+            (let ((top-dump (cadr dump))
+                  (offset (car dump)))
+                (hydra@vm
+                    (nth top-dump offset)
+                    (nth top-dump (- offset 1))
+                    (+ (nth top-dump (- offset 2)) 1)
+                    (cons (car stack) (nth top-dump (- offset 3)))
+                    (cons (- offset 4) top-dump))))
          else
          (let* ((c (nth code ip))
                 (instr (hydra@instruction c)))
@@ -465,12 +467,14 @@
                                     ;; recurse over hydra@vm. 
                                     ;; need to support CALLing primitives too, since they could be passed
                                     ;; in to HOFs...
-                                    (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) stack (nth (cadr call-proc) 2))))
-                                        (hydra@vm
-                                            (nth (cadr call-proc) 1)
-                                            (car env-and-stack)
-                                            0 '() 
-                                            (cons code (cons env (cons ip (cons (cadr env-and-stack) dump))))))
+                                    (if (> (car dump) (length (cadr dump)))
+                                        (error "Dump stack overflow")
+                                        (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) stack (nth (cadr call-proc) 2))))
+                                            (hydra@vm
+                                                (nth (cadr call-proc) 1)
+                                                (car env-and-stack)
+                                                0 '() 
+                                                (cons (list code env ip (cadr env-and-stack)) dump))))
                                 (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
                                     (begin
                                         (display "in hydra@primitive\n\t")
