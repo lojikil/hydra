@@ -469,12 +469,18 @@
                                     ;; in to HOFs...
                                     (if (> (car dump) (length (cadr dump)))
                                         (error "Dump stack overflow")
-                                        (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) stack (nth (cadr call-proc) 2))))
+                                        (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) stack (nth (cadr call-proc) 2)))
+                                              (v-dump (cadr dump))
+                                              (offset (car dump)))
+                                            (cset! v-dump offset (cadr env-and-stack))
+                                            (cset! v-dump (+ offset 1) ip)
+                                            (cset! v-dump (+ offset 2) env)
+                                            (cset! v-dump (+ offset 3) code)
                                             (hydra@vm
                                                 (nth (cadr call-proc) 1)
                                                 (car env-and-stack)
                                                 0 '() 
-                                                (cons (list code env ip (cadr env-and-stack)) dump))))
+                                                (list (+ offset 4) v-dump))))
                                 (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
                                     (begin
                                         (display "in hydra@primitive\n\t")
@@ -1418,21 +1424,21 @@
         (hydra@error? x) (display (format "ERROR: ~a" (cdr x)))
         else (display x)))
 
-(define (hydra@load-loop fh env)
+(define (hydra@load-loop fh env dump)
     (let ((o (read fh)))
         (if (eq? o #e)
             #v
             (begin
-                (hydra@eval o env) 
-                (hydra@load-loop fh env)))))
+                (hydra@eval o env dump) 
+                (hydra@load-loop fh env dump)))))
 
-(define (hydra@load src-file env)
+(define (hydra@load src-file env dump)
     "an implementation of the primitive procedure load"
     (let ((f (open src-file :read)))
-        (hydra@load-loop f env)
+        (hydra@load-loop f env dump)
         (close f)))
                                     
-(define (hydra@repl env)
+(define (hydra@repl env dump)
     (display "h; ")
     (with inp (read)
      (if (and (eq? (type inp) "Pair") (eq? (car inp) 'unquote))
@@ -1441,33 +1447,34 @@
          (eq? (cadr inp) 'q) #v
          (eq? (cadr inp) 'quit) #v
          (eq? (cadr inp) 'bye) #v
-         (eq? (cadr inp) 'dribble) (begin (hydra@repl env))
-         (eq? (cadr inp) 'save) (begin (hydra@repl env))
-         (eq? (cadr inp) 'save-and-die) (begin (hydra@repl env))
-         else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (hydra@repl env)))
+         (eq? (cadr inp) 'dribble) (begin (hydra@repl env dump))
+         (eq? (cadr inp) 'save) (begin (hydra@repl env dump))
+         (eq? (cadr inp) 'save-and-die) (begin (hydra@repl env dump))
+         else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (hydra@repl env dump)))
         (if (not (pair? inp))
             (if (eq? inp #v)
-                (hydra@repl env)
+                (hydra@repl env dump)
                 (begin
                     (top-level-print (hydra@lookup inp env))
                     (display "\n")
-                    (hydra@repl env)))
+                    (hydra@repl env dump)))
             (with r (hydra@eval inp env) 
                 (if (eq? r #v)
-                 (hydra@repl env)
+                 (hydra@repl env dump)
                  (begin
                     (top-level-print r)
                     (display "\n")
-                    (hydra@repl env))))))))
+                    (hydra@repl env dump))))))))
 
 (define (hydra@main args)
-    (let ((e {}))
+    (let ((e {})
+          (dump (make-vector 1000 #v)))
         (hydra@init-env e)
         (if (> (length args) 0)
             (begin
                 (hydra@add-env! '*command-line* (cslice args 1 (length args)) (list e))
-                (hydra@load (nth args 0) (list e)))
+                (hydra@load (nth args 0) (list e) (list 0 dump)))
             (begin
                 (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2012.0/r0\n")
                 (hydra@add-env! '*command-line* '() (list e))
-                (hydra@repl (list e))))))
+                (hydra@repl (list e) (list 0 dump))))))
