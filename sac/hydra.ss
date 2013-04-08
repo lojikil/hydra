@@ -1160,9 +1160,9 @@
     "simple, hydra specific errors"
     (list 'error msg))
 
-(define (hydra@eval line env)
+(define (hydra@eval line env dump)
     "simple wrapper around hydra@vm & hydra@compile"
-    (hydra@vm (hydra@compile line env) env 0 '() '()))
+    (hydra@vm (hydra@compile line env) env 0 '() dump))
 
 (define (hydra@compile-help sym iter-list env)
     " a helper function for hydra@compile, which collects
@@ -1458,7 +1458,7 @@
                     (top-level-print (hydra@lookup inp env))
                     (display "\n")
                     (hydra@repl env dump)))
-            (with r (hydra@eval inp env) 
+            (with r (hydra@eval inp env dump) 
                 (if (eq? r #v)
                  (hydra@repl env dump)
                  (begin
