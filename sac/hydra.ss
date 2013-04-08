@@ -282,11 +282,11 @@
             (let ((top-dump (cadr dump))
                   (offset (car dump)))
                 (hydra@vm
-                    (nth top-dump offset)
                     (nth top-dump (- offset 1))
-                    (+ (nth top-dump (- offset 2)) 1)
-                    (cons (car stack) (nth top-dump (- offset 3)))
-                    (cons (- offset 4) top-dump))))
+                    (nth top-dump (- offset 2))
+                    (+ (nth top-dump (- offset 3)) 1)
+                    (cons (car stack) (nth top-dump (- offset 4)))
+                    (list (- offset 4) top-dump))))
          else
          (let* ((c (nth code ip))
                 (instr (hydra@instruction c)))
