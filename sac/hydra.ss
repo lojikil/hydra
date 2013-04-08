@@ -225,7 +225,17 @@
         else (append (list (car code)) (copy-code (cdr code) ip (+ offset 1)))))
 
 (define (procedure-runner proc arity args)
-    #f)
+    (cond
+        (eq? proc "display")
+            (cond
+                (= arity 2)
+                    (display (car args) (cadr args))
+                (= arity 1)
+                    (display (car args))
+                else
+                    (error "Incorrect arity for procedure: display"))
+        else
+            (error (format "unknown procedure \"~a\"" proc))))
 
 (define (hydra@vm code env ip stack dump)
      " process the actual instructions of a code object; the basic idea is that
@@ -384,9 +394,9 @@
                                   (+ ip 1)
                                   (cons (inexact? (car stack)) (cdr stack)) dump)
                     (16) ;; display
-                    (let* ((arity (car stack))
-                           (args (cslice (cdr stack) 0 arity))
-                           (stk (cslice (cdr stack) arity (length (cdr stack))))
+                    (let* ((arity (caddr c))
+                           (args (cslice stack 0 arity))
+                           (stk (cslice stack arity (length (cdr stack))))
                            (ret (procedure-runner (hydra@operand c) arity args)))
                            (hydra@vm
                                 code
@@ -1034,7 +1044,7 @@
     (dict-set! env "expm1" '(primitive . 86))
     (dict-set! env "eq?" '(primitive . 27))
     (dict-set! env "empty?" '(primitive . 59))
-    (dict-set! env "display" '(primitive . 16))
+    (dict-set! env "display" '(procedure . "display"))
     (dict-set! env "dict" '(primitive . 94))
     (dict-set! env "dict-has?" '(primitive . 96))
     (dict-set! env "denomenator" '(primitive . 25))
@@ -1370,12 +1380,11 @@
                                             (list (list 28 else-len)) ;; jump else
                                             <else>)) 
                                 else #t)
-                            (hydra@procedure? fst) ;; need to add some method of checking proc arity here.
+                            (hydra@procedure? v) ;; need to add some method of checking proc arity here.
                                 (let* ((rlen (length rst)))
                                     (append
                                         (reverse-append (hydra@map rst env))
-                                        (list (list 3 rlen)) ;; arity of procedure args
-                                        (list (list 16 (car fst)))))
+                                        (list (list 16 (cdr v) rlen))))
                             (pair? fst) 
                                 ;; fst is a pair, so we just blindly attempt to compile it.
                                 ;; May cause an error that has to be caught in CALL. some lifting might fix this...
@@ -1420,9 +1429,10 @@
         (hydra@lambda? x) (display "#<closure>")
         (hydra@continuation? x) (display "#<continuation>")
         (hydra@primitive? x) (display (format "#<primitive-procedure ~a>" (cdr x)))
+        (hydra@procedure? x) (display (format "#<procedure ~a>" (cdr x)))
         (hydra@syntax? x) (display (format "#<syntax ~a>" (cdr x)))
         (hydra@error? x) (display (format "ERROR: ~a" (cdr x)))
-        else (display x)))
+        else (write x)))
 
 (define (hydra@load-loop fh env dump)
     (let ((o (read fh)))
