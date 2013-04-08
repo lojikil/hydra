@@ -1116,7 +1116,7 @@
     (dict-set! env "write" '(procedure . "write"))
     (dict-set! env "foo" '(procedure . "fo"))
     (dict-set! env "write-buffer" '(procedure . "write-buffer"))
-    (dict-set! env "read-buffer" '(procecure . "read-buffer"))
+    (dict-set! env "read-buffer" '(procedure . "read-buffer"))
     (dict-set! env "read-string" '(procedure . "read-string")))
 
 (define (hydra@lookup item env)
@@ -1380,17 +1380,17 @@
                                             (list (list 28 else-len)) ;; jump else
                                             <else>)) 
                                 else #t)
-                            (hydra@procedure? v) ;; need to add some method of checking proc arity here.
-                                (let* ((rlen (length rst)))
-                                    (append
-                                        (reverse-append (hydra@map rst env))
-                                        (list (list 16 (cdr v) rlen))))
                             (pair? fst) 
                                 ;; fst is a pair, so we just blindly attempt to compile it.
                                 ;; May cause an error that has to be caught in CALL. some lifting might fix this...
                                 (append (reverse-append (hydra@map rst env))
                                         (hydra@compile fst env)
                                         (list (list 30)))
+                            (hydra@procedure? v) ;; need to add some method of checking proc arity here.
+                                (let* ((rlen (length rst)))
+                                    (append
+                                        (reverse-append (hydra@map rst env))
+                                        (list (list 16 (cdr v) rlen))))
                             (hydra@primitive? v) ;; primitive procedure
                                 ;; need to generate the list of HLAP code, reverse it
                                 ;; and flatten it. basically, if we have:

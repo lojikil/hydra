@@ -52,7 +52,9 @@
 - idea: what if, instead of defining a list of primitives, &c., we just code primitives iff there is no other hit in the env? Users could do (define car (fn ...)), but it would not require having "car" defined in the env; a lookup against car could just hit a "default handler" of sorts. 
 - DONE: Detect errors on the stack
 - DONE: Detect errors on the stack in Hydra/SAC
-- Move "display" instruction to be a call procedure instruction; top of stack is number of parameters.
+- DONE: Move "display" instruction to be a call procedure instruction; top of stack is number of parameters.
+- Fix `(define x '(primitive . 0)) (x '(1 2 3 4))` which returns `1`, aka it is able to run CAR (Sandbox escape 0)
+- Fix `(define y '(procedure . "display")) (display 13)` which displays 13 & returns 13, aka is able to run procedures (Sandbox escape 1)
 - Core version without repl/read, for use with IL->JS
 - Move stack from pair to vector with fixed size, stack pointer, &c. (testing)
 - hydra@{operand, instruction} => simple syntax
