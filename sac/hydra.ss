@@ -234,6 +234,14 @@
                     (display (car args))
                 else
                     (error "Incorrect arity for procedure: display"))
+        (eq? proc "newline")
+            (cond
+                (= arity 0)
+                    (newline)
+                (= arity 1)
+                    (newline (car args))
+                else
+                    (error "Incorrect arity for procedure: newline"))
         else
             (error (format "unknown procedure \"~a\"" proc))))
 
@@ -393,7 +401,7 @@
                                   env
                                   (+ ip 1)
                                   (cons (inexact? (car stack)) (cdr stack)) dump)
-                    (16) ;; display
+                    (16) ;; procedure call
                     (let* ((arity (caddr c))
                            (args (cslice stack 0 arity))
                            (stk (cslice stack arity (length (cdr stack))))
@@ -1045,6 +1053,7 @@
     (dict-set! env "eq?" '(primitive . 27))
     (dict-set! env "empty?" '(primitive . 59))
     (dict-set! env "display" '(procedure . "display"))
+    (dict-set! env "newline" '(procedure . "newline"))
     (dict-set! env "dict" '(primitive . 94))
     (dict-set! env "dict-has?" '(primitive . 96))
     (dict-set! env "denomenator" '(primitive . 25))
