@@ -1032,6 +1032,7 @@
     (dict-set! env "integer?" '(primitive . 19))
     (dict-set! env "imag-part" '(primitive . 61))
     (dict-set! env "fn" '(syntax . primitive-syntax-fn))
+    (dict-set! env "begin" '(syntax . primitive-syntax-begin))
     (dict-set! env "floor" '(primitive . 36))
     (dict-set! env "first" '(primitive . 52))
     (dict-set! env "lambda" '(syntax . primitive-syntax-fn))
@@ -1136,18 +1137,18 @@
         (dict-has? (car env) item) (nth (car env) item) 
         else (hydra@lookup item (cdr env))))
 
-(define (compile-lambda-helper lst env)
+(define (compile-begin lst env)
     (if (null? lst)
         '()
         (append
             (hydra@compile (car lst) env)
-            (compile-lambda-helper (cdr lst) env))))
+            (compile-begin (cdr lst) env))))
 
 (define (compile-lambda rst env)
     (list 'compiled-lambda
         (vector
             env
-            (compile-lambda-helper (cdr rst) env)
+            (compile-begin (cdr rst) env)
             (car rst)))) 
 
 (define (hydra@add-env! name value environment)
@@ -1307,6 +1308,8 @@
                                         (list 3 ;; load
                                             (compile-lambda rst env))
                                         (list (cdr (hydra@lookup '%makeclosure env))))
+                                (eq? (cdr v) 'primitive-syntax-begin)
+                                    (compile-begin rst env)
                                 (eq? (cdr v) 'primitive-syntax-lt)
                                     (append 
                                         (hydra@compile (car rst) env)

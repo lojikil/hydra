@@ -32,7 +32,7 @@
 - fix load
 - define-c-syntax
 - define-syntax (HIGH 0)
-- IL->JS, IL->C++, IL->JAVA
+- IL->JS, IL->C++, IL->JAVA, IL->X86_64, IL->SPARC
 - support %c, define-alien for self-hosting runtimes.
 - DONE: %include, %prim
 - inline or lift
@@ -57,9 +57,21 @@
 - Fix `(define y '(procedure . "display")) (display 13)` which displays 13 & returns 13, aka is able to run procedures (Sandbox escape 1)
 - Core version without repl/read, for use with IL->JS
 - Move stack from pair to vector with fixed size, stack pointer, &c. (testing)
-- hydra@{operand, instruction} => simple syntax
+- DONE: Move dump from pair to vector with fixed size, stack pointer, &c. (testing)
+- DONE: hydra@{operand, instruction} => simple syntax
+- add BEGIN form to Hydra
+- DONE: add BEGIN form to Hydra/SAC
+- Verify complete language coverage between Vesta and Hydra
+
+* Eurydice
+- linting
+- C-stress-style file system checks
+- formatting (ala gofmt)
+- refactoring: if<=>cond, cond<=>case, with<=>let, define<=>define-syntax, &c.
 
 * All
 - SRFI-0/7, for supporting different loads, different FFIs, different low-level runtimes...
 - Scheme48-style modules.
 - define-syntax
+- SRFI-55 support (require) + Libraries
+- better typing support
