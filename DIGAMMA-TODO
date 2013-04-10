@@ -55,11 +55,12 @@
 - DONE: Move "display" instruction to be a call procedure instruction; top of stack is number of parameters.
 - Fix `(define x '(primitive . 0)) (x '(1 2 3 4))` which returns `1`, aka it is able to run CAR (Sandbox escape 0)
 - Fix `(define y '(procedure . "display")) (display 13)` which displays 13 & returns 13, aka is able to run procedures (Sandbox escape 1)
+- For the above two sandbox escapes: maybe test with eq? which would ensure we're only running the values that were pre-allocated...
 - Core version without repl/read, for use with IL->JS
 - Move stack from pair to vector with fixed size, stack pointer, &c. (testing)
 - DONE: Move dump from pair to vector with fixed size, stack pointer, &c. (testing)
 - DONE: hydra@{operand, instruction} => simple syntax
-- add BEGIN form to Hydra
+- DONE: add BEGIN form to Hydra
 - DONE: add BEGIN form to Hydra/SAC
 - Verify complete language coverage between Vesta and Hydra
 

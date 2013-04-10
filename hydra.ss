@@ -920,6 +920,7 @@
     :if (syntax . primitive-syntax-if)
     :fn (syntax . primitive-syntax-fn)
     :lambda (syntax . primitive-syntax-fn)
+    :begin (syntax . primitive-syntax-begin)
     :quote (syntax . primitive-syntax-quote)
     :quasi-quote (syntax . primitive-syntax-qquote)
     :unquote (syntax . primitve-syntax-unquote)
@@ -1211,6 +1212,10 @@
                                         (list 3 ;; load
                                             (compile-lambda rst env))
                                         (list (cdr (hydra@lookup '%makeclosure env))))
+                                (eq? (cdr v) 'primitive-syntax-begin)
+                                    (append-map
+                                        (fn (x) (hydra@compile x env))
+                                        rst)
                                 (eq? (cdr v) 'primitive-syntax-lt)
                                     (append 
                                         (hydra@compile (car rst) env)

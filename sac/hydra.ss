@@ -224,7 +224,7 @@
         (= offset (- ip 1)) (append (list '(107) '(107)) (copy-code (cddr code) ip (+ offset 2)))
         else (append (list (car code)) (copy-code (cdr code) ip (+ offset 1)))))
 
-(define (procedure-runner proc arity args)
+(define (procedure-runner proc arity args env dump)
     (cond
         (eq? proc "display")
             (cond
@@ -242,6 +242,14 @@
                     (newline (car args))
                 else
                     (error "Incorrect arity for procedure: newline"))
+        (eq? proc "load")
+            (cond
+                (= arity 1)
+                    (hydra@load (car args) env dump)
+                (= arity 2)
+                    (hydra@load (car args) (cadr args) dump)
+                else
+                    (error "Incorrect arity for procedure: load"))
         else
             (error (format "unknown procedure \"~a\"" proc))))
 
@@ -405,7 +413,7 @@
                     (let* ((arity (caddr c))
                            (args (cslice stack 0 arity))
                            (stk (cslice stack arity (length (cdr stack))))
-                           (ret (procedure-runner (hydra@operand c) arity args)))
+                           (ret (procedure-runner (hydra@operand c) arity args env dump)))
                            (hydra@vm
                                 code
                                 env
@@ -1122,6 +1130,7 @@
     (dict-set! env "keys" '(primitive . 56))
     (dict-set! env "partial-key?" '(primitive . 57))
     (dict-set! env "polar->rectangular" '(primitive . 69))
+    (dict-set! env "load" '(procedure . "load"))
     (dict-set! env "read" '(procedure . "read"))
     (dict-set! env "write" '(procedure . "write"))
     (dict-set! env "foo" '(procedure . "fo"))
