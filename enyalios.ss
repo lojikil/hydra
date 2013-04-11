@@ -337,6 +337,9 @@
     (let ((proc (nth *procedures* (car block)))
           (args (cdr block))
           (env  (nth lparams "env" "tlenv")))
+        ;(display "keys in lparams: ")
+        ;(write (keys lparams))
+        ;(newline)
         (cond
             (and
                 (= (nth proc 1) 0)
@@ -375,7 +378,7 @@
 (define (compile-lambda block name tail? rewrites lparams)
     (let* ((params (car block))
            (name (gensym 'fun_))
-           (nulparams (dict "params" params "name" name))
+           (nulparams (dict "params" params "name" name "env" (nth lparams "env" "tlenv"))) ;; should probably merge dicts here...
            (body (compile-begin (cdr block) name #t rewrites nulparams)))
         (set! *ooblambdas*
             (cons 

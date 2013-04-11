@@ -1,0 +1,17 @@
+(define (foo x)
+    (let ((i 0)) (set! i 10) (+ x i)))
+
+(define (bar x)
+    (if (< x 10)
+        (let ((i 0)) (set! i 10) (+ x i))
+        x))
+
+(define (scheme-main)
+    (display (foo 10))
+    (newline)
+    (display (foo 20))
+    (newline)
+    (display (bar 10))
+    (newline)
+    (display (bar 20))
+    (newline))

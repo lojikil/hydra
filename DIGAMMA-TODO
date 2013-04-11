@@ -42,8 +42,9 @@
 - optimize more primitives: + - / * < > >= <=
 - open code fnumeq similar to eq?
 - possibly look into destructive parameter updates? (foo (+ i 1)) could be AINT(i) += 1
-- This fails to work correctly: (let ((i 0)) (set! i 10)) [test more; you can see it in Hydra/SAC. Could be only when it is nested in an if]
-- check in on this: (foreach (fn (x) (write (keys x)) (newline)) some-var). Apparently generates the wrong environment in the output C code
+- DONE: This fails to work correctly: (let ((i 0)) (set! i 10)) [test more; you can see it in Hydra/SAC. Could be only when it is nested in an if]
+- DONE: check in on this: (foreach (fn (x) (write (keys x)) (newline)) some-var). Apparently generates the wrong environment in the output C code
+- add merge-dict! procedure. It should default to _not_ overwriting keys that exist in the destination dictionary. (merge-dict! src : DICT dest : DICT overwrite? :BOOL)
 
 * Hydra-only
 - DONE: fix closures
