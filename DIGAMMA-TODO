@@ -4,14 +4,14 @@
 
 * Runtime only
 
-- DONE: Add support for \#;(datum) comments
-- DONE: port that to Hydra\'s runtime
+- DONE: Add support for #;(datum) comments
+- DONE: port that to Hydra's runtime
 
-* Vesta\/Hydra
+* Vesta/Hydra
 - engines
-- current\-input\-port, current\-output\-port, current\-error\-port
-- with\-output, with\-input, with\-error
-- get\/set current\-X\-port
+- current-input-port, current-output-port, current-error-port
+- with-output, with-input, with-error
+- get/set current-X-port
 
 * Enyalios
 - DONE: top level Symbol for procedures, added to lparams["env"]
@@ -20,20 +20,20 @@
 - DONE: add that top level Symbol to procedure calls
 - closures in HOFs (HIGH 1)
 - free analysis for closures (HIGH 1)
-- Internally\-defined procedure lifting (HIGH 1)
+- Internally-defined procedure lifting (HIGH 1)
 - Inlining
-- typing ala Stalin \(recursive union types, soft\-typing\/gradul\-typing)
+- typing ala Stalin (recursive union types, soft-typing/gradul-typing)
 - named\-let (HIGH 2)
-- do\-loops \(I guess?)
+- do\-loops (I guess?)
 - fix apply!
 - DONE: (was actually an issue with set!) fix deeply nested let issue with if: (let ((foo 1)) (if (> foo 0) (set! foo 1) #v))
 - letrec
-- DONE: let* fix \(doesn't correctly pass rewritten vars from above)
+- DONE: let* fix (doesn't correctly pass rewritten vars from above)
 - fix load
-- define\-c\-syntax
-- define\-syntax (HIGH 0)
-- IL\->JS, IL\->C++, IL\->JAVA
-- support %c, define\-alien for self\-hosting runtimes.
+- define-c-syntax
+- define-syntax (HIGH 0)
+- IL->JS, IL->C++, IL->JAVA
+- support %c, define-alien for self-hosting runtimes.
 - DONE: %include, %prim
 - inline or lift
 - if lift, do free analysis & closure conversion
@@ -43,19 +43,23 @@
 - open code fnumeq similar to eq?
 - possibly look into destructive parameter updates? (foo (+ i 1)) could be AINT(i) += 1
 - This fails to work correctly: (let ((i 0)) (set! i 10)) [test more; you can see it in Hydra/SAC. Could be only when it is nested in an if]
+- check in on this: (foreach (fn (x) (write (keys x)) (newline)) some-var). Apparently generates the wrong environment in the output C code
 
-* Hydra\-only
+* Hydra-only
 - DONE: fix closures
 - DONE: port closure fix to Hydra\/SAC
 - DONE: review user of map, and potentially replace with bespoke, Enyalios\-friendly equivalent (SAC)
 - idea: what if, instead of defining a list of primitives, &c., we just code primitives iff there is no other hit in the env? Users could do (define car (fn ...)), but it would not require having "car" defined in the env; a lookup against car could just hit a "default handler" of sorts. 
 - DONE: Detect errors on the stack
 - DONE: Detect errors on the stack in Hydra/SAC
-- Core version without repl\/read, for use with IL\->JS
+- DONE: Move "display" instruction to be a call procedure instruction; top of stack is number of parameters.
+- Fix `(define x '(primitive . 0)) (x '(1 2 3 4))` which returns `1`, aka it is able to run CAR (Sandbox escape 0)
+- Fix `(define y '(procedure . "display")) (display 13)` which displays 13 & returns 13, aka is able to run procedures (Sandbox escape 1)
+- Core version without repl/read, for use with IL->JS
 - Move stack from pair to vector with fixed size, stack pointer, &c. (testing)
 - hydra@{operand, instruction} => simple syntax
 
 * All
-- SRFI\-0\/7, for supporting different loads, different FFIs, different low-level runtimes...
-- Scheme48\-style modules.
-- define\-syntax
+- SRFI-0/7, for supporting different loads, different FFIs, different low-level runtimes...
+- Scheme48-style modules.
+- define-syntax

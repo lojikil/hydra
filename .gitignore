@@ -2,6 +2,8 @@
 *test*.c
 *test*.ss.c
 hydra.ss.c
+ceres.ss.c
 hydra
+ceres
 *.o
 sac/perf/*

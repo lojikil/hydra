@@ -215,11 +215,15 @@
 ;; here. A user can use the config language to select which
 ;; includes they want to use, based on the output IL
 (define *includes* '())
+(define *debug* #f)
 
 (define (show x (prefix "x: "))
-    (display prefix)
-    (write x)
-    (newline)
+    (if *debug*
+        (begin
+            (display prefix)
+        (write x)
+        (newline))
+        #v)
     x)
 
 (define (enyalios@primitive? o)
@@ -243,6 +247,13 @@
 
 (define (enyalios@parameter-call? o lparams)
     (not (eq? (memq o (nth lparams "parameters" '())) #f)))
+
+(define (member*? x l)    
+    (cond
+        (null? l) #f
+        (pair? (car l)) (or (member*? x (car l)) (member*? x (cdr l)))
+        (eq? (car l) x) #t
+        else (member*? x (cdr l))))
 
 (define (count-arities p req opt)
     (cond
@@ -458,7 +469,7 @@
 (define (cond-unzip block conds thens)
     (cond
         (null? block) (list (tconc->pair conds) (tconc->pair thens))
-        (null? (cdr block)) (error "incorrectly formated COND block")
+        (null? (cdr block)) (error "incorrectly formated COND/CASE block")
         else
             (begin
                 (tconc! conds (car block))
@@ -523,6 +534,39 @@
                                     (cons 'c-elif x)))
                             (zip cond-list then-list))))))))
                     
+(define (compile-case block name tail? rewrites lparams)
+    " compiles a CASE form into IL.
+      PARAMETERS:
+      block: scheme code
+      name : current function name in TCO
+      tail? : boolean for tail calls
+      rewrites : any let renames.
+      lparams : dict containing function information (used outside of compile-cond)
+
+      RETURNS : 
+      (RECURSE? AST+)
+    "
+    (let* ((seps (cond-unzip (cdr block) (make-tconc '()) (make-tconc '())))
+           (cond-list (car seps))
+           (then-list (cadr seps))
+           (tail-rec? #f))
+        (set! then-list
+            (map
+                (fn (x)
+                    (with res (generate-code x name tail? rewrites lparams)
+                        (if (car res)
+                            (set! tail-rec? #t)
+                            #v)
+                        (returnable (cadr res) tail?)))
+                then-list))
+        (list
+            tail-rec?
+            (cons
+                'c-case
+                    (cons
+                        (cadr (generate-code (car block) name #f rewrites lparams))
+                        (zip cond-list then-list))))))
+
 (define (il-syntax? c)
     (cond
         (not (pair? c))
@@ -533,6 +577,7 @@
             (eq? (car c) 'c-if)
             (eq? (car c) 'c-elif)
             (eq? (car c) 'c-else)
+            (eq? (car c) 'c-case)
             (eq? (car c) 'c-begin)
             (eq? (car c) 'c-set!)
             (eq? (car c) 'c-return)
@@ -793,6 +838,7 @@
                 (list #f (list 'c-nop)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
+        (eq? (car c) 'case) (compile-case (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'quote)
             (if (null? (cadr c))
                 '(#f (c-nil))
@@ -1161,7 +1207,7 @@
                     " we can cheat here; since multiplication & addition are commutative, I can change the operands' order
                       and make optimizations easier here than requiring a full table of numeric type heirarchies.
                     "
-                    (display "in arg-len == 2\n")
+                    (show "" "in arg-len == 2\n")
                     (if (tower-order? a0 a1)
                         #v
                         (begin
@@ -1256,9 +1302,7 @@
     " if-condition handles processing of the <cond> portion of
       c-if/c-elif. It handles c-and & c-or, and potentially handle
       optimizations to if statements (like rewriting flt to flt_XX)"
-    (display "in if-condition: ")
-    (write <cond>)
-    (newline)
+    (show <cond> "in if-condition: ")
     (cond
         (eq? (car <cond>) 'c-and) 
             (condition-connector
@@ -1297,6 +1341,77 @@
                 (begin
                     (display "STRUE : " out)
                     (stand-alone-logic->c (cdr il) lvl out connector))))))
+
+(define (goto-labels n l base)
+    (cond
+        (empty? n)
+            (tconc->pair l)
+        (eq? (car n) 'else)
+            (begin
+                (tconc! l base)
+                (tconc->pair l))
+        else
+        (begin
+            (tconc! l (gensym 'labl))
+            (goto-labels (cdr n) l base))))
+
+(define (ir->c-case il lvl out)
+    "outputs a set of GOTOs and a hashtable to contain the jump table.
+     still need to look into memoizing this so that it is only built
+     the first time it is run."
+    (let* ((table-name (gensym 'jmptab))
+           (base (gensym 'base))
+           (offset (gensym 'offset))
+           (tmp (gensym 'tmp))
+           (seps (unzip (show (cdr il) "ir->c-case::unzip ")))
+           (states (car seps))
+           (labels (goto-labels states (make-tconc '()) base))
+           (codes (cadr seps))
+           (init (car il)))
+        (int->spaces lvl out)
+        (display (format "static AVLNode *~a = nil;\n" table-name) out)
+        (int->spaces lvl out)
+        (display (format "void *~a = nil;\n" offset) out)
+        (int->spaces lvl out)
+        (display (format "if(~a == nil){\n" table-name) out)
+        (int->spaces (+ lvl 1) out)
+        (display (format "~a = makeavlnode(0);\n" table-name) out)
+        ;; need to do two things:
+        ;; - iterate over each item in states (which could be (1 2 3))
+        ;; - figure out how to type a set of states to a GOTO table... 
+        (foreach*
+            (fn (state label)
+                (if (eq? state 'else)
+                    #v
+                    (foreach (fn (z)
+                        (int->spaces (+ lvl 1) out)
+                        (display (format "avl_insert(~a, ~a, &&~a);~%" table-name z label) out))
+                        state)))
+            (list states labels))
+        (int->spaces lvl out)
+        (display "}\n" out)
+        (int->spaces lvl out)
+        (display (format "SExp *~a = " tmp) out)
+        (il->c init 0 out)
+        (display ";\n" out)
+        (int->spaces lvl out)
+        (display (format "~a = (void *)avl_get(~a, AINT(~a));\n" offset table-name tmp) out)
+        (int->spaces (+ lvl 1) out)
+        (display (format "if(~a != nil){\n" offset tmp) out)
+        (int->spaces (+ lvl 1) out)
+        (display (format "goto *~a;~%" offset) out)
+        (int->spaces lvl out)
+        (display "}\n" out)
+        ;; and here, need to tie code together with GOTO states.
+        (foreach*
+            (fn (label code)
+               (display (format "~a:\n" label) out)
+               (int->spaces lvl out)
+               (display "{\n" out)
+               (il->c code lvl out)
+               (int->spaces lvl out)
+               (display "}\n" out))
+            (list labels codes))))
 
 (define (il->c il lvl out)
     (cond
@@ -1363,6 +1478,8 @@
                 (il->c (cdr il) (+ lvl 1) out)
                 (int->spaces lvl out)
                 (display "}\n" out))
+        (eq? (car il) 'c-case)
+            (ir->c-case (cdr il) lvl out) 
         (eq? (car il) 'c-and)
             (stand-alone-logic->c (cdr il) lvl out #t)
         (eq? (car il) 'c-or)
@@ -1500,6 +1617,8 @@
                 ;; code -> no output
                 ;; ip -> fplus_in(1, ip)
                 ;; i, j shadowed output.
+                ;; TODO: check if this can be cleaned up; don't need to necessarily
+                ;; shadow parameters that need not be.
                 (cond
                     (< (length (caddr il)) (nth proc-data 2))
                         (error (format "Incorrect arity for user-defined lambda: ~a" (cadr il)))

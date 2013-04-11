@@ -9,6 +9,10 @@
            (output (nth *command-line* 3 (format "~s.c" source)))
            (init (nth *command-line* 4 "enyalios_entry_point")))
         (cond
+            (eq? flag "+d")
+                (begin
+                    (set! *debug* #t)
+                    (enyalios source output init))
             (eq? flag "+e") (enyalios source output init)
             (eq? flag "+P")
                 (begin
