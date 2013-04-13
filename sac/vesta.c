@@ -299,6 +299,9 @@ append(SExp *rst)
 	int itmp = 0;
 	SExp *tmp0 = snil, *tmp1 = snil, *tmp2 = snil;
 	itmp = pairlength(rst);
+    printf("in append; rst == ");
+    princ(rst);
+    printf("\n");
 	switch(itmp)
 	{
 		case 0:

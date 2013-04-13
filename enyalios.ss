@@ -141,6 +141,7 @@
     :>> ["fbitshr" #f 2 2]
     :make-vector ["fmkvector" #f 1 -1]
     :make-string ["fmakestring" #f 1 -1]
+    :type ["ftype" #f 1 1]
     :append ["fappend" #f 2 -1]
     :first ["ffirst" #f 1 1]
     :rest ["frest" #f 1 1]
