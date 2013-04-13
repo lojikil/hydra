@@ -163,6 +163,7 @@
         x
         (append (f (car x)) (append-map f (cdr x)))))
 
+(load "../experiments/sr.ss")
 ;; end mini-prelude.
 
 (define-syntax hydra@instruction () 
@@ -1407,6 +1408,10 @@
                                 (append (reverse-append (hydra@map rst env))
                                         (hydra@compile fst env)
                                         (list (list 30)))
+                            (hydra@usyntax? v)
+                                #f
+                            (hydra@umacro? v)
+                                #f
                             (hydra@procedure? v) ;; need to add some method of checking proc arity here.
                                 (let* ((rlen (length rst)))
                                     (append

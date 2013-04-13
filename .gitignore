@@ -3,6 +3,7 @@
 *test*.ss.c
 hydra.ss.c
 ceres.ss.c
+*.ss.c
 hydra
 ceres
 *.o
