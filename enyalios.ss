@@ -840,6 +840,14 @@
             (begin
                 (cset! *usyntax* (cadr c) (show (cddr c) "define-syntax capture: "))
                 (list #f (list 'c-nop)))
+        (eq? (car c) 'load) 
+            (let* ((fh (open (coerce (cadr c) :string) :read))
+                   (lines (enyalios@load fh)))
+                (foreach
+                    (fn (line)
+                        (generate-code line '() #f {} lparams))
+                    lines)
+                (close fh))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'case) (compile-case (cdr c) name tail? rewrites lparams)
