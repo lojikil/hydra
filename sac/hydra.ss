@@ -1472,30 +1472,34 @@
 (define (hydra@repl env dump)
     (display "h; ")
     (with inp (read)
-     (if (and (eq? (type inp) "Pair") (eq? (car inp) 'unquote))
-        (cond
-         (eq? (cadr inp) 'exit) #v
-         (eq? (cadr inp) 'q) #v
-         (eq? (cadr inp) 'quit) #v
-         (eq? (cadr inp) 'bye) #v
-         (eq? (cadr inp) 'dribble) (begin (hydra@repl env dump))
-         (eq? (cadr inp) 'save) (begin (hydra@repl env dump))
-         (eq? (cadr inp) 'save-and-die) (begin (hydra@repl env dump))
-         else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (hydra@repl env dump)))
-        (if (not (pair? inp))
+     (cond 
+        (and (eq? (type inp) "Pair") (eq? (car inp) 'unquote))
+            (cond
+                (eq? (cadr inp) 'exit) #v
+                (eq? (cadr inp) 'q) #v
+                (eq? (cadr inp) 'quit) #v
+                (eq? (cadr inp) 'bye) #v
+                (eq? (cadr inp) 'dribble) (begin (hydra@repl env dump))
+                (eq? (cadr inp) 'save) (begin (hydra@repl env dump))
+                (eq? (cadr inp) 'save-and-die) (begin (hydra@repl env dump))
+                else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (hydra@repl env dump)))
+        (eof-object? inp)
+            #v
+        (not (pair? inp))
             (if (eq? inp #v)
                 (hydra@repl env dump)
                 (begin
                     (top-level-print (hydra@lookup inp env))
                     (display "\n")
                     (hydra@repl env dump)))
+        else
             (with r (hydra@eval inp env dump) 
                 (if (eq? r #v)
                  (hydra@repl env dump)
                  (begin
                     (top-level-print r)
                     (display "\n")
-                    (hydra@repl env dump))))))))
+                    (hydra@repl env dump)))))))
 
 (define (hydra@main args)
     (let ((e {})

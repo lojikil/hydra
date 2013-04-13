@@ -1637,12 +1637,32 @@ f_port_type(SExp *s, Symbol *e)
 {
 	SExp *port = e->snil;
 	if(pairlength(s) != 1)
-		return makeerror(2,0,"port-state p : PORT => BOOLEAN");
+		return makeerror(2,0,"port-type p : PORT => INTEGER");
 	port = car(s);
 	if(port->type != PORT)
-		return makeerror(2,0,"port-state's p argument *must* be bound to a PORT object");
+		return makeerror(2,0,"port-type's p argument *must* be bound to a PORT object");
 	return makeinteger(PTYPE(port));
 }	
+SExp *
+f_end_of_portp(SExp *s, Symbol *e)
+{
+	SExp *port = e->snil;
+	if(pairlength(s) != 1)
+		return makeerror(2,0,"end-of-port? p : PORT => BOOLEAN");
+    port = car(s);
+    if(port->type != PORT)
+        return makeerror(2,0,"end-of-port?'s sole argument *must* be bound to a PORT object");
+    switch(PTYPE(port))
+    {
+        case PFILE:
+            if(feof(FILEPORT(port)))
+                return e->strue;
+            else
+                return e->sfalse;
+        default:
+            return makeerror(2,0,"end-of-port? only operates on FILE ports.");
+    }
+}
 SExp *
 f_set_input(SExp *s, Symbol *e)
 {

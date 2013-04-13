@@ -582,6 +582,7 @@ INTERNDEF(f_port_bind);
 INTERNDEF(f_port_proto);
 INTERNDEF(f_port_state);
 INTERNDEF(f_port_type);
+INTERNDEF(f_end_of_portp);
 INTERNDEF(f_set_input);
 INTERNDEF(f_set_output);
 INTERNDEF(f_set_error);
