@@ -1465,7 +1465,7 @@
 
 (define (hydra@load src-file env dump)
     "an implementation of the primitive procedure load"
-    (let ((f (open src-file :read)))
+    (let ((f (open (coerce src-file :string) :read)))
         (hydra@load-loop f env dump)
         (close f)))
                                     

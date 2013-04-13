@@ -64,7 +64,7 @@
 - DONE: add BEGIN form to Hydra
 - DONE: add BEGIN form to Hydra/SAC
 - Verify complete language coverage between Vesta and Hydra
-- Errors buried deep within compiled code can bubble to the surface much later. Checkout Aneris.ss for a test
+- Errors buried deep within compiled code can bubble to the surface much later. Checkout Aneris.ss for a test (e.g. a call to "type" within an if block, when Hydra doesn't have the "type" procedure in its environment will call the error to be swallowed until much later. boo).
 
 * Eurydice
 - linting
