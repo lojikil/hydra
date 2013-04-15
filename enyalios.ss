@@ -841,13 +841,17 @@
                 (cset! *usyntax* (cadr c) (show (cddr c) "define-syntax capture: "))
                 (list #f (list 'c-nop)))
         (eq? (car c) 'load) 
+            (begin 
+                (display "c == ")
+                (write c)
+                (newline)
             (let* ((fh (open (coerce (cadr c) :string) :read))
                    (lines (enyalios@load fh)))
                 (foreach
                     (fn (line)
                         (generate-code line '() #f {} lparams))
                     lines)
-                (close fh))
+                (close fh)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'case) (compile-case (cdr c) name tail? rewrites lparams)
@@ -1719,6 +1723,7 @@
 ;; BEGIN main-driver
 
 (define (enyalios@load in)
+    (display "in enyalios@load\n")
     (with r (read in)
         (if (eof-object? r)
             '()
@@ -1793,12 +1798,17 @@
           (env-name (gensym "enyalios"))
           (obj-code (enyalios@compile-loop code env-name)))
         (display (format "LOADED: ~a~%" in-file))
-        (foreach-proc
-            (fn (x)
-                (if (cadr x)
-                    (display (format "#include <~a>~%" (car x)) outf)
-                    (display (format "#include \"~a\"~%" (car x)) outf)))
-            *includes*)
+        (display "includes == ")
+        (write *includes*)
+        (newline)
+        (if (empty? *includes*)
+            #v  
+            (foreach-proc
+                (fn (include)
+                    (if (cadr include)
+                        (display (format "#include <~a>~%" (car include)) outf)
+                        (display (format "#include \"~a\"~%" (car include)) outf)))
+                *includes*))
         (enyalios@dump-prototypes (keys *ulambdas*) *ulambdas* outf)
         (display "Symbol *" outf)
         (display env-name outf)
