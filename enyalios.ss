@@ -532,10 +532,10 @@
                     (cons 
                         (cons 'c-if (list (cadr init-cond) (returnable (cadr init-then) tail?)))
                         (map
-                            (fn (x)
-                                (if (eq? (car x) 'else)
-                                    (list 'c-else (cadr x))
-                                    (cons 'c-elif x)))
+                            (fn (x1)
+                                (if (eq? (car x1) 'else)
+                                    (list 'c-else (cadr x1))
+                                    (cons 'c-elif x1)))
                             (zip cond-list then-list))))))))
                     
 (define (compile-case block name tail? rewrites lparams)
@@ -773,9 +773,9 @@
                 'c-begin
                 (append
                     (map 
-                        (fn (x) (list 'c-var
-                                (nth var-temps (car x))
-                                (cadr (generate-code (cadr x) name #f var-temps nulparams))))
+                        (fn (x2) (list 'c-var
+                                (nth var-temps (car x2))
+                                (cadr (generate-code (cadr x2) name #f var-temps nulparams))))
                         (car block)) 
                     (cdr body))))))
 
@@ -841,17 +841,15 @@
                 (cset! *usyntax* (cadr c) (show (cddr c) "define-syntax capture: "))
                 (list #f (list 'c-nop)))
         (eq? (car c) 'load) 
-            (begin 
-                (display "c == ")
-                (write c)
-                (newline)
             (let* ((fh (open (coerce (cadr c) :string) :read))
-                   (lines (enyalios@load fh)))
-                (foreach
-                    (fn (line)
-                        (generate-code line '() #f {} lparams))
-                    lines)
-                (close fh)))
+                   (lines (enyalios@load fh))
+                   (load-obj-code (map
+                        (fn (line)
+                            (cadr (generate-code line '() #f {} lparams)))
+                        lines)))
+                (close fh)
+                (set! *ooblambdas* (append *ooblambdas* load-obj-code))
+                (list #f (list 'c-nop)))
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'case) (compile-case (cdr c) name tail? rewrites lparams)
@@ -1649,13 +1647,13 @@
                         ;; x1 = (+ x 1)
                         ;; y2 = (* y 3)
                         (foreach-proc
-                            (fn (x)
+                            (fn (x3)
                                 (int->spaces lvl out)
                                 (display
                                     (format "~a = "
-                                        (cmung (car x)))
+                                        (cmung (car x3)))
                                     out)
-                                (il->c (cadr x) 0 out)
+                                (il->c (cadr x3) 0 out)
                                 (display ";\n" out))
                             (zip 
                                 (nth proc-data 4) ;; shadow params
@@ -1664,12 +1662,12 @@
                         ;; x = x1
                         ;; y = y2
                         (foreach-proc
-                            (fn (x)
+                            (fn (x4)
                                 (int->spaces lvl out)
                                 (display
                                     (format "~a = ~a; ~%" 
-                                        (cmung (car x))
-                                        (cmung (cadr x)))
+                                        (cmung (car x4))
+                                        (cmung (cadr x4)))
                                     out))
                             (zip
                                 (nth proc-data 1)
@@ -1723,7 +1721,6 @@
 ;; BEGIN main-driver
 
 (define (enyalios@load in)
-    (display "in enyalios@load\n")
     (with r (read in)
         (if (eof-object? r)
             '()
@@ -1798,9 +1795,6 @@
           (env-name (gensym "enyalios"))
           (obj-code (enyalios@compile-loop code env-name)))
         (display (format "LOADED: ~a~%" in-file))
-        (display "includes == ")
-        (write *includes*)
-        (newline)
         (if (empty? *includes*)
             #v  
             (foreach-proc

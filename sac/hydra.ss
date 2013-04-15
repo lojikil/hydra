@@ -163,7 +163,28 @@
         x
         (append (f (car x)) (append-map f (cdr x)))))
 
-(load "../experiments/sr.ss")
+(define (vector-equal? x y offset)
+	(cond
+		(>= offset (length x)) #t
+		(equal? (nth x offset) (nth y offset)) (vector-equal? x y (+ offset 1))
+		else #f))
+
+(define (equal? x y)
+	(cond
+		(and (eq? (type x) "Pair") (eq? (type y) "Pair"))
+			(if (equal? (car x) (car y))
+				(equal? (cdr x) (cdr y))
+				#f)
+		(and (eq? (type x) "Vector") (eq? (type y) "Vector"))
+			(if (= (length x) (length y))
+				(vector-equal? x y 0)
+				#f)
+		(and (eq? (type x) "Number") (eq? (type y) "Number"))
+			(= x y)
+		else
+			(eq? x y)))
+
+;(load "./experiments/sr.ss")
 ;; end mini-prelude.
 
 (define-syntax hydra@instruction () 
@@ -189,6 +210,12 @@
 
 (define-syntax hydra@procedure? () ((hydra@procedure? x)
     (and (pair? x) (eq? (car x) 'procedure))))
+
+(define (hydra@usyntax? x)
+    #f)
+
+(define (hydra@umacro? x)
+    #f)
 
 (define (loop-set-env! env params vals)
     (if (null? params)
