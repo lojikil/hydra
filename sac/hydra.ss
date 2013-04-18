@@ -184,7 +184,7 @@
 		else
 			(eq? x y)))
 
-;(load "./experiments/sr.ss")
+(load "./experiments/sr.ss")
 ;; end mini-prelude.
 
 (define-syntax hydra@instruction () 
@@ -211,8 +211,8 @@
 (define-syntax hydra@procedure? () ((hydra@procedure? x)
     (and (pair? x) (eq? (car x) 'procedure))))
 
-(define (hydra@usyntax? x)
-    #f)
+(define-syntax hydra@usyntax? () ((hydra@usyntax? x)
+    (and (pair? x) (eq? (car x) 'user-syntax)))) 
 
 (define (hydra@umacro? x)
     #f)
@@ -1314,7 +1314,7 @@
                                         else (error "numeq fail"))
                                 (eq? (cdr v) 'primitive-syntax-define)
                                     (let ((name (car rst))
-                                           (value (cadr rst)))
+                                          (value (cadr rst)))
                                         (cond
                                             (pair? name) 
                                                 (append
@@ -1337,7 +1337,10 @@
                                                 (list (list (cdr (hydra@lookup '%set! env)))))
                                             (error "SET!: set! SYMBOL S-EXPR*")))
                                 (eq? (cdr v) 'primitive-syntax-defsyn)
-                                    #t
+                                    (let ((name (car rst))
+                                          (rules (cdr rst)))
+                                        (hydra@add-env! name (list 'user-syntax rules) env)
+                                        (list (list 107))) ;; %nop
                                 (eq? (cdr v) 'primitive-syntax-defmac)
                                     #t
                                 (eq? (cdr v) 'primitive-syntax-fn)
@@ -1436,7 +1439,9 @@
                                         (hydra@compile fst env)
                                         (list (list 30)))
                             (hydra@usyntax? v)
-                                #f
+                                (hydra@compile
+                                    (syntax-expand1 (cadr v) line)
+                                    env)
                             (hydra@umacro? v)
                                 #f
                             (hydra@procedure? v) ;; need to add some method of checking proc arity here.
@@ -1485,6 +1490,7 @@
         (hydra@procedure? x) (display (format "#<procedure ~a>" (cdr x)))
         (hydra@syntax? x) (display (format "#<syntax ~a>" (cdr x)))
         (hydra@error? x) (display (format "ERROR: ~a" (cdr x)))
+        (hydra@usyntax? x) (display "#<syntax rules>")
         else (write x)))
 
 (define (hydra@load-loop fh env dump)

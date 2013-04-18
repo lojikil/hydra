@@ -1794,7 +1794,7 @@
           (code (enyalios@load inf))
           (env-name (gensym "enyalios"))
           (obj-code (enyalios@compile-loop code env-name)))
-        (display (format "LOADED: ~a~%" in-file))
+        (display (format "LOADED: ~a~%GENERATING INCLUDES... " in-file))
         (if (empty? *includes*)
             #v  
             (foreach-proc
@@ -1803,12 +1803,16 @@
                         (display (format "#include <~a>~%" (car include)) outf)
                         (display (format "#include \"~a\"~%" (car include)) outf)))
                 *includes*))
+        (display "DONE.\nGENERATING C PROTOTYPES... ")
         (enyalios@dump-prototypes (keys *ulambdas*) *ulambdas* outf)
         (display "Symbol *" outf)
         (display env-name outf)
         (display ";\n\n" outf)
+        (display "DONE.\nGENERATING C ANONYMOUS LAMBDAS... ")
         (enyalios@dump-lambdas *ooblambdas* outf)
+        (display "DONE.\nGENERATING C LAMBDAS... ")
         (enyalios@dump-lambdas obj-code outf)
+        (display "DONE\n")
         (close inf)
         (close outf)))
 ;; END main-driver
