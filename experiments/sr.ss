@@ -25,10 +25,14 @@
                 (match-pattern (cdr pat) (cdr form) env literals)
                 (list #f '()))
         (symbol? (car pat)) ;; need to check ... here
-            (match-pattern (cdr pat) (cdr form) (cons (list (car pat) (car form)) env) literals)
+            (if (eq? (cadr pat) '...)
+                #f
+                (match-pattern (cdr pat) (cdr form) (cons (list (car pat) (car form)) env) literals))
         (pair? (car pat)) ;; same as above
-            (match-pattern (cdr pat) (cdr form)
-                (append (match-pattern (car pat) (car form) '() literals) env) literals)
+            (if (eq? (cadr pat) '...)
+                #f
+                (match-pattern (cdr pat) (cdr form)
+                    (append (match-pattern (car pat) (car form) '() literals) env) literals))
         else
             (if (equal? (car pat) (car form))
                 (match-pattern (cdr pat) (cdr form) env literals)
