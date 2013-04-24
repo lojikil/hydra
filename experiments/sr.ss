@@ -26,7 +26,20 @@
                 (list #f '()))
         (symbol? (car pat)) ;; need to check ... here
             (if (eq? (cadr pat) '...)
-                #f
+                (let* ((pl (length (cddr pat)))
+                       (fl (length form))
+                       (offset (- fl pl)))
+                    (if (= pl 0)
+                        (list #t (cons (list (car pat) form)))
+                        (match-pattern
+                            (cddr pat)
+                            (cslice form offset fl)
+                            (cons
+                                (list
+                                    (car pat)
+                                    (cslice form 0 offset))
+                                env)
+                            literals)))
                 (match-pattern (cdr pat) (cdr form) (cons (list (car pat) (car form)) env) literals))
         (pair? (car pat)) ;; same as above
             (if (eq? (cadr pat) '...)
