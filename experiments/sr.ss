@@ -67,7 +67,7 @@
                 (if (eq? s #f)
                     (build-syntax-result env (cdr form) (append out (list (car form))))
                     (if (eq? (cadr form) '...)
-                        (build-syntax-result env (cdr form) (append out (cadr s))) 
+                        (build-syntax-result env (cddr form) (append out (cadr s))) 
                         (build-syntax-result env (cdr form) (append out (list (cadr s)))))))
         (pair? (car form))
             (build-syntax-result env
