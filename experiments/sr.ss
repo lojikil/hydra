@@ -30,7 +30,7 @@
                        (fl (length form))
                        (offset (- fl pl)))
                     (if (= pl 0)
-                        (list #t (cons (list (car pat) form)))
+                        (list #t (cons (list (car pat) form) env))
                         (match-pattern
                             (cddr pat)
                             (cslice form offset fl)
@@ -66,7 +66,9 @@
             (with s (assq (car form) env)
                 (if (eq? s #f)
                     (build-syntax-result env (cdr form) (append out (list (car form))))
-                    (build-syntax-result env (cdr form) (append out (list (cadr s))))))
+                    (if (eq? (cadr form) '...)
+                        (build-syntax-result env (cdr form) (append out (cadr s))) 
+                        (build-syntax-result env (cdr form) (append out (list (cadr s)))))))
         (pair? (car form))
             (build-syntax-result env
                 (cdr form)
