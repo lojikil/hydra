@@ -58,6 +58,7 @@
 - Fix `(define y '(procedure . "display")) (display 13)` which displays 13 & returns 13, aka is able to run procedures (Sandbox escape 1)
 - For the above two sandbox escapes: maybe test with eq? which would ensure we're only running the values that were pre-allocated...
 - For the above sandbox issues: wrap/tag user provided data with a USER tag; unwrap in all Hydra@vm at the right time (i.e. prior to call, but not for dispatch)
+- The "eq?" version is better, I think, because it requires less memory overall; the tagged version requires each user value to be tagged, which is needlessly wasteful
 - Core version without repl/read, for use with IL->JS
 - Move stack from pair to vector with fixed size, stack pointer, &c. (testing)
 - DONE: add define-syntax and syntax-expand to Hydra/SAC
