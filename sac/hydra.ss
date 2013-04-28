@@ -510,6 +510,13 @@
                     (30) ;; call
                         ;; need to make call check it's operand now...
                         (let ((call-proc (hydra@operand c)))
+                            (display "in <else> of CALL\n")
+                            (display "c == ")
+                            (write c)
+                            (newline)
+                            (display "(car stack) == ")
+                            (write (car stack))
+                            (display "\n")
                             (if (symbol? call-proc)
                                 (set! call-proc (hydra@lookup call-proc env))
                                 #v)
@@ -546,7 +553,11 @@
                                 else
                                 (begin
                                     (display "in <else> of CALL\n")
-                                    (display (car stack))
+                                    (display "c == ")
+                                    (write c)
+                                    (newline)
+                                    (display "(car stack) == ")
+                                    (write (car stack))
                                     (display "\n")
                                 #f)))
                     (31) ;; environment-load; there is never a raw #f, so this is safe
@@ -994,7 +1005,40 @@
                                             (nth (cadar stack) 1)
                                             (nth (cadar stack) 2)))
                                     (cdr stack))
-                                dump))))))
+                                dump))
+                    (110) ;; call from stack
+                        (let ((call-proc (car stack)))
+                            (cond
+                                (hydra@error? call-proc)
+                                    (begin
+                                        (display "error: ")
+                                        (write call-proc)
+                                        (newline)
+                                        call-proc)
+                                (hydra@lambda? call-proc)
+                                    ;; create a list from the current registers, cons this to dump, and 
+                                    ;; recurse over hydra@vm. 
+                                    ;; need to support CALLing primitives too, since they could be passed
+                                    ;; in to HOFs...
+                                    (if (> (car dump) (length (cadr dump)))
+                                        (error "Dump stack overflow")
+                                        (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) stack (nth (cadr call-proc) 2)))
+                                              (v-dump (cadr dump))
+                                              (offset (car dump)))
+                                            (display "in let?\n")
+                                            (cset! v-dump offset (cadr env-and-stack))
+                                            (cset! v-dump (+ offset 1) ip)
+                                            (cset! v-dump (+ offset 2) env)
+                                            (cset! v-dump (+ offset 3) code)
+                                            (hydra@vm
+                                                (nth (cadr call-proc) 1)
+                                                (car env-and-stack)
+                                                0 '() 
+                                                (list (+ offset 4) v-dump))))
+                                (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
+                                    #t
+                                else
+                                    (error "non-applicable CALL-STACK argument")))))))
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
@@ -1437,7 +1481,7 @@
                                 ;; May cause an error that has to be caught in CALL. some lifting might fix this...
                                 (append (reverse-append (hydra@map rst env))
                                         (hydra@compile fst env)
-                                        (list (list 30)))
+                                        (list (list 110)))
                             (hydra@usyntax? v)
                                 (hydra@compile
                                     (syntax-expand1 (cadr v) line)
