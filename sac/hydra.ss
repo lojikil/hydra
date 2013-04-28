@@ -510,13 +510,13 @@
                     (30) ;; call
                         ;; need to make call check it's operand now...
                         (let ((call-proc (hydra@operand c)))
-                            (display "in <else> of CALL\n")
-                            (display "c == ")
-                            (write c)
-                            (newline)
-                            (display "(car stack) == ")
-                            (write (car stack))
-                            (display "\n")
+                            ;(display "in <else> of CALL\n")
+                            ;(display "c == ")
+                            ;(write c)
+                            ;(newline)
+                            ;(display "(car stack) == ")
+                            ;(write (car stack))
+                            ;(display "\n")
                             (if (symbol? call-proc)
                                 (set! call-proc (hydra@lookup call-proc env))
                                 #v)
@@ -1008,6 +1008,12 @@
                                 dump))
                     (110) ;; call from stack
                         (let ((call-proc (car stack)))
+                            ;(display "call-proc == ")
+                            ;(write call-proc)
+                            ;(newline)
+                            ;(display "(car stack) == ")
+                            ;(write (car stack))
+                            ;(display "\n")
                             (cond
                                 (hydra@error? call-proc)
                                     (begin
@@ -1022,10 +1028,10 @@
                                     ;; in to HOFs...
                                     (if (> (car dump) (length (cadr dump)))
                                         (error "Dump stack overflow")
-                                        (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) stack (nth (cadr call-proc) 2)))
+                                        (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) (cdr stack) (nth (cadr call-proc) 2)))
                                               (v-dump (cadr dump))
                                               (offset (car dump)))
-                                            (display "in let?\n")
+                                            ;(display "in let?\n")
                                             (cset! v-dump offset (cadr env-and-stack))
                                             (cset! v-dump (+ offset 1) ip)
                                             (cset! v-dump (+ offset 2) env)
