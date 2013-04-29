@@ -151,7 +151,7 @@
     :partial-key? ["fpartial_key" #f 2 2]
     :cset! ["fcset" #f 3 3]
     :dict-set! ["fdset" #f 3 3] ;; to be optimized away below
-    :string ["fstring" #f 0 -1]
+    ;:string ["fstring" #f 0 -1]
     :empty? ["fempty" #f 1 1]
     :gensym ["fgensym" #f 0 1] 
     :imag-part ["fimag_part" #f 1 1]
@@ -712,7 +712,7 @@
             (list
                 #f
                 (cons
-                    'c-apply-var-primitive
+                    'c-apply-variable-primitive
                     (cons
                         (nth *varprimitives* (car block))
                         (map
@@ -1691,10 +1691,9 @@
                 (display ")" out))
         (eq? (car il) 'c-variable-primitive)
             (let ((name (nth *varprimitives* (cadr il))))
-                (begin
-                    (display (format "~a(~n, " name (length (caddr il))) out)
-                    (comma-separated-c (caddr il) out)
-                    (display ")" out)))
+                (display (format "~a(~n, " name (length (caddr il))) out)
+                (comma-separated-c (caddr il) out)
+                (display ")" out))
         (eq? (car il) 'c-procedure)
             (begin
                 (display (cadr il) out)
@@ -1713,6 +1712,11 @@
                 (display (cadr il) out)
                 (display "(" out)
                 (il->c (caddr il) 0 out)
+                (display ")" out))
+        (eq? (car il) 'c-apply-variable-primitive)
+            (let ((name (nth *varprimitives* (cadr il))))
+                (display (format "~a(~n, " name (length (caddr il))) out)
+                (comma-separated-c (caddr il) out)
                 (display ")" out))
         else
             (display "###" out)))

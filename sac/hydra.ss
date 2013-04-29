@@ -1428,16 +1428,33 @@
                                             (list (list 3 (length rst)))
                                             (list (list (cdr (hydra@lookup '%list env))))))
                                 (eq? (cdr v) 'primitive-syntax-vector)
-                                    ;; if rst is null?, then generate a load-null instruction (4)
-                                    ;; otherwise generate the instructions for the list, a length
+                                    ;; if rst is null?, then generate a load with an empty vector
+                                    ;; otherwise generate the instructions for the vector, a length
                                     ;; and a call to %vector
+                                    (if (null? rst)
+                                        (list (list 3 (make-vector 0)))
+                                        (append
+                                            (reverse-append
+                                                (hydra@map rst env))
+                                            (list (list 3 (length rst)))
+                                            (list (list (cdr (hydra@lookup '%vector env))))))
+                                (eq? (cdr v) 'primitive-syntax-string)
+                                    (if (null? rst)
+                                        (list (list 3 (make-string 0)))
+                                        (append
+                                            (reverse-append
+                                                (hydra@map rst env))
+                                            (list (list 3 (length rst)))
+                                            (list (list (cdr (hydra@lookup '%string env))))))
+                                (eq? (cdr v) 'primitive-syntax-append)
                                     (if (null? rst)
                                         (list (list 4))
                                         (append
                                             (reverse-append
                                                 (hydra@map rst env))
                                             (list (list 3 (length rst)))
-                                            (list (list (cdr (hydra@lookup '%vector env))))))
+                                            (list (list (cdr (hydra@lookup '%append env))))))
+                                    
                                 (eq? (cdr v) 'primitive-syntax-makevector)
                                     (with l (length rst)
                                         (cond
