@@ -1611,6 +1611,9 @@
                 (if (eq? r #v)
                  (hydra@repl env dump)
                  (begin
+                    (if (hydra@error? r)
+                        #v
+                        (hydra@add-env! '_ r env))
                     (top-level-print r)
                     (display "\n")
                     (hydra@repl env dump)))))))
