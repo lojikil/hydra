@@ -1,0 +1,5 @@
+(define-syntax cond (else)
+  ((_ else e1) e1) 
+  ((_ e1 e2) (if e1 e2 #f))
+  ((_ e1 e2 e3 ...) (if e1 e2 (cond e3 ...))))
+(cond (< 3 4) 'yes (> 5 6) 'no else #f)

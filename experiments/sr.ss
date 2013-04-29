@@ -60,8 +60,22 @@
                 (syntax-expand2 (cdr rules) form '() literals)))))
 
 (define (build-syntax-result env form out)
+    (display "in build-syntax-result;\n env == ")
+    (write env)
+    (display "\nform == ")
+    (write form)
+    (display "\nout == ")
+    (write out)
+    (newline)
     (cond
         (null? form) out
+        (symbol? form)
+            (with s (assq form env)
+                (if (eq? s #f)
+                    (append out (list form))
+                    (append out (list (cadr s)))))
+        (not (pair? form))
+            (append out (list form))
         (symbol? (car form)) ;; need to check ... here & below in pair?
             (with s (assq (car form) env)
                 (if (eq? s #f)
