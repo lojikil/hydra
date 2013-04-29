@@ -1715,8 +1715,11 @@
                 (display ")" out))
         (eq? (car il) 'c-apply-variable-primitive)
             (let ((name (nth *varprimitives* (cadr il))))
+                (display "il => ")
+                (write il)
+                (newline)
                 (display (format "~a(~n, " name (length (caddr il))) out)
-                (comma-separated-c (caddr il) out)
+                (il->c (caddr il) 0 out)
                 (display ")" out))
         else
             (display "###" out)))

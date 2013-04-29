@@ -489,6 +489,7 @@ vector(int n, ...)
 	va_end(ap);
 	return ret;
 }
+
 void
 register_procedure(SExp *(*fn)(SExp *,Symbol *),char *name,int arity, Symbol *e)
 {
