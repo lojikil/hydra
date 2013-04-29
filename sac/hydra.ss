@@ -1481,7 +1481,8 @@
                                             <then>
                                             (list (list 28 else-len)) ;; jump else
                                             <else>)) 
-                                else #t)
+                                else 
+                                    (hydra@error "syntax has not been implemented at this time"))
                             (pair? fst) 
                                 ;; fst is a pair, so we just blindly attempt to compile it.
                                 ;; May cause an error that has to be caught in CALL. some lifting might fix this...

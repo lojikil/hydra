@@ -1414,7 +1414,7 @@ avl_insert(AVLNode *tree, int value, SExp *data)
         }
         return avl_insert(tree->left, value, data);
     }
-    else if(value > tree->key)
+    else // value > tree -> key
     {
         if(tree->right == nil)
         {
@@ -2568,7 +2568,7 @@ llread(FILE *fdin)
 	return snil;
 }
 char *
-_itoa(char *b, unsigned int s, int *offset)
+_itoa(char *b, int s, int *offset)
 /* offset is a reach into b, so that
  * things like format & integer->string
  * can use _itoa on buffers that have already
@@ -4345,6 +4345,8 @@ fmake_rect(SExp *tmp0, SExp *tmp1)
 		case RATIONAL:
 			CEREAL(tmp2) = (NUM(tmp0) * 1.0) / (DEN(tmp0) / 1.0);
 			break;
+        default: // should never get here, with type check above to disallow COMPLEX
+            break;
 	}
 	switch(NTYPE(tmp1))
 	{
@@ -4357,6 +4359,8 @@ fmake_rect(SExp *tmp0, SExp *tmp1)
 		case RATIONAL:
 			IMMAG(tmp2) = (NUM(tmp1) * 1.0) / (DEN(tmp1) / 1.0);
 			break;
+        default:
+            break;
 	}
 	return tmp2;
 }
@@ -4382,6 +4386,8 @@ fmake_pole(SExp *tmp0, SExp *tmp1)
 		case RATIONAL:
 			f0 = (NUM(tmp0) * 1.0) / (DEN(tmp0) / 1.0);
 			break;
+        default: // should never get here, COMPLEX type check above
+            break;
 	}
 	switch(NTYPE(tmp1))
 	{
@@ -4394,6 +4400,8 @@ fmake_pole(SExp *tmp0, SExp *tmp1)
 		case RATIONAL:
 			f1 = (NUM(tmp1) * 1.0) / (DEN(tmp1) / 1.0);
 			break;
+        default:
+            break;
 	}
 	CEREAL(tmp2) = f0 * cos(f1);
 	IMMAG(tmp2) = f0 * sin(f1);
@@ -4470,6 +4478,8 @@ fgcd(SExp *rst)
 			tmp0->object.n->nobject.rational.den = tmp1->object.n->nobject.rational.den;
 			tmp0->object.n->type = RATIONAL;
 			break;
+        default:
+            break;
 	}	
 	while(rst != snil)
 	{
@@ -4489,6 +4499,8 @@ fgcd(SExp *rst)
 						itmp = tmp0->object.n->nobject.rational.den;
 						tmp0->object.n->nobject.rational.den = (itmp / _igcd(1,itmp));
 						break;
+                    default:
+                        break;
 				}
 				break;
 			case RATIONAL:
@@ -4503,7 +4515,11 @@ fgcd(SExp *rst)
 						itmp = tmp1->object.n->nobject.rational.den;
 						tmp0->object.n->nobject.rational.den = (itmp / _igcd(itmp,tmp0->object.n->nobject.rational.den)) * tmp0->object.n->nobject.rational.den;
 						break;
+                    default:
+                        break;
 				}
+            default:
+                break;
 		}
 		rst = cdr(rst);
 	}
@@ -4534,6 +4550,8 @@ flcm(SExp *rst)
 			tmp0->object.n->nobject.rational.den = tmp1->object.n->nobject.rational.den;
 			tmp0->object.n->type = RATIONAL;
 			break;
+        default:
+            break;
 	}	
 	while(rst != snil)
 	{
@@ -4552,6 +4570,8 @@ flcm(SExp *rst)
 						tmp0->object.n->nobject.rational.num = (tmp0->object.n->nobject.rational.num / _igcd(tmp1->object.n->nobject.z,tmp0->object.n->nobject.rational.num)) * tmp1->object.n->nobject.z;
 						tmp0->object.n->nobject.rational.den = _igcd(1,tmp0->object.n->nobject.rational.den);
 						break;
+                    default:
+                        break;
 				}
 				break;
 			case RATIONAL:
@@ -4566,7 +4586,11 @@ flcm(SExp *rst)
 						itmp = tmp1->object.n->nobject.rational.num;
 						tmp0->object.n->nobject.rational.num = (itmp / _igcd(itmp,tmp0->object.n->nobject.rational.num)) * tmp0->object.n->nobject.rational.num;
 						break;
+                    default:
+                        break;
 				}
+            default:
+                break;
 		}
 		rst = cdr(rst);
 	}
@@ -4577,9 +4601,9 @@ fquotient(SExp *tmp, SExp *tmp1)
 {
 	SExp *tmp0 = nil;
 	if(tmp->type != NUMBER || (tmp->type == NUMBER && NTYPE(tmp) == COMPLEX))
-		return makeerror(1,0,"quotient (x0 : NUMBER) (x1 : NUMBER) => NUMBER ; note: x0 nor x1 may be complex");
+		return makeerror(1,0,"quotient (x0 : NUMBER) (x1 : NUMBER) => NUMBER ; neither x0 nor x1 may be complex");
 	if(tmp1->type != NUMBER || (tmp1->type == NUMBER && NTYPE(tmp1) == COMPLEX))
-		return makeerror(1,0,"quotient (x0 : NUMBER) (x1 : NUMBER) => NUMBER ; note: x0 nor x1 may be complex");
+		return makeerror(1,0,"quotient (x0 : NUMBER) (x1 : NUMBER) => NUMBER ; neither x0 nor x1 may be complex");
 	tmp0 = makenumber(INTEGER);
 	switch(NTYPE(tmp1))
 	{
@@ -4591,11 +4615,15 @@ fquotient(SExp *tmp, SExp *tmp1)
 					return tmp0;
 				case RATIONAL:
 					return tmp0;
+                default:
+                    break;
 			}
 		case RATIONAL:
 			return tmp0;
 		case REAL:
 			return tmp0;
+        default:
+            break;
 	}
 	return tmp0;
 }
@@ -4623,9 +4651,13 @@ fmodulo(SExp *tmp, SExp *tmp1)
 					NUM(tmp0) = (itmp * (NUM(tmp0) / DEN(tmp0))) % (itmp * tmp1->object.n->nobject.z);
 					DEN(tmp0) = itmp;
 					return tmp0;
+                default:
+                    break;
 			}
 		case RATIONAL:
 			return tmp0;
+        default:
+            break;
 	}
 	return tmp0;
 }
@@ -4648,7 +4680,11 @@ fremainder(SExp *tmp, SExp *tmp1)
 					return tmp0;
 				case RATIONAL:
 					return tmp0;
+                default:
+                    break;
 			}
+        default:
+            break;
 	}
 	return tmp0;
 }
@@ -6094,6 +6130,8 @@ fcset(SExp *col, SExp *offset, SExp *new)
 				tmp = cdr(tmp);
 			mcar(tmp) = new;
 			break;
+        default:
+            return makeerror(1,0,"cset! operates on COLLECTIONS only!");
 	}
 	return svoid;
 }
@@ -6298,6 +6336,8 @@ fcslice(SExp *col, SExp *start, SExp *end)
 		case DICT:
 			/* slice off based on list of keys? */
 			break;
+        default:
+            return makeerror(1,0,"cslice operates on COLLECTIONS only");
 	}
 	return ret;
 }
@@ -6577,6 +6617,8 @@ fceil(SExp *tmp0)
 			return makereal(ceil(AREAL(tmp0)));
 		case RATIONAL:
 			return makeinteger(1);
+        default:
+            return makeerror(1,0,"ceil's argument must be REAL");
 	}
 }
 SExp *
@@ -6592,6 +6634,8 @@ ffloor(SExp *tmp0)
 			return makereal(floor(AREAL(tmp0)));
 		case RATIONAL:
 			return makeinteger(0);
+        default:
+            return makeerror(1,0,"floor's argument must be REAL");
 	}
 }
 SExp *

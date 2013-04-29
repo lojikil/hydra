@@ -361,7 +361,7 @@ SExp *symlookup(char*,Symbol *);
 void register_procedure(SExp *(*)(SExp *, Symbol *),char *, int, Symbol *); /* register a C function; int is arity */
 
 /* string & formatting functions */
-char *_itoa(char *,unsigned int, int *);
+char *_itoa(char *,int, int *);
 char *_itox(char *,unsigned int, int *);
 char *_itoo(char *,unsigned int, int *);
 char *_ftoa(char *,double,int *,int); /* last int: flag -> 0,'%g'; 1,'%G' */
