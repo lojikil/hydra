@@ -1588,6 +1588,14 @@
                 (eq? (cadr inp) 'dribble) (begin (hydra@repl env dump))
                 (eq? (cadr inp) 'save) (begin (hydra@repl env dump))
                 (eq? (cadr inp) 'save-and-die) (begin (hydra@repl env dump))
+                (pair? (cadr inp))
+                    (let ((cmd (caadr inp))
+                          (arg (cadadr inp)))
+                        (cond
+                            (eq? cmd 'i)
+                                (write (hydra@lookup arg env)))
+                        (newline)
+                        (hydra@repl env dump))
                 else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (hydra@repl env dump)))
         (eof-object? inp)
             #v
