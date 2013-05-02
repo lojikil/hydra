@@ -46,6 +46,8 @@
 - DONE: check in on this: (foreach (fn (x) (write (keys x)) (newline)) some-var). Apparently generates the wrong environment in the output C code
 - add merge-dict! procedure. It should default to _not_ overwriting keys that exist in the destination dictionary. (merge-dict! src : DICT dest : DICT overwrite? :BOOL)
 - fix (string), (vector) compilation in IL->C
+- fix (if SOME-COND #v SOME-OTHER CODE) in non-tail position
+- add exception system (SRFI-34 via longjmp/setjmp)
 
 * Hydra-only
 - DONE: fix closures
@@ -73,6 +75,7 @@
 - Verify complete language coverage between Vesta and Hydra
 - Errors buried deep within compiled code can bubble to the surface much later. Checkout Aneris.ss for a test (e.g. a call to "type" within an if block, when Hydra doesn't have the "type" procedure in its environment will call the error to be swallowed until much later. boo).
 - Fix SegFault in Hydra/SAC with (append '() 3)
+- fix the *tlenv* define from Aneris.
 
 * Eurydice
 - linting
