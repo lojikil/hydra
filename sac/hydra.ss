@@ -888,7 +888,10 @@
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (exp2 (car stack)) (cdr stack)) dump)
+                            (cons
+                                (apply string-append (cslice (cdr stack) 0 (car stack)))
+                                (cslice (cdr stack) (car stack) (- (length stack) 1)))
+                            dump)
                     (92) ;; assq
                         (hydra@vm code
                             env
