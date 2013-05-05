@@ -1579,7 +1579,8 @@
     "an implementation of the primitive procedure load"
     (let ((f (open (coerce src-file :string) :read)))
         (hydra@load-loop f env dump)
-        (close f)))
+        (close f)
+        #v))
                                     
 (define (hydra@repl env dump)
     (display "h; ")

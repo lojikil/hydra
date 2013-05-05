@@ -2,9 +2,11 @@
 *test*.c
 *test*.ss.c
 hydra.ss.c
+typhon.ss.c
 ceres.ss.c
 *.ss.c
 hydra
 ceres
+typhon
 *.o
 sac/perf/*

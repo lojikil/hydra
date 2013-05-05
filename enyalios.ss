@@ -92,8 +92,8 @@
 (define *varprimitives* {
     :list "list"
     :vector "vector"
-    :dict "dict"
-    :string "string"
+    ;:dict "dict"
+    ;:string "string"
 })
 
 (define *primitives* {
@@ -151,7 +151,8 @@
     :partial-key? ["fpartial_key" #f 2 2]
     :cset! ["fcset" #f 3 3]
     :dict-set! ["fdset" #f 3 3] ;; to be optimized away below
-    ;:string ["fstring" #f 0 -1]
+    :string ["fstring" #f 0 -1]
+    :dict ["fdict" #f 0 -1]
     :empty? ["fempty" #f 1 1]
     :gensym ["fgensym" #f 0 1] 
     :imag-part ["fimag_part" #f 1 1]
