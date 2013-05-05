@@ -11,8 +11,8 @@
 ;;   could simply be marked as "variable arity" to the compiler. This arity marker
 ;;   could be Z+ (integer >= 1) or -1 for true "variable arity", and they could be 
 ;;   given handlers for it. Simple with a syntax for "generate-variable-arity-primitive"
-;; - DONE: good compilation mechanism for hydra@eval
-;; - DONE: method for hydra@vm to manage things like (cons (car (cons 1 2)) (cdr (1 2)))
+;; - DONE: good compilation mechanism for typhon@eval
+;; - DONE: method for typhon@vm to manage things like (cons (car (cons 1 2)) (cdr (1 2)))
 ;;   which it cannot currently do because we need to rotate the stack (wait, do we?)
 ;;   (cons (car (cons 1 '())) (cdr 4 '())):
 ;;   (4)   ;; nil
@@ -27,8 +27,8 @@
 ;;   works, so this isn't blocked. \o/
 ;; - lambda lifting: it would be nice if lambdas were lifted to avoid allocation as
 ;;   much as possible
-;; - define-instruction syntax that can be used to populate hydra@vm as well as 
-;;   clean up redundancies in code (like manual calls to hydra@vm in each instruction)
+;; - define-instruction syntax that can be used to populate typhon@vm as well as 
+;;   clean up redundancies in code (like manual calls to typhon@vm in each instruction)
 ;; - define a clean method of boxed representations of types, one that can be used from
 ;;   Vesta or E'. Not sure if this is a decent use of time here, in a VM, since that 
 ;;   should be a function of the run time, not the interpreter (we wouldn't want Ceres
@@ -59,7 +59,7 @@
 ;; (define f literal)
 ;; (define f (fn (x) (+ x x)))
 ;; (define f (car '(1 2 3 4 5)))
-;; the first two *can* be handled OOB by hydra@eval, but the third
+;; the first two *can* be handled OOB by typhon@eval, but the third
 ;; cannot really be handled properly. It should be re-written to 
 ;; (load (1 2 3 4 5))
 ;; (car)
@@ -187,34 +187,34 @@
 (load "./experiments/sr.ss")
 ;; end mini-prelude.
 
-(define-syntax hydra@instruction () 
-    ((hydra@instruction c) (car c)))
+(define-syntax typhon@instruction () 
+    ((typhon@instruction c) (car c)))
 
-(define-syntax hydra@operand ()
-    ((hydra@operand c) (cadr c)))
+(define-syntax typhon@operand ()
+    ((typhon@operand c) (cadr c)))
 
-(define-syntax hydra@lambda? ()  ((hydra@lambda? x)
+(define-syntax typhon@lambda? ()  ((typhon@lambda? x)
     (and (pair? x) (eq? (car x) 'compiled-lambda))))
 
-(define-syntax hydra@primitive? () ((hydra@primitive? x)
+(define-syntax typhon@primitive? () ((typhon@primitive? x)
     (and (pair? x) (eq? (car x) 'primitive))))
 
-(define-syntax hydra@syntax? () ((hydra@syntax? x)
+(define-syntax typhon@syntax? () ((typhon@syntax? x)
     (and (pair? x) (eq? (car x) 'syntax))))
 
-(define-syntax hydra@error? () ((hydra@error? x)
+(define-syntax typhon@error? () ((typhon@error? x)
     (and (pair? x) (eq? (car x) 'error))))
 
-(define-syntax hydra@continuation? () ((hydra@continuation? x)
+(define-syntax typhon@continuation? () ((typhon@continuation? x)
     (and (pair? x) (eq? (car x) 'continuation))))
 
-(define-syntax hydra@procedure? () ((hydra@procedure? x)
+(define-syntax typhon@procedure? () ((typhon@procedure? x)
     (and (pair? x) (eq? (car x) 'procedure))))
 
-(define-syntax hydra@usyntax? () ((hydra@usyntax? x)
+(define-syntax typhon@usyntax? () ((typhon@usyntax? x)
     (and (pair? x) (eq? (car x) 'user-syntax)))) 
 
-(define (hydra@umacro? x)
+(define (typhon@umacro? x)
     #f)
 
 (define (loop-set-env! env params vals)
@@ -273,19 +273,19 @@
         (eq? proc "load")
             (cond
                 (= arity 1)
-                    (hydra@load (car args) env dump)
+                    (typhon@load (car args) env dump)
                 (= arity 2)
-                    (hydra@load (car args) (cadr args) dump)
+                    (typhon@load (car args) (cadr args) dump)
                 else
                     (error "Incorrect arity for procedure: load"))
         else
             (error (format "unknown procedure \"~a\"" proc))))
 
-(define (hydra@vm code env ip stack dump)
+(define (typhon@vm code env ip stack dump)
      " process the actual instructions of a code object; the basic idea is that
        the user enters:
        h; (car (cdr (cons 1 (cons 2 '()))))
-       which is compiled by hydra@eval into:
+       which is compiled by typhon@eval into:
        (4)   ;; nil
        (3 2) ;; load 2
        (2)   ;; cons
@@ -294,7 +294,7 @@
        (1)   ;; cdr
        (0)   ;; car
        
-       which hydra@vm can then interpret in a tail-call fashion.
+       which typhon@vm can then interpret in a tail-call fashion.
        There might be better ways to store the actual VM codes themselves
        other than pairs of pairs (even vector of pairs would be more efficient really)
        and it might be worth it to add two collexion-neutral primitives, cappend & 
@@ -328,14 +328,14 @@
      ;(newline)
      (cond
         (or (eq? (type (car stack)) "Error")
-            (hydra@error? (car stack)))
+            (typhon@error? (car stack)))
             (car stack)
         (>= ip (length code))
         (if (= (car dump) 0)
             (car stack)
             (let ((top-dump (cadr dump))
                   (offset (car dump)))
-                (hydra@vm
+                (typhon@vm
                     (nth top-dump (- offset 1))
                     (nth top-dump (- offset 2))
                     (+ (nth top-dump (- offset 3)) 1)
@@ -343,7 +343,7 @@
                     (list (- offset 4) top-dump))))
          else
          (let* ((c (nth code ip))
-                (instr (hydra@instruction c)))
+                (instr (typhon@instruction c)))
               ;(display (format "current ip: ~n~%" ip))
               ;(display "current instruction: ")
               ;(display (nth code ip))
@@ -356,84 +356,84 @@
               ;(display "\n")
               (case instr 
                     (0) ;; car
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (car (car stack)) (cdr stack)) dump)
                     (1) ;; cdr
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (cdr (car stack)) (cdr stack)) dump)
                     (2) ;; cons
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (cons (car stack)
                                                 (cadr stack))
                                        (cddr stack)) dump)
                     (3) ;; load
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
-                                 (cons (hydra@operand c) stack) dump)
+                                 (cons (typhon@operand c) stack) dump)
                     (4) ;; nil
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons '() stack) dump)
                     (5) ;; -
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (- (cadr stack) (car stack)) (cddr stack)) dump)
                     (6) ;; +
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (+ (car stack) (cadr stack)) (cddr stack)) dump)
                     (7) ;; * 
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (* (car stack) (cadr stack)) (cddr stack)) dump)
                     (8) ;; / 
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (/ (cadr stack) (car stack)) (cddr stack)) dump)
                     (9) ;;  < 
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (< (cadr stack) (car stack)) (cddr stack)) dump)
                     (10) ;; >
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (> (cadr stack) (car stack)) (cddr stack)) dump)
                     (11) ;; <= 
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (<= (cadr stack) (car stack)) (cddr stack)) dump)
                     (12) ;; >= 
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (>= (cadr stack) (car stack)) (cddr stack)) dump)
                     (13) ;; length
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (length (car stack)) (cdr stack)) dump)
                     (14) ;; exact?
-                        (hydra@vm code
+                        (typhon@vm code
                                   env
                                   (+ ip 1)
                                   (cons (exact? (car stack)) (cdr stack)) dump)
                     (15) ;; inexact?
-                        (hydra@vm code
+                        (typhon@vm code
                                   env
                                   (+ ip 1)
                                   (cons (inexact? (car stack)) (cdr stack)) dump)
@@ -441,75 +441,75 @@
                     (let* ((arity (caddr c))
                            (args (cslice stack 0 arity))
                            (stk (cslice stack arity (length (cdr stack))))
-                           (ret (procedure-runner (hydra@operand c) arity args env dump)))
-                           (hydra@vm
+                           (ret (procedure-runner (typhon@operand c) arity args env dump)))
+                           (typhon@vm
                                 code
                                 env
                                 (+ ip 1)
                                 (cons ret stk)
                                 dump))
                     (18) ;; real?
-                        (hydra@vm code
+                        (typhon@vm code
                                   env
                                   (+ ip 1)
                                   (cons (real? (car stack)) (cdr stack)) dump)
                     (19) ;; integer?
-                        (hydra@vm code
+                        (typhon@vm code
                                   env
                                   (+ ip 1)
                                   (cons (integer? (car stack)) (cdr stack)) dump)
                     (20) ;; complex?
-                        (hydra@vm code
+                        (typhon@vm code
                                   env
                                   (+ ip 1)
                                   (cons (complex? (car stack)) (cdr stack)) dump)
                     (21) ;; rational?
-                        (hydra@vm code
+                        (typhon@vm code
                                   env
                                   (+ ip 1)
                                   (cons (rational? (car stack)) (cdr stack)) dump)
                     (22) ;; gcd
-                        (hydra@vm code
+                        (typhon@vm code
                                   env
                                   (+ ip 1)
                                   (cons (gcd (car stack) (cadr stack)) (cddr stack)) dump)
                     (23) ;; lcm
-                        (hydra@vm code
+                        (typhon@vm code
                                   env
                                   (+ ip 1)
                                   (cons (lcm (car stack) (cadr stack)) (cddr stack)) dump)
                     (24) ;; numerator 
-                        (hydra@vm code
+                        (typhon@vm code
                                   env
                                   (+ ip 1)
                                   (cons (numerator (car stack)) (cdr stack)) dump)
                     (25) ;; denomenator
-                        (hydra@vm code
+                        (typhon@vm code
                                   env
                                   (+ ip 1)
                                   (cons (denomenator (car stack)) (cdr stack)) dump)
                     (26) ;; = 
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (= (car stack) (cadr stack)) (cddr stack)) dump)
                     (27) ;; eq?
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
                                  (+ ip 1)
                                  (cons (eq? (car stack) (cadr stack)) (cddr stack)) dump)
                     (28) ;; jump
-                        (hydra@vm code
+                        (typhon@vm code
                                  env
-                                 (+ ip (hydra@operand c))
+                                 (+ ip (typhon@operand c))
                                  stack dump)
                     (29) ;; cmp
                         (if (car stack) ;; if the top of the stack is true
-                            (hydra@vm code env (+ ip 1) (cdr stack) dump) ;; jump to the <then> portion
-                            (hydra@vm code env (+ ip (hydra@operand c)) (cdr stack) dump))
+                            (typhon@vm code env (+ ip 1) (cdr stack) dump) ;; jump to the <then> portion
+                            (typhon@vm code env (+ ip (typhon@operand c)) (cdr stack) dump))
                     (30) ;; call
                         ;; need to make call check it's operand now...
-                        (let ((call-proc (hydra@operand c)))
+                        (let ((call-proc (typhon@operand c)))
                             ;(display "in <else> of CALL\n")
                             ;(display "c == ")
                             ;(write c)
@@ -518,14 +518,14 @@
                             ;(write (car stack))
                             ;(display "\n")
                             (if (symbol? call-proc)
-                                (set! call-proc (hydra@lookup call-proc env))
+                                (set! call-proc (typhon@lookup call-proc env))
                                 #v)
                             (cond
-                                (hydra@error? call-proc)
+                                (typhon@error? call-proc)
                                     call-proc
-                                (hydra@lambda? call-proc)
+                                (typhon@lambda? call-proc)
                                     ;; create a list from the current registers, cons this to dump, and 
-                                    ;; recurse over hydra@vm. 
+                                    ;; recurse over typhon@vm. 
                                     ;; need to support CALLing primitives too, since they could be passed
                                     ;; in to HOFs...
                                     (if (> (car dump) (length (cadr dump)))
@@ -537,18 +537,18 @@
                                             (cset! v-dump (+ offset 1) ip)
                                             (cset! v-dump (+ offset 2) env)
                                             (cset! v-dump (+ offset 3) code)
-                                            (hydra@vm
+                                            (typhon@vm
                                                 (nth (cadr call-proc) 1)
                                                 (car env-and-stack)
                                                 0 '() 
                                                 (list (+ offset 4) v-dump))))
-                                (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
+                                (typhon@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
                                     (begin
-                                        (display "in hydra@primitive\n\t")
+                                        (display "in typhon@primitive\n\t")
                                         (display (car stack))
                                         (display "\n")
                                         #t)
-                                ;;(hydra@procedure? (car stack))
+                                ;;(typhon@procedure? (car stack))
                                 ;;    #t
                                 else
                                 (begin
@@ -561,10 +561,10 @@
                                     (display "\n")
                                 #f)))
                     (31) ;; environment-load; there is never a raw #f, so this is safe
-                        (with r (hydra@lookup (hydra@operand c) env)
-                            (if (hydra@error? r)
+                        (with r (typhon@lookup (typhon@operand c) env)
+                            (if (typhon@error? r)
                                 r
-                                (hydra@vm
+                                (typhon@vm
                                     code 
                                     env
                                     (+ ip 1) 
@@ -572,7 +572,7 @@
                                     dump)))
                     (32) ;; tail-call 
                         (if (and (not (null? stack)) (eq? (caar stack) 'compiled-lambda))
-                            (hydra@vm
+                            (typhon@vm
                                 (nth (cdar stack) 0)
                                 (nth (cdar stack) 1)
                                 0 '() 
@@ -580,76 +580,76 @@
                             #f)
                     (33) ;; %define
                         (begin
-                            (hydra@add-env! (car stack) (cadr stack) env)
-                            (hydra@vm
+                            (typhon@add-env! (car stack) (cadr stack) env)
+                            (typhon@vm
                                 code env (+ ip 1)
                                 (cons #v stack)
                                 dump))
                     (34) ;; %set!
                         (begin
-                            (hydra@set-env! (car stack) (cadr stack) env)
-                            (hydra@vm
+                            (typhon@set-env! (car stack) (cadr stack) env)
+                            (typhon@vm
                                 code env (+ ip 1)
                                 (cons #v stack)
                                 dump))
                     (35) ;; ceil
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (ceil (car stack)) (cdr stack)) dump)
                     (36) ;; floor
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (floor (car stack)) (cdr stack)) dump)
                     (37) ;; truncate
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (truncate (car stack)) (cdr stack)) dump)
                     (38) ;; round
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (round (car stack)) (cdr stack)) dump)
                     (39) ;; inexact->exact
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (inexact->exact (car stack)) (cdr stack)) dump)
                     (40) ;; quotient
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (quotient (cadr stack) (car stack)) (cddr stack)) dump)
                     (41) ;; modulo
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (modulo (cadr stack) (car stack)) (cddr stack)) dump)
                     (42) ;; &
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (& (cadr stack) (car stack)) (cddr stack)) dump)
                     (43) ;; |
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (| (cadr stack) (car stack)) (cddr stack)) dump)
                     (44) ;; ^
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (^ (cadr stack) (car stack)) (cddr stack)) dump)
                     (45) ;; ~
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (~ (car stack)) (cdr stack)) dump)
                     (46) ;; %list
                         ;; take N items off the stack, create a list, and return it
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons
@@ -657,235 +657,235 @@
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
                     (47) ;; %vector
                         ;; take N items off the stack, create a list, and return it
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons
                                 (coerce (cslice (cdr stack) 0 (car stack)) 'vector)
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
                     (48) ;; %make-vector
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (make-vector (car stack) (cadr stack)) (cddr stack)) dump)
                     (49) ;; %make-string
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (make-string (car stack) (cadr stack)) (cddr stack)) dump)
                     (50) ;; %string
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons
                                 (apply string (cslice (cdr stack) 0 (car stack)))
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
                     (51) ;; %append
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons
                                 (apply append (cslice (cdr stack) 0 (car stack)))
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) dump)
                     (52) ;; first
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (first (car stack)) (cdr stack)) dump)
                     (53) ;; rest
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (rest (car stack)) (cdr stack)) dump)
                     (54) ;; ccons
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (ccons (cadr stack) (car stack)) (cddr stack)) dump)
                     (55) ;; %nth
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (nth (caddr stack) (cadr stack) (car stack)) (cdddr stack)) dump)
                     (56) ;; keys
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (keys (car stack)) (cdr stack)) dump)
                     (57) ;; partial-key?
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (partial-key? (cadr stack) (car stack)) (cddr stack)) dump)
                     (58) ;; cset!
                         (begin
                             (cset! (caddr stack) (cadr stack) (car stack))
-                            (hydra@vm code
+                            (typhon@vm code
                                 env
                                 (+ ip 1)
                                 (cons #v (cdddr stack)) dump))
                     (59) ;; empty?
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (empty? (car stack)) (cdr stack)) dump)
                     (60) ;; gensym
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (gensym (car stack)) (cdr stack)) dump)
                     (61) ;; imag-part
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (imag-part (car stack)) (cdr stack)) dump)
                     (62) ;; real-part
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (real-part (car stack)) (cdr stack)) dump)
                     (63) ;; make-rectangular
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (make-rectangular (car stack) (cadr stack)) (cddr stack)) dump)
                     (64) ;; make-polar
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (make-polar (car stack) (cadr stack)) (cddr stack)) dump)
                     (65) ;; magnitude
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (magnitude (car stack)) (cdr stack)) dump)
                     (66) ;; argument
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (argument (car stack)) (cdr stack)) dump)
                     (67) ;; conjugate
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (conjugate (car stack)) (cdr stack)) dump)
                     (68) ;; conjugate
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (conjugate! (car stack)) (cdr stack)) dump)
                     (69) ;; polar->rectangular
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (polar->rectangular (car stack)) (cdr stack)) dump)
                     (70) ;; rectangular->polar
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (rectangular->polar (car stack)) (cdr stack)) dump)
                     (71) ;; sin
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (sin (car stack)) (cdr stack)) dump)
                     (72) ;; cos
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (cos (car stack)) (cdr stack)) dump)
                     (73) ;; tan
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (tan (car stack)) (cdr stack)) dump)
                     (74) ;; asin
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (asin (car stack)) (cdr stack)) dump)
                     (75) ;; acos
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (acos (car stack)) (cdr stack)) dump)
                     (76) ;; atan
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (atan (car stack)) (cdr stack)) dump)
                     (77) ;; atan2
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (atan2 (cadr stack) (car stack)) (cddr stack)) dump)
                     (78) ;; sinh
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (sinh (car stack)) (cdr stack)) dump)
                     (79) ;; cosh
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (cosh (car stack)) (cdr stack)) dump)
                     (80) ;; tanh
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (tanh (car stack)) (cdr stack)) dump)
                     (81) ;; exp
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (exp (car stack)) (cdr stack)) dump)
                     (82) ;; ln
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (ln (car stack)) (cdr stack)) dump)
                     (83) ;; abs
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (abs (car stack)) (cdr stack)) dump)
                     (84) ;; sqrt
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (sqrt (car stack)) (cdr stack)) dump)
                     (85) ;; exp2
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
                     (86) ;; expm1
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (expm1 (car stack)) (cdr stack)) dump)
                     (87) ;; log2
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (log2 (car stack)) (cdr stack)) dump)
                     (88) ;; log10
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (log10 (car stack)) (cdr stack)) dump)
                     (89) ;; <<
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (<< (car stack) (cadr stack)) (cddr stack)) dump)
                     (90) ;; >>
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (>> (car stack) (cadr stack)) (cddr stack)) dump)
                     (91) ;; %string-append
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons
@@ -893,17 +893,17 @@
                                 (cslice (cdr stack) (car stack) (- (length stack) 1)))
                             dump)
                     (92) ;; assq
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (assq (car stack) (cadr stack)) (cddr stack)) dump)
                     (93) ;; memq
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (memq (car stack) (cadr stack)) (cddr stack)) dump)
                     (94) ;; %dict
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons
@@ -911,73 +911,73 @@
                                 (cslice (cdr stack) (car stack) (- (length stack) 1)))
                             dump)
                     (95) ;; make-dict
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (make-dict) stack) dump)
                     (96) ;; dict-has?
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (dict-has? (car stack) (cadr stack)) (cddr stack)) dump)
                     (97) ;; coerce
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (coerce (car stack) (cadr stack)) (cddr stack)) dump)
                     (98) ;; cupdate
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (cupdate (car stack) (cadr stack) (caddr stack)) (cdddr stack)) dump)
                     (99) ;; cslice
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (cslice (car stack) (cadr stack) (caddr stack)) (cdddr stack)) dump)
                     (100) ;; tconc!
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
                     (101) ;; make-tconc
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
                     (102) ;; tconc-list
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
                     (103) ;; tconc->pair
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
                     (104) ;; tconc-splice
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) dump)
                     (105) ;; rationalize
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             (cons (rationalize (car stack) (cadr stack)) (cddr stack)) dump)
                     (106) ;; call/cc
-                        (let ((retcode (hydra@vm (cons (list 3 (car stack)) (list (list 30)))
+                        (let ((retcode (typhon@vm (cons (list 3 (car stack)) (list (list 30)))
                                         env
                                         0
                                         (cons (list 'continuation (copy-code code ip 0) ip env stack dump) '())
                                         '())))
-                         (hydra@vm code
+                         (typhon@vm code
                             env
                             (+ ip 1)
                             (cons retcode (cdr stack))
                             dump))
                     (107) ;; %nop
-                        (hydra@vm code
+                        (typhon@vm code
                             env
                             (+ ip 1)
                             stack
@@ -985,7 +985,7 @@
                     (108) ;; %ap
                         (let ((cont-code (car stack))
                               (v (cadr stack)))
-                         (hydra@vm 
+                         (typhon@vm 
                             (nth cont-code 1)
                             (nth cont-code 3)
                             0
@@ -1000,7 +1000,7 @@
                         ;; think about it, sure, but the naive approach? sure).
                         (begin
                             ;;(cset! (cadar stack) 0 env)
-                            (hydra@vm
+                            (typhon@vm
                                 code
                                 env
                                 (+ ip 1)
@@ -1021,15 +1021,15 @@
                             ;(write (car stack))
                             ;(display "\n")
                             (cond
-                                (hydra@error? call-proc)
+                                (typhon@error? call-proc)
                                     (begin
                                         (display "error: ")
                                         (write call-proc)
                                         (newline)
                                         call-proc)
-                                (hydra@lambda? call-proc)
+                                (typhon@lambda? call-proc)
                                     ;; create a list from the current registers, cons this to dump, and 
-                                    ;; recurse over hydra@vm. 
+                                    ;; recurse over typhon@vm. 
                                     ;; need to support CALLing primitives too, since they could be passed
                                     ;; in to HOFs...
                                     (if (> (car dump) (length (cadr dump)))
@@ -1042,12 +1042,12 @@
                                             (cset! v-dump (+ offset 1) ip)
                                             (cset! v-dump (+ offset 2) env)
                                             (cset! v-dump (+ offset 3) code)
-                                            (hydra@vm
+                                            (typhon@vm
                                                 (nth (cadr call-proc) 1)
                                                 (car env-and-stack)
                                                 0 '() 
                                                 (list (+ offset 4) v-dump))))
-                                (hydra@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
+                                (typhon@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
                                     #t
                                 else
                                     (error "non-applicable CALL-STACK argument")))))))
@@ -1067,15 +1067,15 @@
 ; there are two ways of dealing with arity, both have upsides & downsides:
 
 ; 0 - encode arity of primitives here, in the actual primitive notation.
-;     + this allows hydra@compile to know the proper arity, and signal an error.
-;     + it also means that hydra@vm has to suddenly change: it must now unpack the actual opcode
+;     + this allows typhon@compile to know the proper arity, and signal an error.
+;     + it also means that typhon@vm has to suddenly change: it must now unpack the actual opcode
 ;       before running (this might not be too bad...)
 ; 1 - encode the arity of primitives in a separate array.
-;     + this allows hydra@compile to remain unchanged, and only minimal changes to hydra@vm
-;     + this does not confer the benefits that the above does (that hydra@compile can
+;     + this allows typhon@compile to remain unchanged, and only minimal changes to typhon@vm
+;     + this does not confer the benefits that the above does (that typhon@compile can
 ;       know about the arity of primitives & signal failure during code generation).
 
-(define (hydra@init-env env)
+(define (typhon@init-env env)
     (dict-set! env "car" '(primitive . 0))
     (dict-set! env "call/cc" '(primitive . 106))
     (dict-set! env "cdr" '(primitive . 1))
@@ -1222,19 +1222,19 @@
     (dict-set! env "read-buffer" '(procedure . "read-buffer"))
     (dict-set! env "read-string" '(procedure . "read-string")))
 
-(define (hydra@lookup item env)
+(define (typhon@lookup item env)
     " look up item in the current environment, returning #f for not found"
     (cond
         (not (symbol? item)) item ;; to support ((fn (x) (+ x x)) (+ x x) 3)
-        (null? env) (hydra@error (format "unbound variable: ~a" item)) 
+        (null? env) (typhon@error (format "unbound variable: ~a" item)) 
         (dict-has? (car env) item) (nth (car env) item) 
-        else (hydra@lookup item (cdr env))))
+        else (typhon@lookup item (cdr env))))
 
 (define (compile-begin lst env)
     (if (null? lst)
         '()
         (append
-            (hydra@compile (car lst) env)
+            (typhon@compile (car lst) env)
             (compile-begin (cdr lst) env))))
 
 (define (compile-lambda rst env)
@@ -1244,21 +1244,21 @@
             (compile-begin (cdr rst) env)
             (car rst)))) 
 
-(define (hydra@add-env! name value environment)
+(define (typhon@add-env! name value environment)
     " adds name to the environment, but also returns
       (load #v), so that the compiler adds the correct
       value (this is in the semantics of Vesta, so I thought
       it should be left in Hydra as well)"
     (cset! (car environment) name value))
 
-(define (hydra@set-env! name value environment)
+(define (typhon@set-env! name value environment)
     " sets a value in the current environment, and returns
       an error if that binding has not been previously defined"
     (cond
-        (null? environment) (hydra@error (format "SET! error: undefined name \"~a\"" name))
+        (null? environment) (typhon@error (format "SET! error: undefined name \"~a\"" name))
         (dict-has? (car environment) name)
             (cset! (car environment) name value)
-        else (hydra@set-env! name value (cdr environment))))
+        else (typhon@set-env! name value (cdr environment))))
 
 (define (reverse-append x)
     "append but in reverse"
@@ -1269,16 +1269,16 @@
 
 (define (show x m) (display m) (display x) (display "\n") x)
 
-(define (hydra@error msg)
+(define (typhon@error msg)
     "simple, hydra specific errors"
     (list 'error msg))
 
-(define (hydra@eval line env dump)
-    "simple wrapper around hydra@vm & hydra@compile"
-    (hydra@vm (hydra@compile line env) env 0 '() dump))
+(define (typhon@eval line env dump)
+    "simple wrapper around typhon@vm & typhon@compile"
+    (typhon@vm (typhon@compile line env) env 0 '() dump))
 
-(define (hydra@compile-help sym iter-list env)
-    " a helper function for hydra@compile, which collects
+(define (typhon@compile-help sym iter-list env)
+    " a helper function for typhon@compile, which collects
       the old use of append-map into a single function that
       Eprime can compile (still haven't added HOFs to E'...
       embarrassing, I know)
@@ -1286,18 +1286,18 @@
     (if (null? iter-list)
         iter-list
         (append
-            (hydra@compile (car iter-list) env)
-            (list (list (cdr (hydra@lookup sym env))))
-            (hydra@compile-help sym (cdr iter-list) env))))
+            (typhon@compile (car iter-list) env)
+            (list (list (cdr (typhon@lookup sym env))))
+            (typhon@compile-help sym (cdr iter-list) env))))
 
-(define (hydra@map iter-list env)
+(define (typhon@map iter-list env)
     (if (null? iter-list)
         iter-list
         (cons
-            (hydra@compile (car iter-list) env)
-            (hydra@map (cdr iter-list) env))))
+            (typhon@compile (car iter-list) env)
+            (typhon@map (cdr iter-list) env))))
 
-(define (hydra@compile line env)
+(define (typhon@compile line env)
     (if (null? line)
         '()
         (cond
@@ -1306,10 +1306,10 @@
             (symbol? line) (list (list 31 line)) ;; environment-load
             (pair? line) 
                 (let* ((fst (car line)) ;; decompose line into first & rest
-                       (v (hydra@lookup fst env)) ;; find fst in env
+                       (v (typhon@lookup fst env)) ;; find fst in env
                        (rst (cdr line))) 
                    (cond 
-                        (hydra@syntax? v) ;; primitive syntax
+                        (typhon@syntax? v) ;; primitive syntax
                             (cond
                                 (eq? (cdr v) 'primitive-syntax-quote)
                                     (if (null? (car rst))
@@ -1319,45 +1319,45 @@
                                     (cond
                                         (= (length rst) 1)
                                             (append '((3 0))
-                                                (hydra@compile (car rst) env)
-                                                (list (list (hydra@lookup '%+ env))))
+                                                (typhon@compile (car rst) env)
+                                                (list (list (typhon@lookup '%+ env))))
                                         (> (length rst) 1)
                                             (append 
-                                                (hydra@compile (car rst) env)
-                                                (hydra@compile-help '%+ (cdr rst) env))
+                                                (typhon@compile (car rst) env)
+                                                (typhon@compile-help '%+ (cdr rst) env))
                                         else (list (list 3 0)))
                                 (eq? (cdr v) 'primitive-syntax-minus)
                                     (cond
                                         (= (length rst) 1)
                                             (append '((3 0))
-                                                (hydra@compile (car rst) env)
-                                                (list (list (hydra@lookup '%- env))))
+                                                (typhon@compile (car rst) env)
+                                                (list (list (typhon@lookup '%- env))))
                                         (> (length rst) 1)
                                             (append 
-                                                (hydra@compile (car rst) env)
-                                                (hydra@compile-help '%- (cdr rst) env))
+                                                (typhon@compile (car rst) env)
+                                                (typhon@compile-help '%- (cdr rst) env))
                                         else (error "minus fail"))
                                 (eq? (cdr v) 'primitive-syntax-mult)
                                     (cond
                                         (= (length rst) 1)
                                             (append '((3 0))
-                                                (hydra@compile (car rst) env)
-                                                (list (list (hydra@lookup '%* env))))
+                                                (typhon@compile (car rst) env)
+                                                (list (list (typhon@lookup '%* env))))
                                         (> (length rst) 1)
                                             (append 
-                                                (hydra@compile (car rst) env)
-                                                (hydra@compile-help '%* (cdr rst) env))
+                                                (typhon@compile (car rst) env)
+                                                (typhon@compile-help '%* (cdr rst) env))
                                         else (list (list 3 1)))
                                 (eq? (cdr v) 'primitive-syntax-div)
                                     (cond
                                         (= (length rst) 1)
                                             (append '((3 1))
-                                                (hydra@compile (car rst) env)
-                                                (list (list (hydra@lookup '%/ env))))
+                                                (typhon@compile (car rst) env)
+                                                (list (list (typhon@lookup '%/ env))))
                                         (> (length rst) 1)
                                             (append 
-                                                (hydra@compile (car rst) env)
-                                                (hydra@compile-help '%/ (cdr rst) env))
+                                                (typhon@compile (car rst) env)
+                                                (typhon@compile-help '%/ (cdr rst) env))
                                         else (error "division fail"))
                                 (eq? (cdr v) 'primitive-syntax-numeq)
                                     (cond
@@ -1365,8 +1365,8 @@
                                             (list (list 3 #t))
                                         (> (length rst) 1)
                                             (append
-                                                (hydra@compile (car rst) env)
-                                                (hydra@compile-help '%= (cdr rst) env))
+                                                (typhon@compile (car rst) env)
+                                                (typhon@compile-help '%= (cdr rst) env))
                                         else (error "numeq fail"))
                                 (eq? (cdr v) 'primitive-syntax-define)
                                     (let ((name (car rst))
@@ -1374,28 +1374,28 @@
                                         (cond
                                             (pair? name) 
                                                 (append
-                                                    (hydra@compile (cons 'fn (cons (cdar rst) (cdr rst))) env)
+                                                    (typhon@compile (cons 'fn (cons (cdar rst) (cdr rst))) env)
                                                     (list (list 3 (caar rst)))
-                                                    (list (list (cdr (hydra@lookup '%define env))))) 
+                                                    (list (list (cdr (typhon@lookup '%define env))))) 
                                             (symbol? name)
                                                 (append
-                                                    (hydra@compile value env)
+                                                    (typhon@compile value env)
                                                     (list (list 3 name))
-                                                    (list (list (cdr (hydra@lookup '%define env)))))
+                                                    (list (list (cdr (typhon@lookup '%define env)))))
                                             else (error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*")))
                                 (eq? (cdr v) 'primitive-syntax-set)
                                     (let ((name (car rst))
                                           (value (cadr rst)))
                                        (if (symbol? name) 
                                             (append
-                                                (hydra@compile value env)
+                                                (typhon@compile value env)
                                                 (list (list 3 name))
-                                                (list (list (cdr (hydra@lookup '%set! env)))))
+                                                (list (list (cdr (typhon@lookup '%set! env)))))
                                             (error "SET!: set! SYMBOL S-EXPR*")))
                                 (eq? (cdr v) 'primitive-syntax-defsyn)
                                     (let ((name (car rst))
                                           (rules (cdr rst)))
-                                        (hydra@add-env! name (list 'user-syntax rules) env)
+                                        (typhon@add-env! name (list 'user-syntax rules) env)
                                         (list (list 107))) ;; %nop
                                 (eq? (cdr v) 'primitive-syntax-defmac)
                                     #t
@@ -1403,25 +1403,25 @@
                                     (list
                                         (list 3 ;; load
                                             (compile-lambda rst env))
-                                        (list (cdr (hydra@lookup '%makeclosure env))))
+                                        (list (cdr (typhon@lookup '%makeclosure env))))
                                 (eq? (cdr v) 'primitive-syntax-begin)
                                     (compile-begin rst env)
                                 (eq? (cdr v) 'primitive-syntax-lt)
                                     (append 
-                                        (hydra@compile (car rst) env)
-                                        (hydra@compile-help '%< (cdr rst) env))
+                                        (typhon@compile (car rst) env)
+                                        (typhon@compile-help '%< (cdr rst) env))
                                 (eq? (cdr v) 'primitive-syntax-gt)
                                     (append 
-                                        (hydra@compile (car rst) env)
-                                        (hydra@compile-help '%> (cdr rst) env))
+                                        (typhon@compile (car rst) env)
+                                        (typhon@compile-help '%> (cdr rst) env))
                                 (eq? (cdr v) 'primitive-syntax-lte)
                                     (append 
-                                        (hydra@compile (car rst) env)
-                                        (hydra@compile-help '%<= (cdr rst) env))
+                                        (typhon@compile (car rst) env)
+                                        (typhon@compile-help '%<= (cdr rst) env))
                                 (eq? (cdr v) 'primitive-syntax-gte)
                                     (append 
-                                        (hydra@compile (car rst) env)
-                                        (hydra@compile-help '%>= (cdr rst) env))
+                                        (typhon@compile (car rst) env)
+                                        (typhon@compile-help '%>= (cdr rst) env))
                                 (eq? (cdr v) 'primitive-syntax-list)
                                     ;; if rst is null?, then generate a load-null instruction (4)
                                     ;; otherwise generate the instructions for the list, a length
@@ -1430,9 +1430,9 @@
                                         (list (list 4))
                                         (append
                                             (reverse-append
-                                                (hydra@map rst env))
+                                                (typhon@map rst env))
                                             (list (list 3 (length rst)))
-                                            (list (list (cdr (hydra@lookup '%list env))))))
+                                            (list (list (cdr (typhon@lookup '%list env))))))
                                 (eq? (cdr v) 'primitive-syntax-vector)
                                     ;; if rst is null?, then generate a load with an empty vector
                                     ;; otherwise generate the instructions for the vector, a length
@@ -1441,25 +1441,25 @@
                                         (list (list 3 (make-vector 0)))
                                         (append
                                             (reverse-append
-                                                (hydra@map rst env))
+                                                (typhon@map rst env))
                                             (list (list 3 (length rst)))
-                                            (list (list (cdr (hydra@lookup '%vector env))))))
+                                            (list (list (cdr (typhon@lookup '%vector env))))))
                                 (eq? (cdr v) 'primitive-syntax-string)
                                     (if (null? rst)
                                         (list (list 3 (make-string 0)))
                                         (append
                                             (reverse-append
-                                                (hydra@map rst env))
+                                                (typhon@map rst env))
                                             (list (list 3 (length rst)))
-                                            (list (list (cdr (hydra@lookup '%string env))))))
+                                            (list (list (cdr (typhon@lookup '%string env))))))
                                 (eq? (cdr v) 'primitive-syntax-append)
                                     (if (null? rst)
                                         (list (list 4))
                                         (append
                                             (reverse-append
-                                                (hydra@map rst env))
+                                                (typhon@map rst env))
                                             (list (list 3 (length rst)))
-                                            (list (list (cdr (hydra@lookup '%append env))))))
+                                            (list (list (cdr (typhon@lookup '%append env))))))
                                     
                                 (eq? (cdr v) 'primitive-syntax-makevector)
                                     (with l (length rst)
@@ -1467,26 +1467,26 @@
                                             (= l 1)
                                                 (append
                                                     '((4))
-                                                    (hydra@compile (car rst) env)
-                                                    (list (list (cdr (hydra@lookup '%make-vector env)))))
+                                                    (typhon@compile (car rst) env)
+                                                    (list (list (cdr (typhon@lookup '%make-vector env)))))
                                             (= l 2)
                                                 (append
-                                                    (reverse-append (hydra@map rst env))
-                                                    (list (list (cdr (hydra@lookup '%make-vector env)))))
-                                            else (hydra@error "make-vector len : INTEGER (v : SEXPR) => VECTOR")))
+                                                    (reverse-append (typhon@map rst env))
+                                                    (list (list (cdr (typhon@lookup '%make-vector env)))))
+                                            else (typhon@error "make-vector len : INTEGER (v : SEXPR) => VECTOR")))
                                 (eq? (cdr v) 'primitive-syntax-makestring)
                                     (with l (length rst)
                                         (cond
                                             (= l 1)
                                                 (append
                                                     '((3 #\space))
-                                                    (hydra@compile (car rst) env)
-                                                    (list (list (cdr (hydra@lookup '%make-string env)))))
+                                                    (typhon@compile (car rst) env)
+                                                    (list (list (cdr (typhon@lookup '%make-string env)))))
                                             (= l 2)
                                                 (append
-                                                    (reverse-append (hydra@map rst env))
-                                                    (list (list (cdr (hydra@lookup '%make-string env)))))
-                                            else (hydra@error "make-string len : INTEGER (c : CHAR) => STRING")))
+                                                    (reverse-append (typhon@map rst env))
+                                                    (list (list (cdr (typhon@lookup '%make-string env)))))
+                                            else (typhon@error "make-string len : INTEGER (c : CHAR) => STRING")))
                                 (eq? (cdr v) 'primitive-syntax-if)
                                     ;; need to generate code for <cond>
                                     ;; add CMP instruction '(30)
@@ -1494,9 +1494,9 @@
                                     ;; generate code for <else>
                                     ;; add count to CMP instruction to jump to <else>
                                     ;; add count to <then> to skip <else>
-                                    (let* ((<cond> (hydra@compile (car rst) env))
-                                           (<then> (hydra@compile (cadr rst) env))
-                                           (<else> (hydra@compile (caddr rst) env))
+                                    (let* ((<cond> (typhon@compile (car rst) env))
+                                           (<then> (typhon@compile (cadr rst) env))
+                                           (<else> (typhon@compile (caddr rst) env))
                                            (then-len (+ (length <then>) 2)) ;; +2 in order to avoid the jump over else
                                            (else-len (+ (length <else>) 1)))
                                         (append <cond>
@@ -1505,25 +1505,25 @@
                                             (list (list 28 else-len)) ;; jump else
                                             <else>)) 
                                 else 
-                                    (hydra@error "syntax has not been implemented at this time"))
+                                    (typhon@error "syntax has not been implemented at this time"))
                             (pair? fst) 
                                 ;; fst is a pair, so we just blindly attempt to compile it.
                                 ;; May cause an error that has to be caught in CALL. some lifting might fix this...
-                                (append (reverse-append (hydra@map rst env))
-                                        (hydra@compile fst env)
+                                (append (reverse-append (typhon@map rst env))
+                                        (typhon@compile fst env)
                                         (list (list 110)))
-                            (hydra@usyntax? v)
-                                (hydra@compile
+                            (typhon@usyntax? v)
+                                (typhon@compile
                                     (syntax-expand1 (cadr v) line)
                                     env)
-                            (hydra@umacro? v)
+                            (typhon@umacro? v)
                                 #f
-                            (hydra@procedure? v) ;; need to add some method of checking proc arity here.
+                            (typhon@procedure? v) ;; need to add some method of checking proc arity here.
                                 (let* ((rlen (length rst)))
                                     (append
-                                        (reverse-append (hydra@map rst env))
+                                        (reverse-append (typhon@map rst env))
                                         (list (list 16 (cdr v) rlen))))
-                            (hydra@primitive? v) ;; primitive procedure
+                            (typhon@primitive? v) ;; primitive procedure
                                 ;; need to generate the list of HLAP code, reverse it
                                 ;; and flatten it. basically, if we have:
                                 ;; (cons (+ 1 2) (cons (+ 3 4) '()))
@@ -1536,18 +1536,18 @@
                                 ;; this isn't the *most* efficient, but it is pretty easy
                                 (append
                                     (reverse-append
-                                        (hydra@map rst env))
+                                        (typhon@map rst env))
                                     (list (list (cdr v))))
-                            (hydra@lambda? v) ;; hydra closure
-                                (append (reverse-append (hydra@map rst env))
+                            (typhon@lambda? v) ;; hydra closure
+                                (append (reverse-append (typhon@map rst env))
                                             (list (list 30 v)))
-                            (hydra@continuation? v) ;; hydra continuation
-                                (append (reverse-append (hydra@map rst env))
+                            (typhon@continuation? v) ;; hydra continuation
+                                (append (reverse-append (typhon@map rst env))
                                     (list (list 3 v))
                                     (list (list 108))) ;; 108 -> %ap
                             (symbol? fst) ;; fst is a symbol, but it has no mapping in our current env; write to environment-load
                                 (append (reverse-append
-                                            (hydra@map rst env)) 
+                                            (typhon@map rst env)) 
                                             (list (list 30 fst)))
                             else (error "error: the only applicable types are primitive procedures, closures & syntax")))
 
@@ -1558,31 +1558,31 @@
 (define (top-level-print x)
     " print #<foo> at the top level"
     (cond
-        (hydra@lambda? x) (display "#<closure>")
-        (hydra@continuation? x) (display "#<continuation>")
-        (hydra@primitive? x) (display (format "#<primitive-procedure ~a>" (cdr x)))
-        (hydra@procedure? x) (display (format "#<procedure ~a>" (cdr x)))
-        (hydra@syntax? x) (display (format "#<syntax ~a>" (cdr x)))
-        (hydra@error? x) (display (format "ERROR: ~a" (cdr x)))
-        (hydra@usyntax? x) (display "#<syntax rules>")
+        (typhon@lambda? x) (display "#<closure>")
+        (typhon@continuation? x) (display "#<continuation>")
+        (typhon@primitive? x) (display (format "#<primitive-procedure ~a>" (cdr x)))
+        (typhon@procedure? x) (display (format "#<procedure ~a>" (cdr x)))
+        (typhon@syntax? x) (display (format "#<syntax ~a>" (cdr x)))
+        (typhon@error? x) (display (format "ERROR: ~a" (cdr x)))
+        (typhon@usyntax? x) (display "#<syntax rules>")
         else (write x)))
 
-(define (hydra@load-loop fh env dump)
+(define (typhon@load-loop fh env dump)
     (let ((o (read fh)))
         (if (eq? o #e)
             #v
             (begin
-                (hydra@eval o env dump) 
-                (hydra@load-loop fh env dump)))))
+                (typhon@eval o env dump) 
+                (typhon@load-loop fh env dump)))))
 
-(define (hydra@load src-file env dump)
+(define (typhon@load src-file env dump)
     "an implementation of the primitive procedure load"
     (let ((f (open (coerce src-file :string) :read)))
-        (hydra@load-loop f env dump)
+        (typhon@load-loop f env dump)
         (close f)
         #v))
                                     
-(define (hydra@repl env dump)
+(define (typhon@repl env dump)
     (display "h; ")
     (with inp (read)
      (cond 
@@ -1592,48 +1592,48 @@
                 (eq? (cadr inp) 'q) #v
                 (eq? (cadr inp) 'quit) #v
                 (eq? (cadr inp) 'bye) #v
-                (eq? (cadr inp) 'dribble) (begin (hydra@repl env dump))
-                (eq? (cadr inp) 'save) (begin (hydra@repl env dump))
-                (eq? (cadr inp) 'save-and-die) (begin (hydra@repl env dump))
+                (eq? (cadr inp) 'dribble) (begin (typhon@repl env dump))
+                (eq? (cadr inp) 'save) (begin (typhon@repl env dump))
+                (eq? (cadr inp) 'save-and-die) (begin (typhon@repl env dump))
                 (pair? (cadr inp))
                     (let ((cmd (caadr inp))
                           (arg (cadadr inp)))
                         (cond
                             (eq? cmd 'i)
-                                (write (hydra@lookup arg env)))
+                                (write (typhon@lookup arg env)))
                         (newline)
-                        (hydra@repl env dump))
-                else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (hydra@repl env dump)))
+                        (typhon@repl env dump))
+                else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (typhon@repl env dump)))
         (eof-object? inp)
             #v
         (not (pair? inp))
             (if (eq? inp #v)
-                (hydra@repl env dump)
+                (typhon@repl env dump)
                 (begin
-                    (top-level-print (hydra@lookup inp env))
+                    (top-level-print (typhon@lookup inp env))
                     (display "\n")
-                    (hydra@repl env dump)))
+                    (typhon@repl env dump)))
         else
-            (with r (hydra@eval inp env dump) 
+            (with r (typhon@eval inp env dump) 
                 (if (eq? r #v)
-                 (hydra@repl env dump)
+                 (typhon@repl env dump)
                  (begin
-                    (if (hydra@error? r)
+                    (if (typhon@error? r)
                         #v
-                        (hydra@add-env! '_ r env))
+                        (typhon@add-env! '_ r env))
                     (top-level-print r)
                     (display "\n")
-                    (hydra@repl env dump)))))))
+                    (typhon@repl env dump)))))))
 
-(define (hydra@main args)
+(define (typhon@main args)
     (let ((e {})
           (dump (make-vector 1000 #v)))
-        (hydra@init-env e)
+        (typhon@init-env e)
         (if (> (length args) 0)
             (begin
-                (hydra@add-env! '*command-line* (cslice args 1 (length args)) (list e))
-                (hydra@load (nth args 0) (list e) (list 0 dump)))
+                (typhon@add-env! '*command-line* (cslice args 1 (length args)) (list e))
+                (typhon@load (nth args 0) (list e) (list 0 dump)))
             (begin
                 (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Typhon: 2012.0/r0\n")
-                (hydra@add-env! '*command-line* '() (list e))
-                (hydra@repl (list e) (list 0 dump))))))
+                (typhon@add-env! '*command-line* '() (list e))
+                (typhon@repl (list e) (list 0 dump))))))

@@ -14,7 +14,7 @@ extern SExp *snil, *sfalse, *strue, *ssucc, *sunsucc,*mem_err, *pinf, *ninf, *qn
 extern SExp *fake_rpar, *fake_rsqr, *fake_rcur; /* returns for llread, but should never really mean anything */
 extern SExp *seof, *svoid; /* #e, for use with read*, & eof-object?, #v for void */
 
-SExp *hydra_main(SExp *args);
+SExp *typhon_main(SExp *args);
 
 #define SNIL snil
 #define SFALSE sfalse

@@ -29,9 +29,9 @@ main(int ac, char **al)
         args = makevector(ac - 1, nil);
         for(idx = 0; idx < (ac - 1); idx++)
             args->object.vec[idx] = makestring(al[idx + 1]);
-        hydra_main(args);
+        typhon_main(args);
     }
     else
-        hydra_main(SNIL);
+        typhon_main(SNIL);
     return 0;
 }
