@@ -906,7 +906,10 @@
                         (hydra@vm code
                             env
                             (+ ip 1)
-                            (cons (exp2 (car stack)) (cdr stack)) dump)
+                            (cons
+                                (apply dict (cslice (cdr stack) 0 (car stack)))
+                                (cslice (cdr stack) (car stack) (- (length stack) 1)))
+                            dump)
                     (95) ;; make-dict
                         (hydra@vm code
                             env
@@ -1630,6 +1633,6 @@
                 (hydra@add-env! '*command-line* (cslice args 1 (length args)) (list e))
                 (hydra@load (nth args 0) (list e) (list 0 dump)))
             (begin
-                (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Hydra: 2012.0/r0\n")
+                (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Typhon: 2012.0/r0\n")
                 (hydra@add-env! '*command-line* '() (list e))
                 (hydra@repl (list e) (list 0 dump))))))

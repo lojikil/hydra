@@ -1,15 +1,15 @@
 CC=cc
 LIBS=-lgc -lm
-HEXE=hydra
+TEXE=typhon
 CEXE=ceres
 RTSFILES=posix.c main.c vesta.c
-HFILE=hydra.ss.c
+TFILE=typhon.ss.c
 CFILE=ceres.ss.c
 CFLAGS=
-hydra: $(HFILE) $(RTSFILES)
-	$(CC) -o $(HEXE) $(HFILE) $(RTSFILES) $(LIBS) $(CFLAGS)
-opt-hydra: $(HFILE) $(RTSFILES)
-	$(CC) -O2 -o $(HEXE) $(HFILE) $(RTSFILES) $(LIBS) $(CFLAGS)
+typhon: $(TFILE) $(RTSFILES)
+	$(CC) -o $(TEXE) $(TFILE) $(RTSFILES) $(LIBS) $(CFLAGS)
+opt-typhon: $(TFILE) $(RTSFILES)
+	$(CC) -O2 -o $(TEXE) $(TFILE) $(RTSFILES) $(LIBS) $(CFLAGS)
 ceres: $(CFILE) $(RTSFILES)
 	$(CC) -o $(CEXE) $(CFILE) $(RTSFILES) $(LIBS) $(CFLAGS)
 opt-ceres: $(CFILE) $(RTSFILES)
