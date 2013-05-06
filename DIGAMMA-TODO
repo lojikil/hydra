@@ -31,7 +31,7 @@
 - DONE: let* fix (doesn't correctly pass rewritten vars from above)
 - fix load
 - define-c-syntax
-- define-syntax (HIGH 0)
+- DONE: define-syntax (HIGH 0)
 - IL->JS, IL->C++, IL->JAVA, IL->X86_64, IL->SPARC
 - support %c, define-alien for self-hosting runtimes.
 - DONE: %include, %prim
@@ -74,8 +74,8 @@
 - DONE: add BEGIN form to Hydra/SAC
 - Verify complete language coverage between Vesta and Hydra
 - Errors buried deep within compiled code can bubble to the surface much later. Checkout Aneris.ss for a test (e.g. a call to "type" within an if block, when Hydra doesn't have the "type" procedure in its environment will call the error to be swallowed until much later. boo).
-- Fix SegFault in Hydra/SAC with (append '() 3)
-- fix the *tlenv* define from Aneris.
+- DONE: Fix SegFault in Hydra/SAC with (append '() 3)
+- DONE: fix the *tlenv* define from Aneris.
 
 * Eurydice
 - linting
