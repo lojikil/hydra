@@ -1148,6 +1148,7 @@
     (dict-set! env "display" '(procedure . "display"))
     (dict-set! env "newline" '(procedure . "newline"))
     (dict-set! env "%dict" '(primitive . 94))
+    (dict-set! env "dict" '(syntax . primitive-syntax-dict))
     (dict-set! env "dict-has?" '(primitive . 96))
     (dict-set! env "denomenator" '(primitive . 25))
     (dict-set! env "define" '(syntax . primitive-syntax-define))
@@ -1444,6 +1445,18 @@
                                                 (hydra@map rst env))
                                             (list (list 3 (length rst)))
                                             (list (list (cdr (hydra@lookup '%vector env))))))
+                                (eq? (cdr v) 'primitive-syntax-dict)
+                                    ;; if rst is null?, then generate a load with an empty dict
+                                    ;; otherwise generate the instructions for the dict, a length
+                                    ;; and a call to %dict
+                                    (if (null? rst)
+                                        (list (list 3 (make-dict)))
+                                        (append
+                                            (reverse-append
+                                                (hydra@map rst env))
+                                            (list (list 3 (length rst)))
+                                            (list (list (cdr (hydra@lookup '%dict env))))))
+                                (eq? (cdr v) 'primitive-syntax-string)
                                 (eq? (cdr v) 'primitive-syntax-string)
                                     (if (null? rst)
                                         (list (list 3 (make-string 0)))
