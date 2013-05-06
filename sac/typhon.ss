@@ -1058,7 +1058,14 @@
                                 (typhon@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
                                     #t
                                 else
-                                    (error "non-applicable CALL-STACK argument")))))))
+                                    (error "non-applicable CALL-STACK argument")))
+                    (111) ;; type
+                        (typhon@vm
+                            code
+                            env
+                            (+ ip 1)
+                            (cons (type (car stack)) (cdr stack))
+                            dump)))))
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
@@ -1223,6 +1230,7 @@
     (dict-set! env "keys" '(primitive . 56))
     (dict-set! env "partial-key?" '(primitive . 57))
     (dict-set! env "polar->rectangular" '(primitive . 69))
+    (dict-set! env "type" '(primitive . 111))
     (dict-set! env "load" '(procedure . "load"))
     (dict-set! env "read" '(procedure . "read"))
     (dict-set! env "write" '(procedure . "write"))
