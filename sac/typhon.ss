@@ -278,6 +278,14 @@
                     (typhon@load (car args) (cadr args) dump)
                 else
                     (error "Incorrect arity for procedure: load"))
+        (eq? proc "read")
+            (cond
+                (= arity 0)
+                    (read)
+                (= arity 1)
+                    (read (car args))
+                else
+                    (error "Incorrect arity for procedure: read"))
         else
             (error (format "unknown procedure \"~a\"" proc))))
 
@@ -1453,7 +1461,7 @@
                                         (list (list 3 (make-dict)))
                                         (append
                                             (reverse-append
-                                                (hydra@map rst env))
+                                                (typhon@map rst env))
                                             (list (list 3 (length rst)))
                                             (list (list (cdr (typhon@lookup '%dict env))))))
                                 (eq? (cdr v) 'primitive-syntax-string)
