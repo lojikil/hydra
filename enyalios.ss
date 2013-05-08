@@ -463,13 +463,13 @@
         (if (eq? (cadr <else>) #v)
             (list
                 <tail-check>
-                (list 'c-if <cond> (returnable (cadr <then>) tail?)))
+                (list 'c-if <cond> (returnable (cadr <then>) tail? #t)))
             (list 
                 <tail-check>
                 (list
                     'c-begin
-                        (list 'c-if <cond> (returnable (cadr <then>) tail?))
-                        (list 'c-else (returnable (cadr <else>) tail?)))))))
+                        (list 'c-if <cond> (returnable (cadr <then>) tail? #t))
+                        (list 'c-else (returnable (cadr <else>) tail? #t)))))))
 
 (define (cond-unzip block conds thens)
     (cond
@@ -602,12 +602,11 @@
 ;; perhaps this should return a var assignment here...
 ;; ActionScript does something like that; it creates a lexically-scoped
 ;; dummy var for such purposes. Could be a per-scope gensym'd var...
-(define (returnable c tail?)
-    (if (and
-            tail?
-            (not (il-syntax? c)))
-        (list 'c-return c)
-        c)) ;; perhaps this should return a var assignment here...
+(define (returnable c tail? (last? #f))
+    (cond
+        (and tail? (not (il-syntax? c))) (list 'c-return c)
+        (and last? (not (il-syntax? c))) (list 'c-no-return c)
+        else c))
 
 (define (compile-begin block name tail? rewrites lparams)
     (if tail?
@@ -1518,6 +1517,22 @@
                 (int->spaces lvl out)
                 (display "return " out)
                 (il->c (cadr il) 0 out)
+                (display ";\n" out))
+        (eq? (car il) 'c-no-return)
+            (begin
+                (int->spaces lvl out)
+                (if (or
+                        (eof-object? (cadr il))
+                        (vector? (cadr il))
+                        (number? (cadr il))
+                        (char? (cadr il))
+                        (void? (cadr il))
+                        (bool? (cadr il))
+                        (goal? (cadr il))
+                        (string? (cadr il))
+                        (key? (cadr il)))
+                    (display "1" out)
+                    (il->c (cadr il) 0 out))
                 (display ";\n" out))
         (eq? (car il) 'c-var) ;; variable declaration
             (begin
