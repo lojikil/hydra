@@ -523,7 +523,7 @@
                         (if (car res)
                             (set! tail-rec? #t)
                             #v)
-                        (returnable (cadr res) tail?)))
+                        (returnable (cadr res) tail? #t)))
                 then-list))
         (list
             tail-rec?
@@ -531,12 +531,12 @@
                 'c-begin
                 (list
                     (cons 
-                        (cons 'c-if (list (cadr init-cond) (returnable (cadr init-then) tail?)))
+                        (cons 'c-if (list (cadr init-cond) (returnable (cadr init-then) tail? #t)))
                         (map
                             (fn (x1)
                                 (if (eq? (car x1) 'else)
                                     (list 'c-else (cadr x1))
-                                    (cons 'c-elif x1)))
+                                    (cons 'c-elif x1 )))
                             (zip cond-list then-list))))))))
                     
 (define (compile-case block name tail? rewrites lparams)

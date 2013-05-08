@@ -47,6 +47,7 @@
 - add merge-dict! procedure. It should default to _not_ overwriting keys that exist in the destination dictionary. (merge-dict! src : DICT dest : DICT overwrite? :BOOL)
 - fix (string), (vector) compilation in IL->C
 - DONE: fix (if SOME-COND #v SOME-OTHER CODE) in non-tail position
+- DONE: fix COND in non-tail position
 - add exception system (SRFI-34 via longjmp/setjmp)
 
 * Hydra-only
