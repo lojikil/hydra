@@ -1611,7 +1611,7 @@
         #v))
                                     
 (define (typhon@repl env dump)
-    (display "h; ")
+    (display ";t ")
     (with inp (read)
      (cond 
         (and (eq? (type inp) "Pair") (eq? (car inp) 'unquote))
