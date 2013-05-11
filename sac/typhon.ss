@@ -714,7 +714,7 @@
                         (typhon@vm code
                             env
                             (+ ip 1)
-                            (cons (nth (caddr stack) (cadr stack) (car stack)) (cdddr stack)) dump)
+                            (cons (nth (car stack) (cadr stack) (caddr stack)) (cdddr stack)) dump)
                     (56) ;; keys
                         (typhon@vm code
                             env
@@ -724,10 +724,10 @@
                         (typhon@vm code
                             env
                             (+ ip 1)
-                            (cons (partial-key? (cadr stack) (car stack)) (cddr stack)) dump)
+                            (cons (partial-key? (car stack) (cadr stack)) (cddr stack)) dump)
                     (58) ;; cset!
                         (begin
-                            (cset! (caddr stack) (cadr stack) (car stack))
+                            (cset! (car stack) (cadr stack) (caddr stack))
                             (typhon@vm code
                                 env
                                 (+ ip 1)
@@ -1325,6 +1325,13 @@
                 (let* ((fst (car line)) ;; decompose line into first & rest
                        (v (typhon@lookup fst env)) ;; find fst in env
                        (rst (cdr line))) 
+                    (display "in decompse LET; fst == ")
+                    (write fst)
+                    (display " and rst == " )
+                    (write rst)
+                    (display " and v == " )
+                    (write v)
+                    (newline)
                    (cond 
                         (typhon@syntax? v) ;; primitive syntax
                             (cond
@@ -1541,9 +1548,17 @@
                                         (typhon@compile fst env)
                                         (list (list 110)))
                             (typhon@usyntax? v)
-                                (typhon@compile
-                                    (syntax-expand1 (cadr v) line)
-                                    env)
+                                (let ((syn (syntax-expand1 (cadr v) line)))
+                                    (display "in typhon@usyntax? in typhon@compile. v == ")
+                                    (write v)
+                                    (display "\n and fst == ")
+                                    (write fst)
+                                    (display "\n and expansion == ")
+                                    (write syn)
+                                    (display "\n")
+                                    (typhon@compile
+                                        syn
+                                        env))
                             (typhon@umacro? v)
                                 #f
                             (typhon@procedure? v) ;; need to add some method of checking proc arity here.
@@ -1566,7 +1581,7 @@
                                     (reverse-append
                                         (typhon@map rst env))
                                     (list (list (cdr v))))
-                            (typhon@lambda? v) ;; hydra closure
+                            (typhon@lambda? v) ;; hydra closure; change this into (load-from-env fst) (call-from-stack) 
                                 (append (reverse-append (typhon@map rst env))
                                             (list (list 30 v)))
                             (typhon@continuation? v) ;; hydra continuation
@@ -1623,14 +1638,7 @@
                 (eq? (cadr inp) 'dribble) (begin (typhon@repl env dump))
                 (eq? (cadr inp) 'save) (begin (typhon@repl env dump))
                 (eq? (cadr inp) 'save-and-die) (begin (typhon@repl env dump))
-                (pair? (cadr inp))
-                    (let ((cmd (caadr inp))
-                          (arg (cadadr inp)))
-                        (cond
-                            (eq? cmd 'i)
-                                (write (typhon@lookup arg env)))
-                        (newline)
-                        (typhon@repl env dump))
+                (eq? (cadr inp) 'i) (with item (read) (write (typhon@lookup item env)) (newline) (typhon@repl env dump))
                 else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (typhon@repl env dump)))
         (eof-object? inp)
             #v

@@ -35,12 +35,14 @@
      (eq? c :p<=) (if (<= s (car r)) (aneris@compare c (car r) (cdr r)) #f)
      (eq? c :p>=) (if (>= s (car r)) (aneris@compare c (car r) (cdr r)) #f)
      else #f)))
+
 (define aneris@lookup (fn (sym env)
 	(if (eq? env '())
 	 #f
 	 (if (dict-has? (car env) sym)
 	  (nth (car env) sym)
 	  (aneris@lookup sym (cdr env))))))
+
 (define aneris@logop? (fn (p)
     (cond
      (eq? p :p<) #t
@@ -49,6 +51,7 @@
      (eq? p :p<=) #t
      (eq? p :p>=) #t
      else #f)))
+
 (define aneris@qquote (fn (l e)
     (if (eq? (type l) "Pair")
      (if (eq? (type (car l)) "Pair")
@@ -59,7 +62,9 @@
         (cons (aneris@qquote (car l) e) (aneris@qquote (cdr l) e))))
       (cons (car l) (aneris@qquote (cdr l) e)))
      l)))
+
 (define aneris@apply (fn (proc args env)
+    (display "in aneris@apply\n")
     (cond
      (eq? proc #f) (begin (display "Aneris error: unknown procedure\n") #v)
      (eq? (type proc) "Vector") #t ; lambda
@@ -81,13 +86,20 @@
      (eq? proc :pdisplay) (display (car args))
      (aneris@logop? proc) (aneris@compare proc (car args) (cdr args))
      else #f)))
+
 (define aneris@evlis (fn (args builtlist env)
     (if (eq? args '())
      builtlist
      (if (eq? (type (car args)) "Pair")
         (aneris@evlis (cdr args) (append builtlist (list (aneris@eval (car args) env))) env)
         (aneris@evlis (cdr args) (append builtlist (list (car args))) env)))))
+
 (define aneris@eval (fn (s e)
+    (display "in aneris@eval; s ==")
+    (display s)
+    (display " and e == ")
+    (display e)
+    (display "\n")
 	(cond
 	 (eq? (type s) "Symbol")
 	 	(with r (aneris@lookup s e)
@@ -111,13 +123,13 @@
 (define aneris@repl (fn ()
     (display "a; ")
     (with r (aneris@eval (read) *tlenv*)
-        (cond
-            (eq? r #e) #v
-            else 
-                (begin 
-                    (write r)
-                    (newline)
-                    (aneris@repl))))))
+        (if (eq? r #e)
+            #v
+            (begin 
+                (write r)
+                (newline)
+                (aneris@repl))))))
+
 (define aneris@main (fn ()
     (display "aneris r0\n")
     (aneris@repl)))    

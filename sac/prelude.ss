@@ -5,7 +5,7 @@
 ; Moreover, snow is cleaner than mud.
 ; -- Marc Feeley
 
-(define-sytax and ()
+(define-syntax and ()
     ((and) #t)
     ((and e1) e1)
     ((and e1 e2 e3 ...) (if e1 (and e2 e3 ...) #f)))
@@ -14,7 +14,15 @@
     ((or) #f)
     ((or e1) e1)
     ((or e1 e2 e3 ...) (if e1 #t (or e2 e3 ...))))
-    
+
+(define-syntax cond (else)
+  ((_ else e1) e1)
+  ((_ e1 e2) (if e1 e2 #f))
+  ((_ e1 e2 e3 ...) (if e1 e2 (cond e3 ...))))
+
+(define-syntax with ()
+    ((with x y z ...)
+     ((lambda (x) z ...) y)))
 
 (define (null? n) (eq? n '()))
 (define (pair? n) (eq? (type n) "Pair"))
@@ -53,14 +61,7 @@
 		'()
 		(cons (cons (car xs) (cons (car ys) '())) (zip (cdr xs) (cdr ys))))))
 
-(define-syntax with ()
-    ((with x y z ...)
-     ((lambda (x) z ...) y)))
 
-(define-syntax cond (else)
-  ((_ else e1) e1)
-  ((_ e1 e2) (if e1 e2 #f))
-  ((_ e1 e2 e3 ...) (if e1 e2 (cond e3 ...))))
 
 (define (endswith? src suffix)
     (cond
