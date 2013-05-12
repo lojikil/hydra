@@ -1582,16 +1582,21 @@
                                         (typhon@map rst env))
                                     (list (list (cdr v))))
                             (typhon@lambda? v) ;; hydra closure; change this into (load-from-env fst) (call-from-stack) 
-                                (append (reverse-append (typhon@map rst env))
-                                            (list (list 30 v)))
+                                (append
+                                    (reverse-append
+                                        (typhon@map rst env))
+                                        (list (list 31 fst))
+                                        (list (list 110)))
                             (typhon@continuation? v) ;; hydra continuation
                                 (append (reverse-append (typhon@map rst env))
                                     (list (list 3 v))
                                     (list (list 108))) ;; 108 -> %ap
                             (symbol? fst) ;; fst is a symbol, but it has no mapping in our current env; write to environment-load
-                                (append (reverse-append
-                                            (typhon@map rst env)) 
-                                            (list (list 30 fst)))
+                                (append
+                                    (reverse-append
+                                        (typhon@map rst env)) 
+                                        (list (list 31 fst))
+                                        (list (list 110)))
                             else (error "error: the only applicable types are primitive procedures, closures & syntax")))
 
             else (list (list 3 line)))))
