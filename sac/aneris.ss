@@ -65,6 +65,11 @@
 
 (define aneris@apply (fn (proc args env)
     (display "in aneris@apply\n")
+    (display "proc == \n")
+    (display proc)
+    (display "\n and args == ")
+    (display args)
+    (display "\n")
     (cond
      (eq? proc #f) (begin (display "Aneris error: unknown procedure\n") #v)
      (eq? (type proc) "Vector") #t ; lambda

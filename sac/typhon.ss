@@ -352,16 +352,16 @@
          else
          (let* ((c (nth code ip))
                 (instr (typhon@instruction c)))
-              ;(display (format "current ip: ~n~%" ip))
-              ;(display "current instruction: ")
-              ;(display (nth code ip))
-              ;(display "\n")
-              ;(display "current stack: ")
-              ;(write stack)
-              ;(display "\n")
-              ;(display "current dump: ")
-              ;(write dump)
-              ;(display "\n")
+              (display (format "current ip: ~n~%" ip))
+              (display "current instruction: ")
+              (display (nth code ip))
+              (display "\n")
+              (display "current stack: ")
+              (write stack)
+              (display "\n")
+              (display "current dump: ")
+              (write dump)
+              (display "\n")
               (case instr 
                     (0) ;; car
                         (typhon@vm code
@@ -1241,6 +1241,12 @@
 
 (define (typhon@lookup item env)
     " look up item in the current environment, returning #f for not found"
+    (display "in typhon@lookup: ")
+    (display "item == ")
+    (write item)
+    (display " and env == ")
+    (write env)
+    (newline)
     (cond
         (not (symbol? item)) item ;; to support ((fn (x) (+ x x)) (+ x x) 3)
         (null? env) (typhon@error (format "unbound variable: ~a" item)) 
