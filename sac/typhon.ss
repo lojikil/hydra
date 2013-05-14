@@ -352,16 +352,15 @@
          else
          (let* ((c (nth code ip))
                 (instr (typhon@instruction c)))
-              (display (format "current ip: ~n~%" ip))
-              (display "current instruction: ")
-              (display (nth code ip))
-              (display "\n")
-              (display "current stack: ")
+              (display (format "current ip: ~n~%current instruction: " ip))
+              (write (nth code ip))
+              (display "\ncurrent stack: ")
               (write stack)
-              (display "\n")
-              (display "current dump: ")
+              (display "\ncurrent dump: ")
               (write dump)
-              (display "\n")
+              (display "\ncurrent env: ")
+              (write env)
+              (display "\n=====\n")
               (case instr 
                     (0) ;; car
                         (typhon@vm code
