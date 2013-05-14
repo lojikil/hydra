@@ -232,6 +232,13 @@
     ;; would probably be better to have an inner function that iterates over
     ;; the parameters & returns those that match. It would then be easier to 
     ;; have optional parameters...
+    (display "in build-environment; environment == ")
+    (write environment)
+    (display "\nstack == ")
+    (write stack)
+    (display "\nparams == ")
+    (write params)
+    (newline)
     (let ((ls (length stack)) (lp (length params)) (nu-env (make-dict)))
         (if (< ls lp)
             (error "non-optional parameters are not statisfied by stack items in build-environment")
@@ -1021,12 +1028,9 @@
                                 dump))
                     (110) ;; call from stack
                         (let ((call-proc (car stack)))
-                            ;(display "call-proc == ")
-                            ;(write call-proc)
-                            ;(newline)
-                            ;(display "(car stack) == ")
-                            ;(write (car stack))
-                            ;(display "\n")
+                            (display "call-proc == ")
+                            (write call-proc)
+                            (display "\n")
                             (cond
                                 (typhon@error? call-proc)
                                     (begin
@@ -1044,7 +1048,9 @@
                                         (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) (cdr stack) (nth (cadr call-proc) 2)))
                                               (v-dump (cadr dump))
                                               (offset (car dump)))
-                                            ;(display "in let?\n")
+                                            (display "in let; (car env-and-stack) == ")
+                                            (write (car env-and-stack))
+                                            (newline)
                                             (cset! v-dump offset (cadr env-and-stack))
                                             (cset! v-dump (+ offset 1) ip)
                                             (cset! v-dump (+ offset 2) env)
@@ -1591,7 +1597,7 @@
                                     (reverse-append
                                         (typhon@map rst env))
                                         (list (list 31 fst))
-                                        (list (list 110)))
+                                        (list (list 110 'found)))
                             (typhon@continuation? v) ;; hydra continuation
                                 (append (reverse-append (typhon@map rst env))
                                     (list (list 3 v))
@@ -1601,7 +1607,7 @@
                                     (reverse-append
                                         (typhon@map rst env)) 
                                         (list (list 31 fst))
-                                        (list (list 110)))
+                                        (list (list 110 'not-found)))
                             else (error "error: the only applicable types are primitive procedures, closures & syntax")))
 
             else (list (list 3 line)))))
