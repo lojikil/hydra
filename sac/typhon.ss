@@ -232,13 +232,13 @@
     ;; would probably be better to have an inner function that iterates over
     ;; the parameters & returns those that match. It would then be easier to 
     ;; have optional parameters...
-    (display "in build-environment; environment == ")
-    (write environment)
-    (display "\nstack == ")
-    (write stack)
-    (display "\nparams == ")
-    (write params)
-    (newline)
+    ;(display "in build-environment; environment == ")
+    ;(write environment)
+    ;(display "\nstack == ")
+    ;(write stack)
+    ;(display "\nparams == ")
+    ;(write params)
+    ;(newline)
     (let ((ls (length stack)) (lp (length params)) (nu-env (make-dict)))
         (if (< ls lp)
             (error "non-optional parameters are not statisfied by stack items in build-environment")
@@ -359,15 +359,15 @@
          else
          (let* ((c (nth code ip))
                 (instr (typhon@instruction c)))
-              (display (format "current ip: ~n~%current instruction: " ip))
-              (write (nth code ip))
-              (display "\ncurrent stack: ")
-              (write stack)
-              (display "\ncurrent dump: ")
-              (write dump)
-              (display "\ncurrent env: ")
-              (write env)
-              (display "\n=====\n")
+              ;(display (format "current ip: ~n~%current instruction: " ip))
+              ;(write (nth code ip))
+              ;(display "\ncurrent stack: ")
+              ;(write stack)
+              ;(display "\ncurrent dump: ")
+              ;(write dump)
+              ;(display "\ncurrent env: ")
+              ;(write env)
+              ;(display "\n=====\n")
               (case instr 
                     (0) ;; car
                         (typhon@vm code
@@ -1028,15 +1028,15 @@
                                 dump))
                     (110) ;; call from stack
                         (let ((call-proc (car stack)))
-                            (display "call-proc == ")
-                            (write call-proc)
-                            (display "\n")
+                            ;(display "call-proc == ")
+                            ;(write call-proc)
+                            ;(display "\n")
                             (cond
                                 (typhon@error? call-proc)
                                     (begin
-                                        (display "error: ")
-                                        (write call-proc)
-                                        (newline)
+                                        ;(display "error: ")
+                                        ;(write call-proc)
+                                        ;(newline)
                                         call-proc)
                                 (typhon@lambda? call-proc)
                                     ;; create a list from the current registers, cons this to dump, and 
@@ -1048,9 +1048,9 @@
                                         (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) (cdr stack) (nth (cadr call-proc) 2)))
                                               (v-dump (cadr dump))
                                               (offset (car dump)))
-                                            (display "in let; (car env-and-stack) == ")
-                                            (write (car env-and-stack))
-                                            (newline)
+                                            ;(display "in let; (car env-and-stack) == ")
+                                            ;(write (car env-and-stack))
+                                            ;(newline)
                                             (cset! v-dump offset (cadr env-and-stack))
                                             (cset! v-dump (+ offset 1) ip)
                                             (cset! v-dump (+ offset 2) env)
@@ -1193,7 +1193,8 @@
     (dict-set! env "gcd" '(primitive . 22))
     (dict-set! env "gensym" '(primitive . 60))
     (dict-set! env "numerator" '(primitive . 24))
-    (dict-set! env "nth" '(primitive . 55))
+    (dict-set! env "%nth" '(primitive . 55))
+    (dict-set! env "nth" '(syntax . primitive-syntax-nth))
     (dict-set! env "+" '(syntax . primitive-syntax-plus))
     (dict-set! env "-" '(syntax . primitive-syntax-minus))
     (dict-set! env "*" '(syntax . primitive-syntax-mult))
@@ -1246,12 +1247,12 @@
 
 (define (typhon@lookup item env)
     " look up item in the current environment, returning #f for not found"
-    (display "in typhon@lookup: ")
-    (display "item == ")
-    (write item)
-    (display " and env == ")
-    (write env)
-    (newline)
+    ;(display "in typhon@lookup: ")
+    ;(display "item == ")
+    ;(write item)
+    ;(display " and env == ")
+    ;(write env)
+    ;(newline)
     (cond
         (not (symbol? item)) item ;; to support ((fn (x) (+ x x)) (+ x x) 3)
         (null? env) (typhon@error (format "unbound variable: ~a" item)) 
@@ -1336,13 +1337,13 @@
                 (let* ((fst (car line)) ;; decompose line into first & rest
                        (v (typhon@lookup fst env)) ;; find fst in env
                        (rst (cdr line))) 
-                    (display "in decompse LET; fst == ")
-                    (write fst)
-                    (display " and rst == " )
-                    (write rst)
-                    (display " and v == " )
-                    (write v)
-                    (newline)
+                    ;(display "in decompse LET; fst == ")
+                    ;(write fst)
+                    ;(display " and rst == " )
+                    ;(write rst)
+                    ;(display " and v == " )
+                    ;(write v)
+                    ;(newline)
                    (cond 
                         (typhon@syntax? v) ;; primitive syntax
                             (cond
@@ -1350,6 +1351,22 @@
                                     (if (null? (car rst))
                                         '((4))
                                         (list (list 3 (car rst))))
+                                (eq? (cdr v) 'primitive-syntax-nth)
+                                    (cond
+                                        (= (length rst) 2)
+                                            (append
+                                                '((4)) ; this should really be a typhon@error
+                                                (typhon@compile (cadr rst) env)
+                                                (typhon@compile (car rst) env)
+                                                '((55)))
+                                        (= (length rst) 3)
+                                            (append
+                                                (typhon@compile (caddr rst) env)
+                                                (typhon@compile (cadr rst) env)
+                                                (typhon@compile (car rst) env)
+                                                '((55)))
+                                        else
+                                            (typhon@error "incorrect arity for NTH"))
                                 (eq? (cdr v) 'primitive-syntax-plus)
                                     (cond
                                         (= (length rst) 1)
@@ -1560,13 +1577,13 @@
                                         (list (list 110)))
                             (typhon@usyntax? v)
                                 (let ((syn (syntax-expand1 (cadr v) line)))
-                                    (display "in typhon@usyntax? in typhon@compile. v == ")
-                                    (write v)
-                                    (display "\n and fst == ")
-                                    (write fst)
-                                    (display "\n and expansion == ")
-                                    (write syn)
-                                    (display "\n")
+                                    ;(display "in typhon@usyntax? in typhon@compile. v == ")
+                                    ;(write v)
+                                    ;(display "\n and fst == ")
+                                    ;(write fst)
+                                    ;(display "\n and expansion == ")
+                                    ;(write syn)
+                                    ;(display "\n")
                                     (typhon@compile
                                         syn
                                         env))
