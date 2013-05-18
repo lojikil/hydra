@@ -137,7 +137,7 @@
         (if (eq? r #e)
             #v
             (begin 
-                (write r)
+                (display r)
                 (newline)
                 (aneris@repl))))))
 
