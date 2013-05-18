@@ -490,7 +490,7 @@ vector(int n, ...)
 	return ret;
 }
 
-void
+/*void
 register_procedure(SExp *(*fn)(SExp *,Symbol *),char *name,int arity, Symbol *e)
 {
 	SExp *t = nil;
@@ -499,7 +499,7 @@ register_procedure(SExp *(*fn)(SExp *,Symbol *),char *name,int arity, Symbol *e)
 	//t->object.procedure = fn;
 	t->object.procedure = (void *)fn;
 	add_env(e,name,t);
-}
+}*/
 int
 gc_init()
 {
@@ -595,6 +595,9 @@ init_env(int full_env)
     tl_env->qnan = qnan;
     tl_env->snan = snan; 
 
+	/* seed the random system*/
+	srandom(time(nil));
+
     if(!full_env)
     {
 	    tl_env->data = nil;
@@ -609,133 +612,6 @@ init_env(int full_env)
 	tl_env->data->env = (Trie *)hmalloc(sizeof(Trie)); // initial "window"
 	tl_env->data->next = nil;
 
-	add_env(tl_env,"car",makeprimitive(OPCAR,"car",0));
-	add_env(tl_env,"cdr",makeprimitive(OPCDR,"cdr",0));
-	add_env(tl_env,"cons",makeprimitive(OPCONS,"cons",0));
-	add_env(tl_env,"quote",makeprimitive(OPQUOTE,"quote",1));
-	add_env(tl_env,"length",makeprimitive(OPLENGTH,"length",0));
-	add_env(tl_env,"def",makeprimitive(OPDEF,"def",1));
-    add_env(tl_env,"define",makeprimitive(OPDEF,"define",1));
-	add_env(tl_env,"+",makeprimitive(OPPLUS,"+",0));
-	add_env(tl_env,"exact?",makeprimitive(OPEXACT,"exact?",0));
-	add_env(tl_env,"inexact?",makeprimitive(OPINEXACT,"inexact?",0));
-	add_env(tl_env,"real?",makeprimitive(OPREAL,"real?",0));
-	add_env(tl_env,"integer?",makeprimitive(OPINTEGER,"integer?",0));
-	add_env(tl_env,"complex?",makeprimitive(OPCOMPLEX,"complex?",0));
-	add_env(tl_env,"rational?",makeprimitive(OPRATIONAL,"rational?",0));
-	add_env(tl_env,"numerator",makeprimitive(OPNUM,"numerator",0));
-	add_env(tl_env,"denomenator",makeprimitive(OPDEN,"denomenator",0));
-	add_env(tl_env,"*",makeprimitive(OPMULT,"*",0));
-	add_env(tl_env,"type",makeprimitive(OPTYPE,"type",0));
-	add_env(tl_env,"-",makeprimitive(OPSUB,"-",0));
-	add_env(tl_env,"/",makeprimitive(OPDIV,"/",0));
-	add_env(tl_env,"gcd",makeprimitive(OPGCD,"gcd",0));
-	add_env(tl_env,"lcm",makeprimitive(OPLCM,"lcm",0));
-	add_env(tl_env,"ceil",makeprimitive(OPCEIL,"ceil",0));
-	add_env(tl_env,"floor",makeprimitive(OPFLOOR,"floor",0));
-	add_env(tl_env,"truncate",makeprimitive(OPTRUNCATE,"truncate",0));
-	add_env(tl_env,"round",makeprimitive(OPROUND,"round",0));
-	add_env(tl_env,"inexact->exact",makeprimitive(OPIN2EX,"inexact->exact",0));
-	add_env(tl_env,"eq?",makeprimitive(OPEQ,"eq?",0));
-	add_env(tl_env,"<",makeprimitive(OPLT,"<",0));
-	add_env(tl_env,">",makeprimitive(OPGT,">",0));
-	add_env(tl_env,"<=",makeprimitive(OPLTE,"<=",0));
-	add_env(tl_env,">=",makeprimitive(OPGTE,">=",0));
-	add_env(tl_env,"=",makeprimitive(OPNUMEQ,"=",0));
-	add_env(tl_env,"quotient", makeprimitive(OPQUOTIENT,"quotient",0));
-	add_env(tl_env,"modulo", makeprimitive(OPMOD,"modulo",0));
-	add_env(tl_env,"remainder",makeprimitive(OPREMAINDER,"remainder",0));
-	add_env(tl_env,"set!",makeprimitive(OPSET,"set!",1)); 
-	add_env(tl_env,"fn",makeprimitive(OPLAMBDA,"fn",2));
-    add_env(tl_env,"lambda",makeprimitive(OPLAMBDA,"lambda",2));
-	add_env(tl_env,"&",makeprimitive(OPAND,"&",0));
-	add_env(tl_env,"|",makeprimitive(OPOR,"|",0));
-	add_env(tl_env,"^",makeprimitive(OPXOR,"^",0));
-	add_env(tl_env,"~",makeprimitive(OPNEG,"~",0));
-	add_env(tl_env,"list",makeprimitive(OPLIST,"list",0));
-	add_env(tl_env,"vector",makeprimitive(OPVECTOR,"vector",0));
-	add_env(tl_env,"make-vector",makeprimitive(OPMKVEC,"make-vector",0));
-	add_env(tl_env,"make-string",makeprimitive(OPMKSTRING,"make-string",0));
-	add_env(tl_env,"string",makeprimitive(OPSTRING,"string",0));
-	add_env(tl_env,"append",makeprimitive(OPAPPEND,"append",0));
-	add_env(tl_env,"first",makeprimitive(OPFIRST,"first",0));
-	add_env(tl_env,"rest",makeprimitive(OPREST,"rest",0));
-	add_env(tl_env,"ccons",makeprimitive(OPCCONS,"ccons",0));
-	add_env(tl_env,"nth",makeprimitive(OPNTH,"nth",0));
-	add_env(tl_env,"keys",makeprimitive(OPKEYS,"keys",0));
-	add_env(tl_env,"partial-key?",makeprimitive(OPPARTIAL,"partial-key?",0));
-	add_env(tl_env,"cset!",makeprimitive(OPCSET,"cset!",0));
-	add_env(tl_env,"empty?",makeprimitive(OPEMPTY,"empty?",0));
-	add_env(tl_env,"define-macro",makeprimitive(OPDEFMACRO,"define-macro",1));
-	add_env(tl_env,"gensym",makeprimitive(OPGENSYM,"gensym",0));
-	add_env(tl_env,"imag-part",makeprimitive(OPIMAG,"imag-part",0));
-	add_env(tl_env,"real-part",makeprimitive(OPREALP,"real-part",0));
-	add_env(tl_env,"make-rectangular",makeprimitive(OPMKRECT,"make-rectangular",0));
-	add_env(tl_env,"make-polar",makeprimitive(OPMKPOL,"make-polar",0));
-	add_env(tl_env,"magnitude",makeprimitive(OPMAG,"magnitude",0));
-	add_env(tl_env,"argument",makeprimitive(OPIMAG,"argument",0));
-	add_env(tl_env,"conjugate!",makeprimitive(OPCONJBANG,"conjugate!",0));
-	add_env(tl_env,"conjugate",makeprimitive(OPCONJ,"conjugate",0));
-	add_env(tl_env,"polar->rectangular",makeprimitive(OPPOLREC,"polar->rectangular",0));/* given two real args, returns a rectangular complex */
-	add_env(tl_env,"rectangular->polar",makeprimitive(OPRECPOL,"rectangular->polar",0));/* given a complex, converts type... */
-	add_env(tl_env,"sin",makeprimitive(OPSIN,"sin",0));
-	add_env(tl_env,"cos",makeprimitive(OPCOS,"cos",0));
-	add_env(tl_env,"tan",makeprimitive(OPTAN,"tan",0));
-	add_env(tl_env,"asin",makeprimitive(OPASIN,"asin",0));
-	add_env(tl_env,"acos",makeprimitive(OPACOS,"acos",0));
-	add_env(tl_env,"atan",makeprimitive(OPATAN,"atan",0));
-	add_env(tl_env,"atan2",makeprimitive(OPATAN2,"atan2",0));
-	add_env(tl_env,"cosh",makeprimitive(OPCOSH,"cosh",0));
-	add_env(tl_env,"sinh",makeprimitive(OPSINH,"sinh",0));
-	add_env(tl_env,"tanh",makeprimitive(OPTANH,"tanh",0));
-	add_env(tl_env,"exp",makeprimitive(OPEXP,"exp",0));
-	add_env(tl_env,"ln",makeprimitive(OPLN,"ln",0));
-	add_env(tl_env,"abs",makeprimitive(OPABS,"abs",0));
-	add_env(tl_env,"sqrt",makeprimitive(OPSQRT,"sqrt",0));
-	add_env(tl_env,"exp2",makeprimitive(OPEXP2,"exp2",0));
-	add_env(tl_env,"expm1",makeprimitive(OPEXPM1,"expm1",0));
-	add_env(tl_env,"log2",makeprimitive(OPLOG2,"log2",0));
-	add_env(tl_env,"log10",makeprimitive(OPLOG10,"log10",0));
-	add_env(tl_env,"<<",makeprimitive(OPSHL,"<<",0));
-	add_env(tl_env,">>",makeprimitive(OPSHR,">>",0));
-	add_env(tl_env,"begin",makeprimitive(OPBEGIN,"begin",1));
-	add_env(tl_env,"define-syntax",makeprimitive(OPDEFSYN,"define-syntax",1));
-	add_env(tl_env,"string-append",makeprimitive(OPSTRAP, "string-append",0));
-	add_env(tl_env,"apply",makeprimitive(OPAPPLY,"apply",0));
-	add_env(tl_env,"assq",makeprimitive(OPASSQ,"assq",0));
-    add_env(tl_env,"memq",makeprimitive(OPMEMQ,"memq",0));
-	add_env(tl_env,"defrec",makeprimitive(OPDEFREC,"defrec",1));
-	add_env(tl_env,"set-rec!",makeprimitive(OPSETREC,"set-rec!",1));
-	add_env(tl_env,"dict",makeprimitive(OPDICT,"dict",0));
-	add_env(tl_env,"make-dict",makeprimitive(OPMKDICT,"make-dict",0));
-	add_env(tl_env,"dict-has?",makeprimitive(OPDICHAS,"dict-has?",0));
-	add_env(tl_env,"clone-environment",makeprimitive(OPCLONENV,"clone-environment",0));
-	add_env(tl_env,"bind-environment",makeprimitive(OPDEFENV,"bind-environment",1));
-	add_env(tl_env,"set-environment!",makeprimitive(OPSETENV,"set-environment!",1));
-	add_env(tl_env,"default-environment",makeprimitive(OPDEFAULTENV,"default-environment",0));
-	add_env(tl_env,"null-environment",makeprimitive(OPNULLENV,"null-environment",0));
-	add_env(tl_env,"from-environment",makeprimitive(OPFROMENV,"from-environment",0));
-    add_env(tl_env,"current-environment",makeprimitive(OPSTDENV,"current-environment",0));
-    add_env(tl_env,"with-exception-handler",makeprimitive(OPWITHEXCEPT,"with-exception-handler",0));
-	add_env(tl_env,"coerce",makeprimitive(OPCOERCE,"coerce",0));
-	add_env(tl_env,"error",makeprimitive(OPERROR,"error",0));
-	add_env(tl_env,"cupdate",makeprimitive(OPCUPDATE,"cupdate",0));
-	add_env(tl_env,"cslice",makeprimitive(OPCSLICE,"cslice",0));
-	add_env(tl_env,"tconc!",makeprimitive(OPTCONC,"tconc!",0));
-	add_env(tl_env,"make-tconc",makeprimitive(OPMKTCONC,"make-tconc",0));
-	add_env(tl_env,"tconc-list",makeprimitive(OPTCONCL,"tconc-list",0));
-	add_env(tl_env,"tconc->pair",makeprimitive(OPT2P,"tconc->pair",0));
-	add_env(tl_env,"tconc-splice!",makeprimitive(OPTCONCSPLICE,"tconc-splice!",0));
-	add_env(tl_env,"if",makeprimitive(OPIF,"if",1));
-	add_env(tl_env,"eval",makeprimitive(OPEVAL,"eval",0));
-	add_env(tl_env,"meta!",makeprimitive(OPMETA,"meta!",0));
-	add_env(tl_env,"reset",makeprimitive(OPRESET,"reset",0));
-	add_env(tl_env,"shift",makeprimitive(OPSHIFT,"shift",0));
-	add_env(tl_env,"call/cc",makeprimitive(OPCALLCC,"call/cc",0));
-	add_env(tl_env,"current-tick",makeprimitive(OPCURTICK,"current-tick",0));
-
-	/* seed the random system*/
-	srandom(time(nil));
 	return tl_env;
 }
 void
@@ -910,7 +786,7 @@ makeerror(int t, int s, char *f)
 	ret->object.error.message = hstrdup(f);
 	return ret;	
 }
-SExp *
+/*SExp *
 makeprimitive(int n, char *s, int f)
 {
 	SExp *ret = snil;
@@ -921,7 +797,7 @@ makeprimitive(int n, char *s, int f)
 	ret->object.primitive.name = hstrdup(s);
 	ret->object.primitive.num = n;
 	return ret;
-}
+}*/
 SExp *
 makevector(int n, SExp *fill)
 {
@@ -954,7 +830,7 @@ makedict()
 	ret->object.dict->nodes = nil;
 	return ret;
 }
-SExp *
+/*SExp *
 makeenv(Symbol *e)
 {
 	SExp *ret = snil;
@@ -962,14 +838,14 @@ makeenv(Symbol *e)
 	ret->type = ENVIRONMENT;
 	ret->metadata = nil;
     if(e == nil)
-    {
+    {*/
        /* this should most likely be a nullenv, but it's possible that
         * there should be another flag here, so that this can also
         * call init_env...
         * also, maybe we should just cloneenv & re-malloc the Trie, or
         * something similar, because we still want nil &al to be the same values
         */
-        e = (Symbol *)hmalloc(sizeof(Symbol));
+        /*e = (Symbol *)hmalloc(sizeof(Symbol));
         e->data = (Window *)hmalloc(sizeof(Window));
         e->cur_offset = 0;
         e->cur_size = 64;
@@ -979,7 +855,7 @@ makeenv(Symbol *e)
     else
 	    ret->object.foreign = (void *) e;
 	return ret;
-}
+}*/
 char *
 hstrdup(const char *s)
 {
@@ -995,7 +871,7 @@ hstrdup(const char *s)
 	ret[i] = nul;
 	return ret;
 }
-SExp *
+/*SExp *
 symlookup(char *str, Symbol *env)
 {
 	int idx = 0,len = 0;
@@ -1015,15 +891,15 @@ symlookup(char *str, Symbol *env)
 			break;
 		cur = cur->next;
 	}
-	/*printf("%s:%d\n",__FUNCTION__,__LINE__);
-	if(d != nil)
-	{
-		printf("d == ");
-		princ(d);
-		printf("\n");
-	}
-	else
-		printf("d == nil\n");*/
+	//printf("%s:%d\n",__FUNCTION__,__LINE__);
+	//if(d != nil)
+	//{
+	//	printf("d == ");
+	//	princ(d);
+	//	printf("\n");
+	//}
+	//else
+	//	printf("d == nil\n");
 	return d;
 }
 int
@@ -1045,7 +921,7 @@ close_window(Symbol *inp)
 		return 1;
 	}
 	return 0;
-}
+}*/
 Symbol *
 shallow_clone_env(Symbol *src)
 {
@@ -1070,7 +946,7 @@ shallow_clone_env(Symbol *src)
     ret->guards = src->guards;
 	return ret;	
 }
-Symbol *
+/*Symbol *
 add_env(Symbol *inp, char *name, SExp *data)
 {
 	Trie *hd = nil;
@@ -1082,7 +958,7 @@ add_env(Symbol *inp, char *name, SExp *data)
 		return inp;
 	}
 	return nil;
-}
+}*/
 SExp *
 trie_put(char *str, SExp *value, Trie *head)
 {
