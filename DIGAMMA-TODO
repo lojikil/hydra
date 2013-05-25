@@ -77,6 +77,7 @@
 - Errors buried deep within compiled code can bubble to the surface much later. Checkout Aneris.ss for a test (e.g. a call to "type" within an if block, when Hydra doesn't have the "type" procedure in its environment will call the error to be swallowed until much later. boo).
 - DONE: Fix SegFault in Hydra/SAC with (append '() 3)
 - DONE: fix the *tlenv* define from Aneris.
+- Delimited Continuations
 
 * Eurydice
 - linting
