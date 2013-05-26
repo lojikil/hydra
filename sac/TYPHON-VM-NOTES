@@ -13,7 +13,29 @@ Some quick notes related to how Typhon's VM works, and how it could be possibly 
 
 becomes:
 
-`((31 n) (3 0) (11) (29 3) (3 0) (28 18) (31 n) (3 1) (26) (29 3) (3 1) (28 12) (31 n) (3 1) (5) (31 fib) (110 not-found) (31 n) (3 2) (5) (31 fib) (110 not-found) (6))`
+`((31 n)
+  (3 0)
+  (11)
+  (29 3)
+  (3 0)
+  (28 18)
+  (31 n)
+  (3 1)
+  (26)
+  (29 3)
+  (3 1)
+  (28 12)
+  (31 n)
+  (3 1)
+  (5)
+  (31 fib)
+  (110 not-found)
+  (31 n)
+  (3 2)
+  (5)
+  (31 fib)
+  (110 not-found)
+  (6))`
 
 (that's without the surrounding `compiled-lambda`)
 
@@ -31,4 +53,7 @@ A simple breakdown by `,i x` shows us what `x` becomes: `((3 10) (31 fib) (110 f
 - implement a RECURSE instruction; used only for self-recursion (i.e. different from TAIL-CALL)
 - add the procedure to the environment, so that RECURSE can be emitted (e.g. detected by `typhon@compile`)
 - add DUP, ROT, PICK, SWAP, OVER, TUCK, NIP to the instruction set to help with stack-based coding.
-
+- ... which become really messy in the fib + fib code; have to NPICK for the second call to `fib`, which is yuck
+- have a local stack for params? ala python's "fast load"
+- compiler tracks & emits the fast load & what is stored where
+- down side? need to update _two_ locations for set!
