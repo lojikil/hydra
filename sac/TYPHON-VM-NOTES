@@ -57,3 +57,4 @@ A simple breakdown by `,i x` shows us what `x` becomes: `((3 10) (31 fib) (110 f
 - have a local stack for params? ala python's "fast load"
 - compiler tracks & emits the fast load & what is stored where
 - down side? need to update _two_ locations for set!
+- Python uses "STORE_FAST", which is pretty reasonable, and I think it should work. Would need a "locals" stack added to `hydra@vm` though...
