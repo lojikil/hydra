@@ -1,0 +1,34 @@
+* Overview
+
+Some quick notes related to how Typhon's VM works, and how it could be possibly imporoved; from my hand written notes.
+
+* Typhon's current model:
+
+`(define (fib n)
+	(if (<= n 0)
+		0	
+        (if (= n 1)
+            1
+		    (+ (fib (- n 1)) (fib (- n 2))))))`
+
+becomes:
+
+`((31 n) (3 0) (11) (29 3) (3 0) (28 18) (31 n) (3 1) (26) (29 3) (3 1) (28 12) (31 n) (3 1) (5) (31 fib) (110 not-found) (31 n) (3 2) (5) (31 fib) (110 not-found) (6))`
+
+(that's without the surrounding `compiled-lambda`)
+
+A simple test case shows what's next:
+
+`(define (x) (fib 10))`
+
+A simple breakdown by `,i x` shows us what `x` becomes: `((3 10) (31 fib) (110 found))`. 
+
+* What I think needs to be done:
+
+- `n` is already on the stack, why take it off and into the env?
+- only `define` should add to the env; params should live only on the stack (until they escape... :|)
+- do both? add to the env & rely on the stack for code. need to track which items are params to be able to emit properly.
+- implement a RECURSE instruction; used only for self-recursion (i.e. different from TAIL-CALL)
+- add the procedure to the environment, so that RECURSE can be emitted (e.g. detected by `typhon@compile`)
+- add DUP, ROT, PICK, SWAP, OVER, TUCK, NIP to the instruction set to help with stack-based coding.
+
