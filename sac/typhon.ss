@@ -217,14 +217,14 @@
 (define (typhon@umacro? x)
     #f)
 
-(define (loop-set-env! env params vals)
+(define (loop-set-env! env params vals locals lidx)
     (if (null? params)
         vals
         (begin
             (cset! env (car params) (car vals))
             (loop-set-env! env (cdr params) (cdr vals)))))
 
-(define (build-environment environment stack params)
+(define (build-environment environment stack params locals)
     "Adds a new window to the environment, removes |params| items from the stack
      and binds those values in the new window. It returns a list of environment and
      the new stack."
@@ -296,7 +296,7 @@
         else
             (error (format "unknown procedure \"~a\"" proc))))
 
-(define (typhon@vm code env ip stack dump)
+(define (typhon@vm code env ip stack dump locals)
      " process the actual instructions of a code object; the basic idea is that
        the user enters:
        h; (car (cdr (cons 1 (cons 2 '()))))
