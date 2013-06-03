@@ -1104,6 +1104,25 @@
                             (+ ip 1)
                             (cons (type (car stack)) (cdr stack))
                             locals
+                            dump)
+                    (112) ;; fetch local
+                        (typhon@vm
+                            cod
+                            env
+                            (+ ip 1)
+                            (cons
+                                (nth locals operand)
+                                stack)
+                            locals
+                            dump)
+                    (113) ;; set local
+                        ;; need to actually implement this ^_^
+                        (typhon@vm
+                            code
+                            env
+                            (+ ip 1)
+                            (cdr stack)
+                            locals
                             dump)))))
 
 ; syntax to make the above nicer:
