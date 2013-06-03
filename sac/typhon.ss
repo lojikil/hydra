@@ -1117,13 +1117,19 @@
                             dump)
                     (113) ;; set local
                         ;; need to actually implement this ^_^
-                        (typhon@vm
-                            code
-                            env
-                            (+ ip 1)
-                            (cdr stack)
-                            locals
-                            dump)))))
+                        (let ((lidx (nth c 1))
+                              (envobj (nth c 2 #f)))
+                            (cset! locals lidx (car stack))
+                            (if (not (eq? envobj #f))
+                                (typhon@add-env! envobj (car stack) env)
+                                #v)
+                            (typhon@vm
+                                code
+                                env
+                                (+ ip 1)
+                                (cdr stack)
+                                locals
+                                dump))))))
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
