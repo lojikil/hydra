@@ -562,14 +562,14 @@
                                     ;; in to HOFs...
                                     (if (> (car dump) (length (cadr dump)))
                                         (error "Dump stack overflow")
-                                        (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) stack (nth (cadr call-proc) 2)))
+                                        (let ((env-and-stack (build-environment (nth (cadr call-proc) 1) stack (nth (cadr call-proc) 2) locals))
                                               (v-dump (cadr dump))
                                               (offset (car dump)))
-                                            (cset! v-dump offset (cadr env-and-stack))
-                                            (cset! v-dump (+ offset 1) ip)
-                                            (cset! v-dump (+ offset 2) env)
-                                            (cset! v-dump (+ offset 3) code)
-                                            (cset! v-dump (+ offset 4) locals)
+                                            (cset! v-dump offset locals)
+                                            (cset! v-dump (+ offset 1) (cadr env-and-stack))
+                                            (cset! v-dump (+ offset 2) ip)
+                                            (cset! v-dump (+ offset 3) env)
+                                            (cset! v-dump (+ offset 4) code)
                                             (typhon@vm
                                                 (nth (cadr call-proc) 1)
                                                 (car env-and-stack)
@@ -1076,17 +1076,17 @@
                                     ;; in to HOFs...
                                     (if (> (car dump) (length (cadr dump)))
                                         (error "Dump stack overflow")
-                                        (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) (cdr stack) (nth (cadr call-proc) 2)))
+                                        (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) (cdr stack) (nth (cadr call-proc) 2) locals))
                                               (v-dump (cadr dump))
                                               (offset (car dump)))
                                             ;(display "in let; (car env-and-stack) == ")
                                             ;(write (car env-and-stack))
                                             ;(newline)
-                                            (cset! v-dump offset (cadr env-and-stack))
-                                            (cset! v-dump (+ offset 1) ip)
-                                            (cset! v-dump (+ offset 2) env)
-                                            (cset! v-dump (+ offset 3) code)
-                                            (cset! v-dump (+ offset 4) locals)
+                                            (cset! v-dump offset locals)
+                                            (cset! v-dump (+ offset 1) (cadr env-and-stack))
+                                            (cset! v-dump (+ offset 2) ip)
+                                            (cset! v-dump (+ offset 3) env)
+                                            (cset! v-dump (+ offset 4) code)
                                             (typhon@vm
                                                 (nth (cadr call-proc) 1)
                                                 (car env-and-stack)
@@ -1107,16 +1107,15 @@
                             dump)
                     (112) ;; fetch local
                         (typhon@vm
-                            cod
+                            code
                             env
                             (+ ip 1)
                             (cons
-                                (nth locals operand)
+                                (nth locals (typhon@operand c))
                                 stack)
                             locals
                             dump)
                     (113) ;; set local
-                        ;; need to actually implement this ^_^
                         (let ((lidx (nth c 1))
                               (envobj (nth c 2 #f)))
                             (cset! locals lidx (car stack))
@@ -1363,7 +1362,7 @@
 
 (define (typhon@eval line env dump)
     "simple wrapper around typhon@vm & typhon@compile"
-    (typhon@vm (typhon@compile line env) env 0 '() dump))
+    (typhon@vm (typhon@compile line env) env 0 '() '() dump))
 
 (define (typhon@compile-help sym iter-list env)
     " a helper function for typhon@compile, which collects
