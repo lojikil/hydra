@@ -220,9 +220,9 @@
 (define (loop-set-env! env params vals locals lidx)
     (if (null? params)
         vals
-        (begin
-            (cset! env (car params) (car vals))
-            (cset! locals lidx (car vals))
+        (let ((name (car params)))
+            (dict-set! env name (car vals))
+            #;(vector-set! locals lidx (car vals))
             (loop-set-env! env (cdr params) (cdr vals) locals (+ lidx 1)))))
 
 (define (build-environment environment stack params locals)

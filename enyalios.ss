@@ -151,6 +151,7 @@
     :partial-key? ["fpartial_key" #f 2 2]
     :cset! ["fcset" #f 3 3]
     :dict-set! ["fdset" #f 3 3] ;; to be optimized away below
+    :vector-set! ["fvset" #f 3 3] ;; to be optimized away below
     :string ["fstring" #f 0 -1]
     :dict ["fdict" #f 0 -1]
     :empty? ["fempty" #f 1 1]
@@ -1095,6 +1096,9 @@
         (and
             (eq? (car c) 'c-primitive-fixed)
             (eq? (cadr c) "fdset"))
+        (and
+            (eq? (car c) 'c-primitive-fixed)
+            (eq? (cadr c) "fvset"))
         #f))
 
 (define (optimize-eq code out status)
@@ -1292,7 +1296,7 @@
             (begin
                 (display "trie_put(" out)
                 (cond
-                    (symbol? key) (display (cmung key) out)
+                    (symbol? key) (display (format "ASTRING(~s)" (cmung key)) out)
                     (or (key? key) (string? key)) (display (format "\"~a\"" key) out)
                     else (il->c key 0 out))
                 (display ", " out)
@@ -1300,6 +1304,30 @@
                 (display ", " out)
                 (display d out)
                 (display "->object.dict)" out)))))
+
+(define (optimize-vset o out)
+    (let* ((vals (caddr o))
+          (d (car vals))
+          (key (cadr vals))
+          (obj (caddr vals)))
+        (if (not (symbol? d))
+            (begin
+                (display "fcset(" out)
+                (il->c d 0 out)
+                (display ", " out)
+                (il->c key 0 out)
+                (display ", " out)
+                (il->c obj 0 out)
+                (display ")" out))
+            (begin
+                (display (cmung d) out)
+                (display "->object.vec[" out)
+                (cond
+                    (symbol? key) (display (format "AINT(~s)" (cmung key)) out)
+                    (integer? key) (display key out)
+                    else (il->c key 0 out))
+                (display "] = " out)
+                (il->c obj 0 out)))))
 
 (define (optimize-primitive o out (status #f))
     (cond
@@ -1309,6 +1337,8 @@
             (optimize-add o out)
         (eq? (cadr o) "fdset")
             (optimize-dset o out)
+        (eq? (cadr o) "fvset")
+            (optimize-vset o out)
         else
             (error "unable to optimize primitive form")))
 

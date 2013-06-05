@@ -21,6 +21,7 @@
 #define set_str(x,y) (x)->object.str = hstrdup(y)
 #define AINT(x) (x)->object.n->nobject.z
 #define AREAL(x) (x)->object.n->nobject.real
+#define ASTRING(x) (x)->object.str
 #define NUM(x) (x)->object.n->nobject.rational.num
 #define DEN(x) (x)->object.n->nobject.rational.den
 #define CEREAL(x) (x)->object.n->nobject.complex.r
