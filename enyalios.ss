@@ -152,6 +152,7 @@
     :cset! ["fcset" #f 3 3]
     :dict-set! ["fdset" #f 3 3] ;; to be optimized away below
     :vector-set! ["fvset" #f 3 3] ;; to be optimized away below
+    :type? ["typep" #f 2 2] ;; to be optimized away below
     :string ["fstring" #f 0 -1]
     :dict ["fdict" #f 0 -1]
     :empty? ["fempty" #f 1 1]
@@ -1099,6 +1100,9 @@
         (and
             (eq? (car c) 'c-primitive-fixed)
             (eq? (cadr c) "fvset"))
+        (and
+            (eq? (car c) 'c-primitive-fixed)
+            (eq? (cadr c) "typep"))
         #f))
 
 (define (optimize-eq code out status)
@@ -1279,6 +1283,27 @@
                                 (il->c a1 0 out)
                                 (display ")" out)))))))
 
+(define (optimize-typep code out status?)
+    (let* ((args (caddr code)) ; destructuring bind would be nice here...
+           (obj (car args))
+           (type (cadr args)))
+        (if (symbol? obj)
+            (begin
+                (display "(" out)
+                (display (cmung obj) out)
+                (display "->type == " out)
+                (display type out)
+                (if status?
+                    (display " ? STRUE : SFALSE" out)
+                    #v)
+                (display ")" out))
+            (begin
+                (display "typep(" out)
+                (il->c obj 0 out)
+                (display ", " out)
+                (display type out)
+                (display ")" out)))))
+
 (define (optimize-dset o out)
     (let* ((vals (caddr o))
           (d (car vals))
@@ -1339,6 +1364,8 @@
             (optimize-dset o out)
         (eq? (cadr o) "fvset")
             (optimize-vset o out)
+        (eq? (cadr o) "typep")
+            (optimize-typep o out status)
         else
             (error "unable to optimize primitive form")))
 
