@@ -171,15 +171,15 @@
 
 (define (equal? x y)
 	(cond
-		(and (eq? (type x) "Pair") (eq? (type y) "Pair"))
+		(and (type? x "PAIR") (type? y "PAIR"))
 			(if (equal? (car x) (car y))
 				(equal? (cdr x) (cdr y))
 				#f)
-		(and (eq? (type x) "Vector") (eq? (type y) "Vector"))
+		(and (type? x "VECTOR") (type? y "VECTOR"))
 			(if (= (length x) (length y))
 				(vector-equal? x y 0)
 				#f)
-		(and (eq? (type x) "Number") (eq? (type y) "Number"))
+		(and (type? x "NUMBER") (type? y "NUMBER"))
 			(= x y)
 		else
 			(eq? x y)))

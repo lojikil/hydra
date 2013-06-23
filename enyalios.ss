@@ -1152,6 +1152,16 @@
                         "(~a->type == STRING && !strncmp(~a->object.str, \"~s\", ~a->length))"
                         a0 a0 a1 a0)
                     out)
+            (and ;; (eq? x 'ATOM) optimization...
+                (symbol? a0)
+                (pair? a1)
+                (eq? (car a1) 'quote)
+                (eq? (type (cadr a1)) "Symbol"))
+                (display
+                    (format
+                        "(~a->type == STRING && !strncasecmp(~a->object.str,\"~a\", ~a->length))"
+                        a0 a0 a1 a0)
+                    out)
             else
                 (begin
                     (display "(eqp(" out)
