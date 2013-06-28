@@ -297,6 +297,7 @@ typedef struct _SYM
 } Symbol;
 
 SExp *eqp(SExp *,SExp *); /* eq? */
+SExp *eqp_atom(SExp *, char *);
 SExp *assq(SExp *, SExp *); /* standard assq */
 SExp *memq(SExp *, SExp *); /* standard memq */
 

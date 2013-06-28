@@ -1167,9 +1167,9 @@
                 (eq? (car a1) 'c-quote)
                 (eq? (type (caadr a1)) "Symbol"))
                 (begin
-                    (display "eqp_atom(" out)
+                    (display "(eqp_atom(" out)
                     (il->c a0 0 out)
-                    (display (format ", \"~a\")" (caadr a1)) out))
+                    (display (format ", \"~a\") == STRUE)" (caadr a1)) out))
             else
                 (begin
                     (display "(eqp(" out)
