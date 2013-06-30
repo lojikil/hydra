@@ -413,15 +413,8 @@ eqp(SExp *s0, SExp *s1)
 SExp *
 eqp_atom(SExp *item, char *atom)
 {
-    printf("in eqp_atom; item == ");
-    princ(item);
-    printf(" and atom == %s\n", atom);
-    if(item->type == ATOM && !strncasecmp(item->object.str, atom, item->length))
-    {
-        printf("returning strue?\n");
+    if(item->type == ATOM && !strcasecmp(item->object.str, atom))
         return strue;
-    }
-    printf("returning sfalse?\n");
     return sfalse;
 }
 
