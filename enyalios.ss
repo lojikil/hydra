@@ -1105,6 +1105,15 @@
             (eq? (cadr c) "typep"))
         #f))
 
+(define (optimize-logical code out status)
+    "optimize a large swath of logical operations: <, >, <=, >=, =. Handle cases similar to
+     optimize +. Probably can be used for most operators (+,/,*,%); would need a NEST-OR-JOIN
+     flag that could be used to either nest or join the operations with && or the like."
+    (let* ((args (caddr code))
+           (a0 (car args))
+           (a1 (cadr args)))
+        #f))
+
 (define (optimize-eq code out status)
     (show status "optimize-eq stats == ")
     (show code "optimize-eq code == ")
