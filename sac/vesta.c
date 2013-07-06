@@ -390,12 +390,15 @@ eqp(SExp *s0, SExp *s1)
 					return strue;
 			}
 			break;
-		case KEY:
-		case STRING:
-		case ATOM:
-			if(!strcasecmp(tmp0->object.str,tmp1->object.str))
-				return strue;
-			return sfalse;
+        case KEY: 
+        case ATOM:
+            if(!strcasecmp(tmp0->object.str,tmp1->object.str))
+                return strue;
+            return sfalse;
+        case STRING:
+            if(!strncmp(tmp0->object.str,tmp1->object.str, tmp1->length))
+                return strue;
+            return sfalse;
 		case CHAR:
 			if(tmp0->object.c == tmp1->object.c)
 				return strue;

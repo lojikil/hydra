@@ -1111,7 +1111,8 @@
      flag that could be used to either nest or join the operations with && or the like."
     (let* ((args (caddr code))
            (a0 (car args))
-           (a1 (cadr args)))
+           (a1 (cadr args))
+           (lp (length args)))
         #f))
 
 (define (optimize-eq code out status)
