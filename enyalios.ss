@@ -1090,19 +1090,20 @@
     (or
         (and
             (eq? (car c) 'c-primitive-fixed)
-            (eq? (cadr c) "eqp"))
+            (or
+                (eq? (cadr c) "eqp")
+                (eq? (cadr c) "fdset")
+                (eq? (cadr c) "fvset")
+                (eq? (cadr c) "typep")))
         (and
             (eq? (car c) 'c-primitive)
-            (eq? (cadr c) "fplus"))
-        (and
-            (eq? (car c) 'c-primitive-fixed)
-            (eq? (cadr c) "fdset"))
-        (and
-            (eq? (car c) 'c-primitive-fixed)
-            (eq? (cadr c) "fvset"))
-        (and
-            (eq? (car c) 'c-primitive-fixed)
-            (eq? (cadr c) "typep"))
+            (or
+                (eq? (cadr c) "fplus")
+                (eq? (cadr c) "fnumeq")
+                (eq? (cadr c) "flt")
+                (eq? (cadr c) "flte")
+                (eq? (cadr c) "fgt")
+                (eq? (cadr c) "fgte")))
         #f))
 
 (define (optimize-logical code out status)
@@ -1112,8 +1113,55 @@
     (let* ((args (caddr code))
            (a0 (car args))
            (a1 (cadr args))
-           (lp (length args)))
-        #f))
+           (lp (length args))
+           (proc (cadr code)))  
+        (cond
+            status
+                (begin
+                    (display proc out)
+                    (display (format "(list(~n," lp) out)
+                    (comma-separated-c args out)
+                    (display ")" out))
+            (> lp 2)
+                ;; these could be decomposed down properly, but I'm lazy atm
+                (begin
+                    (display proc out)
+                    (display (format "(list(~n," lp) out)
+                    (comma-separated-c args out)
+                    (display ")" out))
+            (and
+                (symbol? a0)
+                (symbol? a1))
+                #f
+            ;; um... what about procedure calls. Duh. Shouldn't do this whilst sleepy %_%
+            ;; maybe should reverse these? move type checks to the top level? Should sleep
+            ;; on it...
+            (symbol? a0)
+                (cond
+                    (integer? a1)
+                        ;; proc _ni
+                    (real? a1)
+                        ;; proc _nr
+                    (rational? a1)
+                        ;; proc _nq
+                    (complex? a1)
+                        ;; proc _nc
+                    else
+                        (error "Incorrect argument for logical procedure"))
+            (symbol? a1)
+                (cond
+                    (integer? a0)
+                        ;; proc _in
+                    (real? a0)
+                        ;; proc _rn
+                    (rational? a0)
+                        ;; proc _qn
+                    (complex? a0)
+                        ;; proc _cn
+                    else
+                        (error "Incorrect argument for logical procedure"))
+            else
+                (error "Unable to optimize logical procedure; incorrect arguments provided."))))
 
 (define (optimize-eq code out status)
     (show status "optimize-eq stats == ")
