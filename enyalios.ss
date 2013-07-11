@@ -1130,13 +1130,19 @@
                     (comma-separated-c args out)
                     (display ")" out))
             (and
-                (symbol? a0)
-                (symbol? a1))
+                (or
+                    (symbol? a0)
+                    (pair? a0))
+                (or
+                    (symbol? a1)
+                    (pair? a1)))
                 #f
             ;; um... what about procedure calls. Duh. Shouldn't do this whilst sleepy %_%
             ;; maybe should reverse these? move type checks to the top level? Should sleep
             ;; on it...
-            (symbol? a0)
+            (or
+                (symbol? a0)
+                (pair? a0))
                 (cond
                     (integer? a1)
                         ;; proc _ni
@@ -1148,7 +1154,9 @@
                         ;; proc _nc
                     else
                         (error "Incorrect argument for logical procedure"))
-            (symbol? a1)
+            (or 
+                (symbol? a1)
+                (pair? a1))
                 (cond
                     (integer? a0)
                         ;; proc _in
