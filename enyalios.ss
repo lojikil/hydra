@@ -1136,22 +1136,48 @@
                 (or
                     (symbol? a1)
                     (pair? a1)))
-                #f
-            ;; um... what about procedure calls. Duh. Shouldn't do this whilst sleepy %_%
-            ;; maybe should reverse these? move type checks to the top level? Should sleep
-            ;; on it...
+                (begin
+                    (display (format "~a_nn(" proc) out)
+                    (comma-separated-c args out)
+                    (display ")" out))
+            ;; this whole thing could be DRYed out a bit, but
+            ;; for now it's fine
             (or
                 (symbol? a0)
                 (pair? a0))
                 (cond
                     (integer? a1)
-                        ;; proc _ni
+                        (begin
+                            (display (format "~a_ni(" proc) out)
+                            (il->c a0 0 out)
+                            (display ", " out)
+                            (display a1 out)
+                            (display ")" out))
                     (real? a1)
-                        ;; proc _nr
-                    (rational? a1)
-                        ;; proc _nq
+                        (begin
+                            (display (format "~a_nr(" proc) out)
+                            (il->c a0 0 out)
+                            (display ", " out)
+                            (display a1 out)
+                            (display ")" out))
+                    (rationalq? a1)
+                        (begin
+                            (display (format "~a_nq(" proc) out)
+                            (il->c a0 0 out)
+                            (display ", " out)
+                            (display (numerator a1) out)
+                            (display ", " out)
+                            (display (denomenator a1) out)
+                            (display ")" out))
                     (complex? a1)
-                        ;; proc _nc
+                        (begin
+                            (display (format "~a_nc(" proc) out)
+                            (il->c a0 0 out)
+                            (display ", " out)
+                            (display (real-part a1) out)
+                            (display ", " out)
+                            (display (imag-part a1) out)
+                            (display ")" out))
                     else
                         (error "Incorrect argument for logical procedure"))
             (or 
@@ -1159,13 +1185,37 @@
                 (pair? a1))
                 (cond
                     (integer? a0)
-                        ;; proc _in
+                        (begin
+                            (display (format "~a_in(" proc) out)
+                            (display a0 out)
+                            (display ", " out)
+                            (il->c a1 0 out)
+                            (display ")" out))
                     (real? a0)
-                        ;; proc _rn
+                        (begin
+                            (display (format "~a_rn(" proc) out)
+                            (display a0 out)
+                            (display ", " out)
+                            (il->c a1 0 out)
+                            (display ")" out))
                     (rational? a0)
-                        ;; proc _qn
+                        (begin
+                            (display (format "~a_qn(" proc) out)
+                            (display (numerator a0) out)
+                            (display ", " out)
+                            (display (denomenator a0) out)
+                            (display ", " out)
+                            (il->c a1 0 out)
+                            (display ")" out))
                     (complex? a0)
-                        ;; proc _cn
+                        (begin
+                            (display (format "~a_cn(" proc) out)
+                            (display (real-part a0) out)
+                            (display ", " out)
+                            (display (imag-part a0) out)
+                            (display ", " out)
+                            (il->c a1 0 out)
+                            (display ")" out))
                     else
                         (error "Incorrect argument for logical procedure"))
             else
@@ -1439,6 +1489,7 @@
                 (il->c obj 0 out)))))
 
 (define (optimize-primitive o out (status #f))
+    ;; should probably be a case on (cadr o)
     (cond
         (eq? (cadr o) "eqp")
             (optimize-eq o out status)
@@ -1450,6 +1501,13 @@
             (optimize-vset o out)
         (eq? (cadr o) "typep")
             (optimize-typep o out status)
+        (or
+            (eq? (cadr o) "flt")
+            (eq? (cadr o) "flte")
+            (eq? (cadr o) "fgt")
+            (eq? (cadr o) "fgte")
+            (eq? (cadr o) "fnumeq"))
+            (optimize-logical o out status)
         else
             (error "unable to optimize primitive form")))
 
