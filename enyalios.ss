@@ -1115,13 +1115,10 @@
            (a1 (cadr args))
            (lp (length args))
            (proc (cadr code)))  
+        (if status
+            #v
+            (display "(" out))
         (cond
-            status
-                (begin
-                    (display proc out)
-                    (display (format "(list(~n," lp) out)
-                    (comma-separated-c args out)
-                    (display ")" out))
             (> lp 2)
                 ;; these could be decomposed down properly, but I'm lazy atm
                 (begin
@@ -1219,7 +1216,10 @@
                     else
                         (error "Incorrect argument for logical procedure"))
             else
-                (error "Unable to optimize logical procedure; incorrect arguments provided."))))
+                (error "Unable to optimize logical procedure; incorrect arguments provided."))
+            (if status
+                #v
+                (display ") == STRUE" out))))
 
 (define (optimize-eq code out status)
     (show status "optimize-eq stats == ")
