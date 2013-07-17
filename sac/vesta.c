@@ -5043,6 +5043,193 @@ fmag(SExp *tmp1)
 	return tmp0;
 }
 SExp *
+flt_in(int i, SExp *n)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,"< operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            if(i < AINT(n))
+                return STRUE;
+            break;
+        case REAL:
+            if(i < AREAL(n))
+                return STRUE;
+            break;
+        case RATIONAL:
+            if(i < (ANUM(n) / ADEN(n)))
+                return STRUE;
+            break;
+        case COMPLEX:
+            if(AIMAG(n) != 0)
+                return SFALSE;
+            if(i < ACEREAL(n))
+                return STRUE;
+            break;
+    }
+    return SFALSE;
+}
+SExp *
+flt_ni(SExp *n, int i)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,"< operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            if(AINT(n) < i)
+                return STRUE;
+            break;
+        case REAL:
+            if(AREAL(n) < i)
+                return STRUE;
+            break;
+        case RATIONAL:
+            if(i < (ANUM(n) / ADEN(n)))
+                return STRUE;
+            break;
+        case COMPLEX:
+            if(AIMAG(n) != 0)
+                return SFALSE;
+            if(ACEREAL(n) < i)
+                return STRUE;
+            break;
+    }
+    return SFALSE;
+}
+SExp *
+fgt_ni(SExp *n, int i)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,"> operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            if(AINT(n) > i)
+                return STRUE;
+            break;
+        case REAL:
+            if(AREAL(n) > i)
+                return STRUE;
+            break;
+        case RATIONAL:
+            if(i > (ANUM(n) / ADEN(n)))
+                return STRUE;
+            break;
+        case COMPLEX:
+            if(AIMAG(n) != 0)
+                return SFALSE;
+            if(ACEREAL(n) > i)
+                return STRUE;
+            break;
+    }
+    return SFALSE;
+}
+SExp *
+fnumeq_ni(SExp *n, int i)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,"= operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            if(AINT(n) == i)
+                return STRUE;
+            break;
+        case REAL:
+            if(AREAL(n) == i)
+                return STRUE;
+            break;
+        case RATIONAL:
+            if(i == (ANUM(n) / ADEN(n)))
+                return STRUE;
+            break;
+        case COMPLEX:
+            if(AIMAG(n) != 0)
+                return SFALSE;
+            if(ACEREAL(n) == i)
+                return STRUE;
+            break;
+    }
+    return SFALSE;
+}
+SExp *
+fnumeq_nn(SExp *n, SExp *p)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,"= operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AINT(n) == AINT(p))
+                        return STRUE;
+                    break
+                case REAL:
+                    if(AINT(n) == AREAL(p))
+                        return STRUE;
+                    break;
+                case RATIONAL:
+                    if(AINT(n) == (ANUM(p) / ADEN(p)))
+                        return STRUE;
+                    break
+                case COMPLEX:
+                    if(AIMAG(p) != 0)
+                        return SFALSE;
+                    if(AINT(n) == CEREAL(p))
+                        return STRUE;
+                    break;
+            }
+            break;
+        case REAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AREAL(n) == (AINT(p) * 1.0))
+                        return STRUE;
+                    break;
+                case REAL:
+                    if(AREAL(n) == AREAL(p))
+                        return STRUE;
+                    break;
+                case RATIONAL:
+                    if(AREAL(n) == ((ANUM(p) / ADEN(p)) * 1.0))
+                        return STRUE;
+                    break;
+                case COMPLEX:
+                    if(AIMAG(p) != 0)
+                        return SFALSE;
+                    if(AINT(n) == CEREAL(p))
+                        return STRUE;
+                    break;
+            }
+            break;
+        case RATIONAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                case REAL:
+                case RATIONAL:
+                case COMPLEX:
+            }
+            break;
+        case COMPLEX:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                case REAL:
+                case RATIONAL:
+                case COMPLEX:
+            }
+            break;
+    }
+    return SFALSE;
+}
+/*
+SExp *
 flt(SExp *rst)
 {
 	SExp *tmp0 = nil, *tmp1 = nil;
@@ -5143,9 +5330,9 @@ flt(SExp *rst)
 							return sfalse;
 						break;
 					case RATIONAL:
-						/* this is a loss of precision issue; there is a better way than upconverting to REAL;
-						 * however, this is quite easy to do for PoC. FIXME later...
-						 */
+						// this is a loss of precision issue; there is a better way than upconverting to REAL;
+						// however, this is quite easy to do for PoC. FIXME later...
+						//
 						if(((NUM(tmp0) * 1.0) / (DEN(tmp0) * 1.0)) >= ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
 							return sfalse;	
 						break;
@@ -5158,9 +5345,7 @@ flt(SExp *rst)
 				}
 				break;
 			case COMPLEX:
-				/*printf("IMMAG(tmp1) == 0.0? %s\n", IMMAG(tmp1) == 0.0 ? "#t" : "#f");
-				printf("%f\n",IMMAG(tmp1));*/
-				if(NTYPE(tmp0) != COMPLEX && IMMAG(tmp1) < 0.0) /* up conversion... */
+				if(NTYPE(tmp0) != COMPLEX && IMMAG(tmp1) < 0.0) // up conversion... 
 					return sfalse;
 				switch(tmp0->object.n->type)
 				{
@@ -5210,6 +5395,7 @@ flt(SExp *rst)
 	}
 	return strue;
 }
+*/
 SExp *
 flte(SExp *rst)
 {
