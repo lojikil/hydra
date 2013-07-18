@@ -5202,7 +5202,7 @@ fnumeq_nn(SExp *n, SExp *p)
                 case COMPLEX:
                     if(AIMAG(p) != 0)
                         return SFALSE;
-                    if(AINT(n) == CEREAL(p))
+                    if(AREAL(n) == CEREAL(p))
                         return STRUE;
                     break;
             }
@@ -5211,18 +5211,47 @@ fnumeq_nn(SExp *n, SExp *p)
             switch(NTYPE(p))
             {
                 case INTEGER:
+                    if((ANUM(n) / ADEN(p)) == AINT(p))
+                        return STRUE;
+                    break;
                 case REAL:
+                    if(((ANUM(n) / ADEN(p)) * 1.0) == AREAL(p))
+                        return STRUE;
+                    break;
                 case RATIONAL:
+                    // WRONG! but quick for now :D
+                    if((ANUM(n) == ANUM(p)) && (ANUM(n) == ANUM(p)))
+                        return STRUE;
+                    break;
                 case COMPLEX:
+                    if(AIMAG(p) != 0)
+                        return SFALSE;
+                    if(((NUM(n) / ADEN(p)) * 1.0) == CEREAL(p))
+                        return STRUE;
+                    break;
             }
             break;
         case COMPLEX:
+            if(AIMAG(n) != 0.0 && NTYPE(p) != COMPLEX)
+                break;
             switch(NTYPE(p))
             {
                 case INTEGER:
+                    if(CEREAL(n) == (1.0 * AINT(p)))
+                        return STRUE;
+                    break;
                 case REAL:
+                    if(CEREAL(n) == AREAL(p))
+                        return STRUE;
+                    break;
                 case RATIONAL:
+                    if(CEREAL(n) == (1.0 * (ANUM(p) / ADEN(p))))
+                        return STRUE;
+                    break;
                 case COMPLEX:
+                    if(CEREAL(n) == CEREAL(p) && AIMAG(n) == AIMAG(p))
+                        return STRUE;
+                    break;
             }
             break;
     }
