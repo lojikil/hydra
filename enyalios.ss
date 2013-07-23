@@ -1116,8 +1116,8 @@
            (lp (length args))
            (proc (cadr code)))  
         (if status
-            #v
-            (display "(" out))
+            (display "(" out)
+            #v)
         (cond
             (> lp 2)
                 ;; these could be decomposed down properly, but I'm lazy atm
@@ -1218,8 +1218,8 @@
             else
                 (error "Unable to optimize logical procedure; incorrect arguments provided."))
             (if status
-                #v
-                (display ") == STRUE" out))))
+                (display ") == STRUE" out)
+                #v)))
 
 (define (optimize-eq code out status)
     (show status "optimize-eq stats == ")

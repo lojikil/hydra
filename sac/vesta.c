@@ -5051,24 +5051,24 @@ flt_in(int i, SExp *n)
     {
         case INTEGER:
             if(i < AINT(n))
-                return STRUE;
+                return strue;
             break;
         case REAL:
             if(i < AREAL(n))
-                return STRUE;
+                return strue;
             break;
         case RATIONAL:
-            if(i < (ANUM(n) / ADEN(n)))
-                return STRUE;
+            if(i < (NUM(n) / DEN(n)))
+                return strue;
             break;
         case COMPLEX:
-            if(AIMAG(n) != 0)
-                return SFALSE;
-            if(i < ACEREAL(n))
-                return STRUE;
+            if(IMMAG(n) != 0)
+                return sfalse;
+            if(i < CEREAL(n))
+                return strue;
             break;
     }
-    return SFALSE;
+    return sfalse;
 }
 SExp *
 flt_ni(SExp *n, int i)
@@ -5079,24 +5079,24 @@ flt_ni(SExp *n, int i)
     {
         case INTEGER:
             if(AINT(n) < i)
-                return STRUE;
+                return strue;
             break;
         case REAL:
             if(AREAL(n) < i)
-                return STRUE;
+                return strue;
             break;
         case RATIONAL:
-            if(i < (ANUM(n) / ADEN(n)))
-                return STRUE;
+            if(i < (NUM(n) / DEN(n)))
+                return strue;
             break;
         case COMPLEX:
-            if(AIMAG(n) != 0)
-                return SFALSE;
-            if(ACEREAL(n) < i)
-                return STRUE;
+            if(IMMAG(n) != 0)
+                return sfalse;
+            if(CEREAL(n) < i)
+                return strue;
             break;
     }
-    return SFALSE;
+    return sfalse;
 }
 SExp *
 fgt_ni(SExp *n, int i)
@@ -5107,24 +5107,24 @@ fgt_ni(SExp *n, int i)
     {
         case INTEGER:
             if(AINT(n) > i)
-                return STRUE;
+                return strue;
             break;
         case REAL:
             if(AREAL(n) > i)
-                return STRUE;
+                return strue;
             break;
         case RATIONAL:
-            if(i > (ANUM(n) / ADEN(n)))
-                return STRUE;
+            if(i > (NUM(n) / DEN(n)))
+                return strue;
             break;
         case COMPLEX:
-            if(AIMAG(n) != 0)
-                return SFALSE;
-            if(ACEREAL(n) > i)
-                return STRUE;
+            if(IMMAG(n) != 0)
+                return sfalse;
+            if(CEREAL(n) > i)
+                return strue;
             break;
     }
-    return SFALSE;
+    return sfalse;
 }
 SExp *
 fnumeq_ni(SExp *n, int i)
@@ -5135,24 +5135,24 @@ fnumeq_ni(SExp *n, int i)
     {
         case INTEGER:
             if(AINT(n) == i)
-                return STRUE;
+                return strue;
             break;
         case REAL:
             if(AREAL(n) == i)
-                return STRUE;
+                return strue;
             break;
         case RATIONAL:
-            if(i == (ANUM(n) / ADEN(n)))
-                return STRUE;
+            if(i == (NUM(n) / DEN(n)))
+                return strue;
             break;
         case COMPLEX:
-            if(AIMAG(n) != 0)
-                return SFALSE;
-            if(ACEREAL(n) == i)
-                return STRUE;
+            if(IMMAG(n) != 0)
+                return sfalse;
+            if(CEREAL(n) == i)
+                return strue;
             break;
     }
-    return SFALSE;
+    return sfalse;
 }
 SExp *
 fnumeq_nn(SExp *n, SExp *p)
@@ -5166,21 +5166,21 @@ fnumeq_nn(SExp *n, SExp *p)
             {
                 case INTEGER:
                     if(AINT(n) == AINT(p))
-                        return STRUE;
-                    break
+                        return strue;
+                    break;
                 case REAL:
                     if(AINT(n) == AREAL(p))
-                        return STRUE;
+                        return strue;
                     break;
                 case RATIONAL:
-                    if(AINT(n) == (ANUM(p) / ADEN(p)))
-                        return STRUE;
-                    break
+                    if(AINT(n) == (NUM(p) / DEN(p)))
+                        return strue;
+                    break;
                 case COMPLEX:
-                    if(AIMAG(p) != 0)
-                        return SFALSE;
+                    if(IMMAG(p) != 0)
+                        return sfalse;
                     if(AINT(n) == CEREAL(p))
-                        return STRUE;
+                        return strue;
                     break;
             }
             break;
@@ -5189,21 +5189,21 @@ fnumeq_nn(SExp *n, SExp *p)
             {
                 case INTEGER:
                     if(AREAL(n) == (AINT(p) * 1.0))
-                        return STRUE;
+                        return strue;
                     break;
                 case REAL:
                     if(AREAL(n) == AREAL(p))
-                        return STRUE;
+                        return strue;
                     break;
                 case RATIONAL:
-                    if(AREAL(n) == ((ANUM(p) / ADEN(p)) * 1.0))
-                        return STRUE;
+                    if(AREAL(n) == ((NUM(p) / DEN(p)) * 1.0))
+                        return strue;
                     break;
                 case COMPLEX:
-                    if(AIMAG(p) != 0)
-                        return SFALSE;
+                    if(IMMAG(p) != 0)
+                        return sfalse;
                     if(AREAL(n) == CEREAL(p))
-                        return STRUE;
+                        return strue;
                     break;
             }
             break;
@@ -5211,51 +5211,463 @@ fnumeq_nn(SExp *n, SExp *p)
             switch(NTYPE(p))
             {
                 case INTEGER:
-                    if((ANUM(n) / ADEN(p)) == AINT(p))
-                        return STRUE;
+                    if((NUM(n) / DEN(p)) == AINT(p))
+                        return strue;
                     break;
                 case REAL:
-                    if(((ANUM(n) / ADEN(p)) * 1.0) == AREAL(p))
-                        return STRUE;
+                    if(((NUM(n) / DEN(p)) * 1.0) == AREAL(p))
+                        return strue;
                     break;
                 case RATIONAL:
                     // WRONG! but quick for now :D
-                    if((ANUM(n) == ANUM(p)) && (ANUM(n) == ANUM(p)))
-                        return STRUE;
+                    if((NUM(n) == NUM(p)) && (NUM(n) == NUM(p)))
+                        return strue;
                     break;
                 case COMPLEX:
-                    if(AIMAG(p) != 0)
-                        return SFALSE;
-                    if(((NUM(n) / ADEN(p)) * 1.0) == CEREAL(p))
-                        return STRUE;
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(((NUM(n) / DEN(p)) * 1.0) == CEREAL(p))
+                        return strue;
                     break;
             }
             break;
         case COMPLEX:
-            if(AIMAG(n) != 0.0 && NTYPE(p) != COMPLEX)
+            if(IMMAG(n) != 0.0 && NTYPE(p) != COMPLEX)
                 break;
             switch(NTYPE(p))
             {
                 case INTEGER:
                     if(CEREAL(n) == (1.0 * AINT(p)))
-                        return STRUE;
+                        return strue;
                     break;
                 case REAL:
                     if(CEREAL(n) == AREAL(p))
-                        return STRUE;
+                        return strue;
                     break;
                 case RATIONAL:
-                    if(CEREAL(n) == (1.0 * (ANUM(p) / ADEN(p))))
-                        return STRUE;
+                    if(CEREAL(n) == (1.0 * (NUM(p) / DEN(p))))
+                        return strue;
                     break;
                 case COMPLEX:
-                    if(CEREAL(n) == CEREAL(p) && AIMAG(n) == AIMAG(p))
-                        return STRUE;
+                    if(CEREAL(n) == CEREAL(p) && IMMAG(n) == IMMAG(p))
+                        return strue;
                     break;
             }
             break;
     }
-    return SFALSE;
+    return sfalse;
+}
+SExp *
+fgte_nn(SExp *n, SExp *p)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,">= operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AINT(n) >= AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AINT(n) >= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AINT(n) >= (NUM(p) / DEN(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AINT(n) >= CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case REAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AREAL(n) >= (AINT(p) * 1.0))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AREAL(n) >= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AREAL(n) >= ((NUM(p) / DEN(p)) * 1.0))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AREAL(n) >= CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case RATIONAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if((NUM(n) / DEN(p)) >= AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(((NUM(n) / DEN(p)) * 1.0) >= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    // WRONG! but quick for now :D
+                    if((NUM(n) >= NUM(p)) && (NUM(n) >= NUM(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(((NUM(n) / DEN(p)) * 1.0) >= CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0.0 && NTYPE(p) != COMPLEX)
+                break;
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(CEREAL(n) >= (1.0 * AINT(p)))
+                        return strue;
+                    break;
+                case REAL:
+                    if(CEREAL(n) >= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(CEREAL(n) >= (1.0 * (NUM(p) / DEN(p))))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(CEREAL(n) >= CEREAL(p) && IMMAG(n) >= IMMAG(p))
+                        return strue;
+                    break;
+            }
+            break;
+    }
+    return sfalse;
+}
+SExp *
+fgt_nn(SExp *n, SExp *p)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,"> operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AINT(n) > AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AINT(n) > AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AINT(n) > (NUM(p) / DEN(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AINT(n) > CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case REAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AREAL(n) > (AINT(p) * 1.0))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AREAL(n) > AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AREAL(n) > ((NUM(p) / DEN(p)) * 1.0))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AREAL(n) > CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case RATIONAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if((NUM(n) / DEN(p)) > AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(((NUM(n) / DEN(p)) * 1.0) > AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    // WRONG! but quick for now :D
+                    if((NUM(n) > NUM(p)) && (NUM(n) > NUM(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(((NUM(n) / DEN(p)) * 1.0) > CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0.0 && NTYPE(p) != COMPLEX)
+                break;
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(CEREAL(n) > (1.0 * AINT(p)))
+                        return strue;
+                    break;
+                case REAL:
+                    if(CEREAL(n) > AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(CEREAL(n) > (1.0 * (NUM(p) / DEN(p))))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(CEREAL(n) > CEREAL(p) && IMMAG(n) > IMMAG(p))
+                        return strue;
+                    break;
+            }
+            break;
+    }
+    return sfalse;
+}
+SExp *
+flte_nn(SExp *n, SExp *p)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,"<= operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AINT(n) <= AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AINT(n) <= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AINT(n) <= (NUM(p) / DEN(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AINT(n) <= CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case REAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AREAL(n) <= (AINT(p) * 1.0))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AREAL(n) <= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AREAL(n) <= ((NUM(p) / DEN(p)) * 1.0))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AREAL(n) <= CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case RATIONAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if((NUM(n) / DEN(p)) <= AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(((NUM(n) / DEN(p)) * 1.0) <= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    // WRONG! but quick for now :D
+                    if((NUM(n) <= NUM(p)) && (NUM(n) <= NUM(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(((NUM(n) / DEN(p)) * 1.0) <= CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0.0 && NTYPE(p) != COMPLEX)
+                break;
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(CEREAL(n) <= (1.0 * AINT(p)))
+                        return strue;
+                    break;
+                case REAL:
+                    if(CEREAL(n) <= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(CEREAL(n) <= (1.0 * (NUM(p) / DEN(p))))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(CEREAL(n) <= CEREAL(p) && IMMAG(n) <= IMMAG(p))
+                        return strue;
+                    break;
+            }
+            break;
+    }
+    return sfalse;
+}
+SExp *
+flt_nn(SExp *n, SExp *p)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,"< operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AINT(n) < AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AINT(n) < AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AINT(n) < (NUM(p) / DEN(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AINT(n) < CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case REAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AREAL(n) < (AINT(p) * 1.0))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AREAL(n) < AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AREAL(n) < ((NUM(p) / DEN(p)) * 1.0))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AREAL(n) < CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case RATIONAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if((NUM(n) / DEN(p)) < AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(((NUM(n) / DEN(p)) * 1.0) < AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    // WRONG! but quick for now :D
+                    if((NUM(n) < NUM(p)) && (NUM(n) < NUM(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(((NUM(n) / DEN(p)) * 1.0) < CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0.0 && NTYPE(p) != COMPLEX)
+                break;
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(CEREAL(n) < (1.0 * AINT(p)))
+                        return strue;
+                    break;
+                case REAL:
+                    if(CEREAL(n) < AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(CEREAL(n) < (1.0 * (NUM(p) / DEN(p))))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(CEREAL(n) < CEREAL(p) && IMMAG(n) < IMMAG(p))
+                        return strue;
+                    break;
+            }
+            break;
+    }
+    return sfalse;
 }
 /*
 SExp *
