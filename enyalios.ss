@@ -1715,7 +1715,11 @@
                     #v)
                 (int->spaces lvl out)
                 (display "return " out)
-                (il->c (cadr il) 0 out)
+                (if (and
+                        (pair? (cadr il))
+                        (optimizable-primitive? (cadr il)))
+                    (optimize-primitive il out #t)
+                    (il->c (cadr il) 0 out))
                 (display ";\n" out))
         (eq? (car il) 'c-no-return)
             (begin
