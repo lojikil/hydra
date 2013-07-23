@@ -1528,7 +1528,7 @@
                 "||"
                 out)
         (optimizable-primitive? <cond>)
-            (optimize-primitive <cond> out)
+            (optimize-primitive <cond> out #t)
         else
             (begin
                 (display "(" out)
