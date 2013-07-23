@@ -1228,7 +1228,7 @@
            (a0 (car args))
            (a1 (cadr args)))
         (cond
-            status ;; even here, could be a0 == a1 ? STRUE : SFALSE
+            (not status) ;; even here, could be a0 == a1 ? STRUE : SFALSE
                 (begin
                     (display "eqp(" out)
                     (il->c a0 0 out)
@@ -1816,7 +1816,7 @@
                     (display "))" out)))
         (eq? (car il) 'c-primitive-fixed) ;; fixed arity primitive
             (if (optimizable-primitive? il)
-                (optimize-primitive il out #t)
+                (optimize-primitive il out)
                 (begin
                     (display (cadr il) out)
                     (display "(" out)
