@@ -359,17 +359,6 @@ SExp *
 eqp(SExp *s0, SExp *s1)
 {
 	SExp *tmp0 = s0, *tmp1 = s1;
-    printf("nil == nil %d\n", nil == nil);
-    if(s0 == nil)
-    {
-        printf("s0 == nil!\n");
-        return sfalse;
-    }
-    if(s1 == nil)
-    {
-        printf("s1 == nil!\n");
-        return sfalse;
-    }
 	if(tmp0->type != tmp1->type)
 		return sfalse;
 	switch(tmp0->type)
@@ -7370,11 +7359,9 @@ fappend(SExp *rst)
 SExp *
 ftype(SExp *r)
 {
-    printf("r == nil? %d\n", r == nil);
     if(r != nil)
     {
         return makestring(typenames[r->type]);
     }
-    printf("returning here?\n");
     return nil;
 }

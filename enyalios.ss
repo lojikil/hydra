@@ -1418,6 +1418,12 @@
                                 (display ")" out)))))))
 
 (define (optimize-typep code out status?)
+    (display "status == ")
+    (display status?)
+    (newline)
+    (display "code == ")
+    (display code)
+    (newline)
     (let* ((args (caddr code)) ; destructuring bind would be nice here...
            (obj (car args))
            (type (cadr args)))
@@ -1427,9 +1433,7 @@
                 (display (cmung obj) out)
                 (display "->type == " out)
                 (display type out)
-                (if status?
-                    (display " ? STRUE : SFALSE" out)
-                    #v)
+                (display " ? STRUE : SFALSE" out)
                 (display ")" out))
             (begin
                 (display "typep(" out)
@@ -1716,9 +1720,9 @@
                 (int->spaces lvl out)
                 (display "return " out)
                 (if (and
-                        (pair? (cadr il))
+                        (pair? (caddr il))
                         (optimizable-primitive? (cadr il)))
-                    (optimize-primitive il out #t)
+                    (optimize-primitive (cadr il) out #t)
                     (il->c (cadr il) 0 out))
                 (display ";\n" out))
         (eq? (car il) 'c-no-return)
