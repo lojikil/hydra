@@ -1418,12 +1418,6 @@
                                 (display ")" out)))))))
 
 (define (optimize-typep code out status?)
-    (display "status == ")
-    (display status?)
-    (newline)
-    (display "code == ")
-    (display code)
-    (newline)
     (let* ((args (caddr code)) ; destructuring bind would be nice here...
            (obj (car args))
            (type (cadr args)))
