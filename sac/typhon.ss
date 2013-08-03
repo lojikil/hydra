@@ -222,7 +222,7 @@
         vals
         (let ((name (car params)))
             (dict-set! env name (car vals))
-            #;(vector-set! locals lidx (car vals))
+            (vector-set! locals lidx (car vals))
             (loop-set-env! env (cdr params) (cdr vals) locals (+ lidx 1)))))
 
 (define (build-environment environment stack params locals)
@@ -249,7 +249,7 @@
                        (new-stack
                             (loop-set-env!
                                 nu-env
-                                params stack locals 0)))
+                                params stack nu-locals 0)))
                     (list (cons nu-env environment) new-stack nu-locals))))))
 
 (define (copy-code code ip offset)
