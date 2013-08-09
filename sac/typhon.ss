@@ -1317,11 +1317,11 @@
         (dict-has? (car env) item) (nth (car env) item) 
         else (typhon@lookup item (cdr env))))
 
-(define (compile-begin lst env)
+(define (compile-begin lst params env)
     (if (null? lst)
         '()
         (append
-            (typhon@compile (car lst) env)
+            (typhon@compile (car lst) params env)
             (compile-begin (cdr lst) env))))
 
 (define (compile-lambda rst env)
@@ -1364,7 +1364,7 @@
     "simple wrapper around typhon@vm & typhon@compile"
     (typhon@vm (typhon@compile line env) env 0 '() '() dump))
 
-(define (typhon@compile-help sym iter-list env)
+(define (typhon@compile-help sym iter-list params env)
     " a helper function for typhon@compile, which collects
       the old use of append-map into a single function that
       Eprime can compile (still haven't added HOFs to E'...
@@ -1373,18 +1373,18 @@
     (if (null? iter-list)
         iter-list
         (append
-            (typhon@compile (car iter-list) env)
+            (typhon@compile (car iter-list) params env)
             (list (list (cdr (typhon@lookup sym env))))
-            (typhon@compile-help sym (cdr iter-list) env))))
+            (typhon@compile-help sym (cdr iter-list) params env))))
 
-(define (typhon@map iter-list env)
+(define (typhon@map iter-list params env)
     (if (null? iter-list)
         iter-list
         (cons
-            (typhon@compile (car iter-list) env)
-            (typhon@map (cdr iter-list) env))))
+            (typhon@compile (car iter-list) params env)
+            (typhon@map (cdr iter-list) params env))))
 
-(define (typhon@compile line env)
+(define (typhon@compile line params env)
     (if (null? line)
         '()
         (cond
@@ -1414,14 +1414,14 @@
                                         (= (length rst) 2)
                                             (append
                                                 '((4)) ; this should really be a typhon@error
-                                                (typhon@compile (cadr rst) env)
-                                                (typhon@compile (car rst) env)
+                                                (typhon@compile (cadr rst) params env)
+                                                (typhon@compile (car rst) params env)
                                                 '((55)))
                                         (= (length rst) 3)
                                             (append
-                                                (typhon@compile (caddr rst) env)
-                                                (typhon@compile (cadr rst) env)
-                                                (typhon@compile (car rst) env)
+                                                (typhon@compile (caddr rst) params env)
+                                                (typhon@compile (cadr rst) params env)
+                                                (typhon@compile (car rst) params env)
                                                 '((55)))
                                         else
                                             (typhon@error "incorrect arity for NTH"))
@@ -1429,45 +1429,45 @@
                                     (cond
                                         (= (length rst) 1)
                                             (append '((3 0))
-                                                (typhon@compile (car rst) env)
+                                                (typhon@compile (car rst) params env)
                                                 (list (list (typhon@lookup '%+ env))))
                                         (> (length rst) 1)
                                             (append 
-                                                (typhon@compile (car rst) env)
-                                                (typhon@compile-help '%+ (cdr rst) env))
+                                                (typhon@compile (car rst) params env)
+                                                (typhon@compile-help '%+ (cdr rst) params env))
                                         else (list (list 3 0)))
                                 (eq? (cdr v) 'primitive-syntax-minus)
                                     (cond
                                         (= (length rst) 1)
                                             (append '((3 0))
-                                                (typhon@compile (car rst) env)
+                                                (typhon@compile (car rst) params env)
                                                 (list (list (typhon@lookup '%- env))))
                                         (> (length rst) 1)
                                             (append 
-                                                (typhon@compile (car rst) env)
-                                                (typhon@compile-help '%- (cdr rst) env))
+                                                (typhon@compile (car rst) params env)
+                                                (typhon@compile-help '%- (cdr rst) params env))
                                         else (error "minus fail"))
                                 (eq? (cdr v) 'primitive-syntax-mult)
                                     (cond
                                         (= (length rst) 1)
                                             (append '((3 0))
-                                                (typhon@compile (car rst) env)
+                                                (typhon@compile (car rst) params env)
                                                 (list (list (typhon@lookup '%* env))))
                                         (> (length rst) 1)
                                             (append 
-                                                (typhon@compile (car rst) env)
-                                                (typhon@compile-help '%* (cdr rst) env))
+                                                (typhon@compile (car rst) params env)
+                                                (typhon@compile-help '%* (cdr rst) params env))
                                         else (list (list 3 1)))
                                 (eq? (cdr v) 'primitive-syntax-div)
                                     (cond
                                         (= (length rst) 1)
                                             (append '((3 1))
-                                                (typhon@compile (car rst) env)
+                                                (typhon@compile (car rst) params env)
                                                 (list (list (typhon@lookup '%/ env))))
                                         (> (length rst) 1)
                                             (append 
-                                                (typhon@compile (car rst) env)
-                                                (typhon@compile-help '%/ (cdr rst) env))
+                                                (typhon@compile (car rst) params env)
+                                                (typhon@compile-help '%/ (cdr rst) params env))
                                         else (error "division fail"))
                                 (eq? (cdr v) 'primitive-syntax-numeq)
                                     (cond
