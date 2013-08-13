@@ -152,6 +152,7 @@
     :cset! ["fcset" #f 3 3]
     :dict-set! ["fdset" #f 3 3] ;; to be optimized away below
     :vector-set! ["fvset" #f 3 3] ;; to be optimized away below
+    :vector-ref ["fvref" #f 2 2] ;; to be optimized away below
     :type? ["typep" #f 2 2] ;; to be optimized away below
     :string ["fstring" #f 0 -1]
     :dict ["fdict" #f 0 -1]
@@ -1094,6 +1095,7 @@
                 (eq? (cadr c) "eqp")
                 (eq? (cadr c) "fdset")
                 (eq? (cadr c) "fvset")
+                (eq? (cadr c) "fvref")
                 (eq? (cadr c) "typep")))
         (and
             (eq? (car c) 'c-primitive)
@@ -1486,6 +1488,26 @@
                 (display "] = " out)
                 (il->c obj 0 out)))))
 
+(define (optimize-vref o out)
+    (let* ((vals (caddr o))
+          (d (car vals))
+          (key (cadr vals)))
+        (if (not (symbol? d))
+            (begin
+                (display "fnth(" out)
+                (il->c d 0 out)
+                (display ", " out)
+                (il->c key 0 out)
+                (display ", SNIL)" out))
+            (begin
+                (display (cmung d) out)
+                (display "->object.vec[" out)
+                (cond
+                    (symbol? key) (display (format "AINT(~s)" (cmung key)) out)
+                    (integer? key) (display key out)
+                    else (il->c key 0 out))
+                (display "] " out)))))
+
 (define (optimize-primitive o out (status #f))
     ;; should probably be a case on (cadr o)
     (cond
@@ -1497,6 +1519,8 @@
             (optimize-dset o out)
         (eq? (cadr o) "fvset")
             (optimize-vset o out)
+        (eq? (cadr o) "fvref")
+            (optimize-vref o out)
         (eq? (cadr o) "typep")
             (optimize-typep o out status)
         (or
@@ -1697,7 +1721,7 @@
             (stand-alone-logic->c (cdr il) lvl out #f)
         (eq? (car il) 'c-loop)
             (begin
-                ;(int->spaces lvl out)
+                (int->spaces lvl out)
                 (display "while(1) {\n" out)
                 (il->c (cadr il) (+ lvl 1) out)
                 (int->spaces lvl out)

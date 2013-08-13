@@ -1111,14 +1111,14 @@
                             env
                             (+ ip 1)
                             (cons
-                                (nth locals (typhon@operand c))
+                                (vector-ref locals (typhon@operand c))
                                 stack)
                             locals
                             dump)
                     (113) ;; set local
                         (let ((lidx (nth c 1))
                               (envobj (nth c 2 #f)))
-                            (cset! locals lidx (car stack))
+                            (vector-set! locals lidx (car stack))
                             (if (not (eq? envobj #f))
                                 (typhon@add-env! envobj (car stack) env)
                                 #v)
