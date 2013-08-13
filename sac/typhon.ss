@@ -1074,6 +1074,7 @@
                                     ;; recurse over typhon@vm. 
                                     ;; need to support CALLing primitives too, since they could be passed
                                     ;; in to HOFs...
+                                    ;; nth (on vectors) => vector-ref, cset! (on vectors) => vector-set!
                                     (if (> (car dump) (length (cadr dump)))
                                         (error "Dump stack overflow")
                                         (let ((env-and-stack (build-environment (nth (cadr call-proc) 0) (cdr stack) (nth (cadr call-proc) 2) locals))
@@ -1082,7 +1083,7 @@
                                             ;(display "in let; (car env-and-stack) == ")
                                             ;(write (car env-and-stack))
                                             ;(newline)
-                                            (cset! v-dump offset locals)
+                                            (cset! v-dump offset locals) ;; can these be made into vector-set! calls?
                                             (cset! v-dump (+ offset 1) (cadr env-and-stack))
                                             (cset! v-dump (+ offset 2) ip)
                                             (cset! v-dump (+ offset 3) env)
