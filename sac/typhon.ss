@@ -1322,7 +1322,7 @@
         '()
         (append
             (typhon@compile (car lst) params env)
-            (compile-begin (cdr lst) env))))
+            (compile-begin (cdr lst) params env))))
 
 (define (compile-lambda rst env)
     (list 'compiled-lambda
@@ -1362,7 +1362,7 @@
 
 (define (typhon@eval line env dump)
     "simple wrapper around typhon@vm & typhon@compile"
-    (typhon@vm (typhon@compile line env) env 0 '() '() dump))
+    (typhon@vm (typhon@compile line '() env) env 0 '() '() dump))
 
 (define (typhon@compile-help sym iter-list params env)
     " a helper function for typhon@compile, which collects
@@ -1390,7 +1390,16 @@
         (cond
             (vector? line) (list (list 3 line))
             (dict? line) (list (list 3 line) )
-            (symbol? line) (list (list 31 line)) ;; environment-load
+            (symbol? line) 
+                (let ((param-mem? (memq line params)))
+                    (if (not (eq? param-mem? #f))
+                        (list
+                            (list
+                                112 ;; fast load
+                                (- 
+                                    (length params)
+                                    (length param-mem?))))
+                        (list (list 31 line)))) ;; environment-load
             (pair? line) 
                 (let* ((fst (car line)) ;; decompose line into first & rest
                        (v (typhon@lookup fst env)) ;; find fst in env
@@ -1475,8 +1484,8 @@
                                             (list (list 3 #t))
                                         (> (length rst) 1)
                                             (append
-                                                (typhon@compile (car rst) env)
-                                                (typhon@compile-help '%= (cdr rst) env))
+                                                (typhon@compile (car rst) params env)
+                                                (typhon@compile-help '%= (cdr rst) params env))
                                         else (error "numeq fail"))
                                 (eq? (cdr v) 'primitive-syntax-define)
                                     (let ((name (car rst))
@@ -1484,12 +1493,12 @@
                                         (cond
                                             (pair? name) 
                                                 (append
-                                                    (typhon@compile (cons 'fn (cons (cdar rst) (cdr rst))) env)
+                                                    (typhon@compile (cons 'fn (cons (cdar rst) (cdr rst))) params env)
                                                     (list (list 3 (caar rst)))
                                                     (list (list (cdr (typhon@lookup '%define env))))) 
                                             (symbol? name)
                                                 (append
-                                                    (typhon@compile value env)
+                                                    (typhon@compile value params env)
                                                     (list (list 3 name))
                                                     (list (list (cdr (typhon@lookup '%define env)))))
                                             else (error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*")))
@@ -1498,7 +1507,7 @@
                                           (value (cadr rst)))
                                        (if (symbol? name) 
                                             (append
-                                                (typhon@compile value env)
+                                                (typhon@compile value params env)
                                                 (list (list 3 name))
                                                 (list (list (cdr (typhon@lookup '%set! env)))))
                                             (error "SET!: set! SYMBOL S-EXPR*")))
@@ -1592,7 +1601,7 @@
                                                     (list (list (cdr (typhon@lookup '%make-vector env)))))
                                             (= l 2)
                                                 (append
-                                                    (reverse-append (typhon@map rst env))
+                                                    (reverse-append (typhon@map rst params env))
                                                     (list (list (cdr (typhon@lookup '%make-vector env)))))
                                             else (typhon@error "make-vector len : INTEGER (v : SEXPR) => VECTOR")))
                                 (eq? (cdr v) 'primitive-syntax-makestring)
