@@ -1484,7 +1484,11 @@
                 (cond
                     (symbol? key) (display (format "AINT(~s)" (cmung key)) out)
                     (integer? key) (display key out)
-                    else (il->c key 0 out))
+                    else 
+                        (begin
+                            (display "AINT(" out) 
+                            (il->c key 0 out)
+                            (display ")" out)))
                 (display "] = " out)
                 (il->c obj 0 out)))))
 
@@ -1505,8 +1509,12 @@
                 (cond
                     (symbol? key) (display (format "AINT(~s)" (cmung key)) out)
                     (integer? key) (display key out)
-                    else (il->c key 0 out))
-                (display "] " out)))))
+                    else 
+                        (begin
+                            (display "AINT(" out) 
+                            (il->c key 0 out)
+                            (display ")" out)))
+                (display "]" out)))))
 
 (define (optimize-primitive o out (status #f))
     ;; should probably be a case on (cadr o)
