@@ -344,7 +344,7 @@
      ;(display ip)
      ;(newline)
      (cond
-        (or (eq? (type (car stack)) "Error")
+        (or (type? (car stack) "ERROR")
             (typhon@error? (car stack)))
             (car stack)
         (>= ip (length code))
