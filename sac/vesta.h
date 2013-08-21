@@ -27,6 +27,7 @@
 #define CEREAL(x) (x)->object.n->nobject.complex.r
 #define IMMAG(x) (x)->object.n->nobject.complex.i
 #define TYPE(x) (x)->type
+#define TYPEP(x, y) ((x)->type == (y))
 #define NTYPE(x) (x)->object.n->type
 #define PORT(x) (x)->object.p
 #define PTYPE(x) (x)->object.p->type

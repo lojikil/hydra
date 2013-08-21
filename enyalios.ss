@@ -1423,20 +1423,11 @@
     (let* ((args (caddr code)) ; destructuring bind would be nice here...
            (obj (car args))
            (type (cadr args)))
-        (if (symbol? obj)
-            (begin
-                (display "(" out)
-                (display (cmung obj) out)
-                (display "->type == " out)
-                (display type out)
-                (display " ? STRUE : SFALSE" out)
-                (display ")" out))
-            (begin
-                (display "typep(" out)
-                (il->c obj 0 out)
-                (display ", " out)
-                (display type out)
-                (display ")" out)))))
+        (display "TYPEP(" out)
+        (il->c obj 0 out)
+        (display ", " out)
+        (display type out)
+        (display ")" out)))
 
 (define (optimize-dset o out)
     (let* ((vals (caddr o))
