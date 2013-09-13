@@ -910,7 +910,14 @@
                     'c-tailcall
                     name
                     (map
-                        (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
+                        (fn (x)
+                            (display name)
+                            (display " in c-tailcall generation; x == ")
+                            (write x)
+                            (newline)
+                            (if (and (pair? x) (eq? (car x) '+) (symbol? (cadr x)) (integer? (caddr x)))
+                                (list 'c-primitive-fixed "inc" (list (cadr x) (caddr x))) ;; hmm (+ ip 1)
+                                (cadr (generate-code x '() #f rewrites lparams))))
                         (cdr c))))
         (or (eq? (car c) 'or)
             (eq? (car c) 'and))
@@ -1096,6 +1103,7 @@
                 (eq? (cadr c) "fdset")
                 (eq? (cadr c) "fvset")
                 (eq? (cadr c) "fvref")
+                (eq? (cadr c) "inc")
                 (eq? (cadr c) "typep")))
         (and
             (eq? (car c) 'c-primitive)
@@ -1522,6 +1530,8 @@
             (optimize-vref o out)
         (eq? (cadr o) "typep")
             (optimize-typep o out status)
+        (eq? (cadr o) "inc")A
+            #f ;; TODO: flush out inc_i, inc_r
         (or
             (eq? (cadr o) "flt")
             (eq? (cadr o) "flte")
