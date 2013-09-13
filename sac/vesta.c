@@ -3449,6 +3449,26 @@ fnum(SExp *tmp0)
 	return makeinteger(tmp0->object.n->nobject.rational.num);
 }
 SExp *
+inc_i(SExp *n, int i)
+{
+    switch(NTYPE(n))
+    {
+        case INTEGER:
+            AINT(n) += i;
+            break;
+        case REAL:
+            AREAL(n) += (i * 1.0);
+            break;
+        case RATIONAL:
+            ANUM(n) += (i * ADEN(n));
+            break;
+        case COMPLEX:
+            CEREAL(n) += (i * 1.0);
+            break;
+    }
+    return n;
+}
+SExp *
 fplus_in(int i, SExp *n)
 {
     SExp *ret = nil;

@@ -1530,8 +1530,14 @@
             (optimize-vref o out)
         (eq? (cadr o) "typep")
             (optimize-typep o out status)
-        (eq? (cadr o) "inc")A
-            #f ;; TODO: flush out inc_i, inc_r
+        (eq? (cadr o) "inc")
+            (let ((first-arg (caaddr o))
+                  (second-arg (cadr (caddr o))))
+                (display "inc_i(" out) ;; FIXME: do actual type dispatch here
+                (display (cmung first-arg) out)
+                (display ", " out)
+                (display second-arg out)
+                (display ")" out))
         (or
             (eq? (cadr o) "flt")
             (eq? (cadr o) "flte")
