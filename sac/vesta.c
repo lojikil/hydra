@@ -3460,7 +3460,7 @@ inc_i(SExp *n, int i)
             AREAL(n) += (i * 1.0);
             break;
         case RATIONAL:
-            ANUM(n) += (i * ADEN(n));
+            NUM(n) += (i * DEN(n));
             break;
         case COMPLEX:
             CEREAL(n) += (i * 1.0);
