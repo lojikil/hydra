@@ -41,7 +41,7 @@
 - beter param shaddowing; no reliance on another var? no shaddowing
 - optimize more primitives: (DONE)+ - / * < > >= <=
 - open code fnumeq similar to eq?
-- possibly look into destructive parameter updates? (foo (+ i 1)) could be AINT(i) += 1
+- PARTIALLY DONE (for +)possibly look into destructive parameter updates? (foo (+ i 1)) could be AINT(i) += 1
 - DONE: This fails to work correctly: (let ((i 0)) (set! i 10)) [test more; you can see it in Hydra/SAC. Could be only when it is nested in an if]
 - DONE: check in on this: (foreach (fn (x) (write (keys x)) (newline)) some-var). Apparently generates the wrong environment in the output C code
 - add merge-dict! procedure. It should default to _not_ overwriting keys that exist in the destination dictionary. (merge-dict! src : DICT dest : DICT overwrite? :BOOL)
@@ -78,6 +78,8 @@
 - DONE: Fix SegFault in Hydra/SAC with (append '() 3)
 - DONE: fix the *tlenv* define from Aneris.
 - Delimited Continuations
+- Cut down on calls to `pairlength`; see [http://lojikil.com/d/lisp/typhon-prof-13SEP2013.txt this profile set]
+- add FAST-ADD, FAST-SUB, &c instructions for integers? (+ x 6) could be ((env-load x) (fast-add 6)); cuts down on one while-loop iteration
 
 * Eurydice
 - linting
