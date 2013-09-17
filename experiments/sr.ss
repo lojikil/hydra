@@ -1,12 +1,12 @@
 ;; simple syntax-rules experiment...
 
-(define (test x) (vector-set! x 0 "f"))
+;(define (test x) (vector-set! x 0 "f"))
 
-(define (null? x) (eq? x '()))
-(define (list? x) (type? x "PAIR"))
-(define (pair? x) (eq? (type x) "Pair"))
-(define (symbol? x) (eq? (type x) "Symbol"))
-(define (not x)
+;(define (null? x) (eq? x '()))
+;(define (list? x) (type? x "PAIR"))
+;(define (pair? x) (eq? (type x) "Pair"))
+;(define (symbol? x) (eq? (type x) "Symbol"))
+#;(define (not x)
     (cond
         (eq? x #t) #f
         (eq? x #s) #u

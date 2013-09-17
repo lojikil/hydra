@@ -347,19 +347,19 @@
         (or (type? (car stack) "ERROR")
             (typhon@error? (car stack)))
             (car stack)
-        (>= ip (length code))
-        (if (= (car dump) 0)
-            (car stack)
-            (let ((top-dump (cadr dump))
-                  (offset (car dump)))
-                (typhon@vm
-                    (vector-ref top-dump (- offset 1))
-                    (vector-ref top-dump (- offset 2))
-                    (vector-ref top-dump (- offset 3))
-                    (+ (vector-ref top-dump (- offset 4)) 1)
-                    (cons (car stack) (vector-ref top-dump (- offset 5)))
-                    (vector-ref top-dump (- offset 6))
-                    (list (- offset 6) top-dump))))
+        (>= ip code-len)
+            (if (= (car dump) 0)
+                (car stack)
+                (let ((top-dump (cadr dump))
+                      (offset (car dump)))
+                    (typhon@vm
+                        (vector-ref top-dump (- offset 1))
+                        (vector-ref top-dump (- offset 2))
+                        (vector-ref top-dump (- offset 3))
+                        (+ (vector-ref top-dump (- offset 4)) 1)
+                        (cons (car stack) (vector-ref top-dump (- offset 5)))
+                        (vector-ref top-dump (- offset 6))
+                        (list (- offset 6) top-dump))))
          else
          (let* ((c (nth code ip))
                 (instr (typhon@instruction c)))
@@ -580,7 +580,7 @@
                                                 (car env-and-stack)
                                                 0 '() 
                                                 (caddr env-and-stack)
-                                                (list (+ offset 5) v-dump))))
+                                                (list (+ offset 6) v-dump))))
                                 (typhon@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
                                     (begin
                                         (display "in typhon@primitive\n\t")
@@ -1376,7 +1376,8 @@
 
 (define (typhon@eval line env dump)
     "simple wrapper around typhon@vm & typhon@compile"
-    (typhon@vm (typhon@compile line '() env) env 0 '() '() dump))
+    (with code (typhon@compile line '() env)
+        (typhon@vm code (length code) env 0 '() '() dump)))
 
 (define (typhon@compile-help sym iter-list params env)
     " a helper function for typhon@compile, which collects

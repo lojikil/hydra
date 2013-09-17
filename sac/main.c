@@ -6,7 +6,7 @@
 #include <time.h>
 #include "murt.h"
 
-extern Symbol *enyalios82;
+extern Symbol *enyalios83;
 
 int
 main(int ac, char **al)
@@ -18,8 +18,8 @@ main(int ac, char **al)
         printf("could not initialize garbage collector!\n");
         return 1;
     }
-    enyalios82 = init_env(0);
-    if(!enyalios82)
+    enyalios83 = init_env(0);
+    if(!enyalios83)
     {
         printf("could not load initial constants!\n");
         return 2;
