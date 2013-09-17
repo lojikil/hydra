@@ -1,5 +1,21 @@
 ;; simple syntax-rules experiment...
 
+(define (test x) (vector-set! x 0 "f"))
+
+(define (null? x) (eq? x '()))
+(define (list? x) (type? x "PAIR"))
+(define (pair? x) (eq? (type x) "Pair"))
+(define (symbol? x) (eq? (type x) "Symbol"))
+(define (not x)
+    (cond
+        (eq? x #t) #f
+        (eq? x #s) #u
+        (eq? x #u) #s
+        else #t))
+
+(define (cadr x) (car (cdr x)))
+(define (cddr x) (cdr (cdr x))) 
+
 (define (define-syntax name literals patterns)
     "Simple version of define-syntax; Digamma's spec equates
     define-syntax with Scheme's syntax-rules for simplicity

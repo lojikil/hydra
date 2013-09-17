@@ -298,7 +298,7 @@
         else
             (error (format "unknown procedure \"~a\"" proc))))
 
-(define (typhon@vm code env ip stack locals dump)
+(define (typhon@vm code code-len env ip stack locals dump)
      " process the actual instructions of a code object; the basic idea is that
        the user enters:
        h; (car (cdr (cons 1 (cons 2 '()))))
@@ -355,10 +355,11 @@
                 (typhon@vm
                     (vector-ref top-dump (- offset 1))
                     (vector-ref top-dump (- offset 2))
-                    (+ (vector-ref top-dump (- offset 3)) 1)
-                    (cons (car stack) (vector-ref top-dump (- offset 4)))
-                    (vector-ref top-dump (- offset 5))
-                    (list (- offset 5) top-dump))))
+                    (vector-ref top-dump (- offset 3))
+                    (+ (vector-ref top-dump (- offset 4)) 1)
+                    (cons (car stack) (vector-ref top-dump (- offset 5)))
+                    (vector-ref top-dump (- offset 6))
+                    (list (- offset 6) top-dump))))
          else
          (let* ((c (nth code ip))
                 (instr (typhon@instruction c)))
@@ -373,17 +374,19 @@
               ;(display "\n=====\n")
               (case instr 
                     (0) ;; car
-                        (typhon@vm code
-                                 env
-                                 (+ ip 1)
-                                 (cons (car (car stack)) (cdr stack)) locals dump)
+                        (typhon@vm
+                                code
+                                code-len
+                                env
+                                (+ ip 1)
+                                (cons (car (car stack)) (cdr stack)) locals dump)
                     (1) ;; cdr
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (cdr (car stack)) (cdr stack)) locals dump)
                     (2) ;; cons
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (cons (car stack)
@@ -392,79 +395,79 @@
                                  locals
                                  dump)
                     (3) ;; load
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (typhon@operand c) stack)
                                  locals
                                  dump)
                     (4) ;; nil
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons '() stack)
                                  locals
                                  dump)
                     (5) ;; -
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (- (cadr stack) (car stack)) (cddr stack))
                                  locals
                                  dump)
                     (6) ;; +
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (+ (car stack) (cadr stack)) (cddr stack))
                                  locals
                                  dump)
                     (7) ;; * 
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (* (car stack) (cadr stack)) (cddr stack))
                                  locals
                                  dump)
                     (8) ;; / 
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (/ (cadr stack) (car stack)) (cddr stack))
                                  locals
                                  dump)
                     (9) ;;  < 
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (< (cadr stack) (car stack)) (cddr stack)) locals dump)
                     (10) ;; >
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (> (cadr stack) (car stack)) (cddr stack)) locals dump)
                     (11) ;; <= 
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (<= (cadr stack) (car stack)) (cddr stack)) locals dump)
                     (12) ;; >= 
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (>= (cadr stack) (car stack)) (cddr stack)) locals dump)
                     (13) ;; length
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (length (car stack)) (cdr stack)) locals dump)
                     (14) ;; exact?
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                   env
                                   (+ ip 1)
                                   (cons (exact? (car stack)) (cdr stack)) locals dump)
                     (15) ;; inexact?
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                   env
                                   (+ ip 1)
                                   (cons (inexact? (car stack)) (cdr stack)) locals dump)
@@ -474,71 +477,71 @@
                            (stk (cslice stack arity (length (cdr stack))))
                            (ret (procedure-runner (typhon@operand c) arity args env dump)))
                            (typhon@vm
-                                code
+                                code code-len
                                 env
                                 (+ ip 1)
                                 (cons ret stk)
                                 locals
                                 dump))
                     (18) ;; real?
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                   env
                                   (+ ip 1)
                                   (cons (real? (car stack)) (cdr stack)) locals dump)
                     (19) ;; integer?
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                   env
                                   (+ ip 1)
                                   (cons (integer? (car stack)) (cdr stack)) locals dump)
                     (20) ;; complex?
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                   env
                                   (+ ip 1)
                                   (cons (complex? (car stack)) (cdr stack)) locals dump)
                     (21) ;; rational?
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                   env
                                   (+ ip 1)
                                   (cons (rational? (car stack)) (cdr stack)) locals dump)
                     (22) ;; gcd
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                   env
                                   (+ ip 1)
                                   (cons (gcd (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (23) ;; lcm
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                   env
                                   (+ ip 1)
                                   (cons (lcm (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (24) ;; numerator 
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                   env
                                   (+ ip 1)
                                   (cons (numerator (car stack)) (cdr stack)) locals dump)
                     (25) ;; denomenator
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                   env
                                   (+ ip 1)
                                   (cons (denomenator (car stack)) (cdr stack)) locals dump)
                     (26) ;; = 
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (= (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (27) ;; eq?
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip 1)
                                  (cons (eq? (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (28) ;; jump
-                        (typhon@vm code
+                        (typhon@vm code code-len
                                  env
                                  (+ ip (typhon@operand c))
                                  stack locals dump)
                     (29) ;; cmp
                         (if (car stack) ;; if the top of the stack is true
-                            (typhon@vm code env (+ ip 1) (cdr stack) locals dump) ;; jump to the <then> portion
-                            (typhon@vm code env (+ ip (typhon@operand c)) (cdr stack) locals dump))
+                            (typhon@vm code code-len env (+ ip 1) (cdr stack) locals dump) ;; jump to the <then> portion
+                            (typhon@vm code code-len env (+ ip (typhon@operand c)) (cdr stack) locals dump))
                     (30) ;; call
                         ;; need to make call check it's operand now...
                         (let ((call-proc (typhon@operand c)))
@@ -569,9 +572,11 @@
                                             (vector-set! v-dump (+ offset 1) (cadr env-and-stack))
                                             (vector-set! v-dump (+ offset 2) ip)
                                             (vector-set! v-dump (+ offset 3) env)
-                                            (vector-set! v-dump (+ offset 4) code)
+                                            (vector-set! v-dump (+ offset 4) code-len)
+                                            (vector-set! v-dump (+ offset 5) code)
                                             (typhon@vm
                                                 (vector-ref (cadr call-proc) 1)
+                                                (length (vector-ref (cadr call-proc) 1))
                                                 (car env-and-stack)
                                                 0 '() 
                                                 (caddr env-and-stack)
@@ -599,7 +604,8 @@
                             (if (typhon@error? r)
                                 r
                                 (typhon@vm
-                                    code 
+                                    code
+                                    code-len
                                     env
                                     (+ ip 1) 
                                     (cons r stack)
@@ -609,6 +615,7 @@
                         (if (and (not (null? stack)) (eq? (caar stack) 'compiled-lambda))
                             (typhon@vm
                                 (nth (cdar stack) 0)
+                                (length (nth (cdar stack) 0))
                                 (nth (cdar stack) 1)
                                 0 '() 
                                 locals
@@ -618,7 +625,7 @@
                         (begin
                             (typhon@add-env! (car stack) (cadr stack) env)
                             (typhon@vm
-                                code env (+ ip 1)
+                                code code-len env (+ ip 1)
                                 (cons #v stack)
                                 locals
                                 dump))
@@ -626,68 +633,68 @@
                         (begin
                             (typhon@set-env! (car stack) (cadr stack) env)
                             (typhon@vm
-                                code env (+ ip 1)
+                                code code-len env (+ ip 1)
                                 (cons #v stack)
                                 locals
                                 dump))
                     (35) ;; ceil
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (ceil (car stack)) (cdr stack)) locals dump)
                     (36) ;; floor
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (floor (car stack)) (cdr stack)) locals dump)
                     (37) ;; truncate
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (truncate (car stack)) (cdr stack)) locals dump)
                     (38) ;; round
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (round (car stack)) (cdr stack)) locals dump)
                     (39) ;; inexact->exact
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (inexact->exact (car stack)) (cdr stack)) locals dump)
                     (40) ;; quotient
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (quotient (cadr stack) (car stack)) (cddr stack)) locals dump)
                     (41) ;; modulo
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (modulo (cadr stack) (car stack)) (cddr stack)) locals dump)
                     (42) ;; &
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (& (cadr stack) (car stack)) (cddr stack)) locals dump)
                     (43) ;; |
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (| (cadr stack) (car stack)) (cddr stack)) locals dump)
                     (44) ;; ^
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (^ (cadr stack) (car stack)) (cddr stack)) locals dump)
                     (45) ;; ~
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (~ (car stack)) (cdr stack)) locals dump)
                     (46) ;; %list
                         ;; take N items off the stack, create a list, and return it
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons
@@ -695,235 +702,235 @@
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) locals dump)
                     (47) ;; %vector
                         ;; take N items off the stack, create a list, and return it
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons
                                 (coerce (cslice (cdr stack) 0 (car stack)) 'vector)
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) locals dump)
                     (48) ;; %make-vector
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (make-vector (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (49) ;; %make-string
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (make-string (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (50) ;; %string
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons
                                 (apply string (cslice (cdr stack) 0 (car stack)))
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) locals dump)
                     (51) ;; %append
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons
                                 (apply append (cslice (cdr stack) 0 (car stack)))
                                 (cslice (cdr stack) (car stack) (- (length stack) 1))) locals dump)
                     (52) ;; first
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (first (car stack)) (cdr stack)) locals dump)
                     (53) ;; rest
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (rest (car stack)) (cdr stack)) locals dump)
                     (54) ;; ccons
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (ccons (cadr stack) (car stack)) (cddr stack)) locals dump)
                     (55) ;; %nth
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (nth (car stack) (cadr stack) (caddr stack)) (cdddr stack)) locals dump)
                     (56) ;; keys
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (keys (car stack)) (cdr stack)) locals dump)
                     (57) ;; partial-key?
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (partial-key? (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (58) ;; cset!
                         (begin
                             (cset! (car stack) (cadr stack) (caddr stack))
-                            (typhon@vm code
+                            (typhon@vm code code-len
                                 env
                                 (+ ip 1)
                                 (cons #v (cdddr stack)) locals dump))
                     (59) ;; empty?
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (empty? (car stack)) (cdr stack)) locals dump)
                     (60) ;; gensym
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (gensym (car stack)) (cdr stack)) locals dump)
                     (61) ;; imag-part
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (imag-part (car stack)) (cdr stack)) locals dump)
                     (62) ;; real-part
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (real-part (car stack)) (cdr stack)) locals dump)
                     (63) ;; make-rectangular
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (make-rectangular (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (64) ;; make-polar
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (make-polar (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (65) ;; magnitude
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (magnitude (car stack)) (cdr stack)) locals dump)
                     (66) ;; argument
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (argument (car stack)) (cdr stack)) locals dump)
                     (67) ;; conjugate
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (conjugate (car stack)) (cdr stack)) locals dump)
                     (68) ;; conjugate
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (conjugate! (car stack)) (cdr stack)) locals dump)
                     (69) ;; polar->rectangular
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (polar->rectangular (car stack)) (cdr stack)) locals dump)
                     (70) ;; rectangular->polar
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (rectangular->polar (car stack)) (cdr stack)) locals dump)
                     (71) ;; sin
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (sin (car stack)) (cdr stack)) locals dump)
                     (72) ;; cos
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (cos (car stack)) (cdr stack)) locals dump)
                     (73) ;; tan
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (tan (car stack)) (cdr stack)) locals dump)
                     (74) ;; asin
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (asin (car stack)) (cdr stack)) locals dump)
                     (75) ;; acos
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (acos (car stack)) (cdr stack)) locals dump)
                     (76) ;; atan
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (atan (car stack)) (cdr stack)) locals dump)
                     (77) ;; atan2
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (atan2 (cadr stack) (car stack)) (cddr stack)) locals dump)
                     (78) ;; sinh
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (sinh (car stack)) (cdr stack)) locals dump)
                     (79) ;; cosh
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (cosh (car stack)) (cdr stack)) locals dump)
                     (80) ;; tanh
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (tanh (car stack)) (cdr stack)) locals dump)
                     (81) ;; exp
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (exp (car stack)) (cdr stack)) locals dump)
                     (82) ;; ln
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (ln (car stack)) (cdr stack)) locals dump)
                     (83) ;; abs
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (abs (car stack)) (cdr stack)) locals dump)
                     (84) ;; sqrt
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (sqrt (car stack)) (cdr stack)) locals dump)
                     (85) ;; exp2
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) locals dump)
                     (86) ;; expm1
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (expm1 (car stack)) (cdr stack)) locals dump)
                     (87) ;; log2
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (log2 (car stack)) (cdr stack)) locals dump)
                     (88) ;; log10
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (log10 (car stack)) (cdr stack)) locals dump)
                     (89) ;; <<
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (<< (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (90) ;; >>
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (>> (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (91) ;; %string-append
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons
@@ -932,17 +939,17 @@
                             locals
                             dump)
                     (92) ;; assq
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (assq (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (93) ;; memq
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (memq (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (94) ;; %dict
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons
@@ -951,75 +958,75 @@
                             locals
                             dump)
                     (95) ;; make-dict
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (make-dict) stack) locals dump)
                     (96) ;; dict-has?
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (dict-has? (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (97) ;; coerce
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (coerce (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (98) ;; cupdate
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (cupdate (car stack) (cadr stack) (caddr stack)) (cdddr stack)) locals dump)
                     (99) ;; cslice
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (cslice (car stack) (cadr stack) (caddr stack)) (cdddr stack)) locals dump)
                     (100) ;; tconc!
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) locals dump)
                     (101) ;; make-tconc
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) locals dump)
                     (102) ;; tconc-list
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) locals dump)
                     (103) ;; tconc->pair
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) locals dump)
                     (104) ;; tconc-splice
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (exp2 (car stack)) (cdr stack)) locals dump)
                     (105) ;; rationalize
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (rationalize (car stack) (cadr stack)) (cddr stack)) locals dump)
                     (106) ;; call/cc
-                        (let ((retcode (typhon@vm (cons (list 3 (car stack)) (list (list 30)))
+                        (let ((retcode (typhon@vm (cons (list 3 (car stack)) (list (list 30))) 2 ;; there's only two instructions here ...
                                         env
                                         0
                                         (cons (list 'continuation (copy-code code ip 0) ip env stack locals dump) '())
                                         locals
                                         '())))
-                         (typhon@vm code
+                         (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons retcode (cdr stack))
                             locals
                             dump))
                     (107) ;; %nop
-                        (typhon@vm code
+                        (typhon@vm code code-len
                             env
                             (+ ip 1)
                             stack
@@ -1030,6 +1037,7 @@
                               (v (cadr stack)))
                          (typhon@vm 
                             (nth cont-code 1)
+                            (length (nth cont-code 1))
                             (nth cont-code 3)
                             0
                             (cons
@@ -1045,7 +1053,7 @@
                         (begin
                             ;;(cset! (cadar stack) 0 env)
                             (typhon@vm
-                                code
+                                code code-len
                                 env
                                 (+ ip 1)
                                 (cons
@@ -1087,9 +1095,11 @@
                                             (vector-set! v-dump (+ offset 1) (cadr env-and-stack))
                                             (vector-set! v-dump (+ offset 2) ip)
                                             (vector-set! v-dump (+ offset 3) env)
-                                            (vector-set! v-dump (+ offset 4) code)
+                                            (vector-set! v-dump (+ offset 4) code-len)
+                                            (vector-set! v-dump (+ offset 5) code)
                                             (typhon@vm
                                                 (vector-ref (cadr call-proc) 1)
+                                                (length (vector-ref (cadr call-proc) 1))
                                                 (car env-and-stack)
                                                 0 '() 
                                                 (caddr env-and-stack)
@@ -1101,6 +1111,7 @@
                     (111) ;; type
                         (typhon@vm
                             code
+                            code-len
                             env
                             (+ ip 1)
                             (cons (type (car stack)) (cdr stack))
@@ -1109,6 +1120,7 @@
                     (112) ;; fetch local
                         (typhon@vm
                             code
+                            code-len
                             env
                             (+ ip 1)
                             (cons
@@ -1125,6 +1137,7 @@
                                 #v)
                             (typhon@vm
                                 code
+                                code-len
                                 env
                                 (+ ip 1)
                                 (cdr stack)
