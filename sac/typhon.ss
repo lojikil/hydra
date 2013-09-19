@@ -352,6 +352,7 @@
                 (car stack)
                 (let ((top-dump (cadr dump))
                       (offset (car dump)))
+
                     (typhon@vm
                         (vector-ref top-dump (- offset 1))
                         (vector-ref top-dump (- offset 2))
@@ -1103,7 +1104,7 @@
                                                 (car env-and-stack)
                                                 0 '() 
                                                 (caddr env-and-stack)
-                                                (list (+ offset 5) v-dump))))
+                                                (list (+ offset 6) v-dump))))
                                 (typhon@primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
                                     #t
                                 else
