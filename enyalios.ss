@@ -911,10 +911,6 @@
                     name
                     (map
                         (fn (x)
-                            (display name)
-                            (display " in c-tailcall generation; x == ")
-                            (write x)
-                            (newline)
                             (if (and (pair? x) (eq? (car x) '+) (symbol? (cadr x)) (integer? (caddr x)))
                                 (list 'c-primitive-fixed "inc" (list (cadr x) (caddr x))) ;; hmm (+ ip 1)
                                 (cadr (generate-code x '() #f rewrites lparams))))
