@@ -1,11 +1,21 @@
-#+TITLE: Digamma Todo lists
-#+DATE: 15-DEC-2012
-#+AUTHOR: Stefan Edwards <sae@lojikil.com>
+* Nomenclature
+
+Since this is my internal notes on what I'm working on with Digamma, I thought I'd add a quick set of notes:
+
+- Digamma: my Scheme dialect.
+- PreDigamma: a restricted subset of Digamma meant for easier compilation.
+
+- Vesta: The C Reference implementation of Digamma; relatively fast, but not my main focus area any more
+- Enyo: The original PreDigamma compiler (never written)
+- E' (E-prime): the "test compiler that actually became the compiler"; wasn't meant to test ideas for Enyo, but grew too big
+- Enyalios: a complete rewrite of E' to be more modular (uses an IR) and easier to modify (well structured & documented)
+- Hydra: a stack based VM written in Digamma that can self-host
+- Typhon: modified Hydra, meant to compile with Enyalios
 
 * Runtime only
 
-- DONE: Add support for #;(datum) comments
-- DONE: port that to Hydra's runtime
+- *DONE*: Add support for #;(datum) comments
+- *DONE*: port that to Hydra's runtime
 
 * Vesta/Hydra
 - engines
@@ -14,50 +24,51 @@
 - get/set current-X-port
 
 * Enyalios
-- DONE: top level Symbol for procedures, added to lparams["env"]
-- DONE: top level static snil, strue, &c.
-- DONE: add static snil &c to top level Symbol
-- DONE: add that top level Symbol to procedure calls
+- *DONE*: top level Symbol for procedures, added to lparams\["env"\]
+- *DONE*: top level static snil, strue, &c.
+- *DONE*: add static snil &c to top level Symbol
+- *DONE*: add that top level Symbol to procedure calls
 - closures in HOFs (HIGH 1)
 - free analysis for closures (HIGH 1)
 - Internally-defined procedure lifting (HIGH 1)
 - Inlining
 - typing ala Stalin (recursive union types, soft-typing/gradul-typing)
-- named\-let (HIGH 2)
-- do\-loops (I guess?)
+- named-let (HIGH 2)
+- do-loops (I guess?)
 - fix apply!
-- DONE: (was actually an issue with set!) fix deeply nested let issue with if: (let ((foo 1)) (if (> foo 0) (set! foo 1) #v))
+- *DONE*: (was actually an issue with set!) fix deeply nested let issue with if: (let ((foo 1)) (if (> foo 0) (set! foo 1) #v))
 - letrec
-- DONE: let* fix (doesn't correctly pass rewritten vars from above)
-- DONE: fix load
+- *DONE*: let\* fix (doesn't correctly pass rewritten vars from above)
+- *DONE*: fix load
 - define-c-syntax
-- DONE: define-syntax (HIGH 0)
-- IL->JS, IL->C++, IL->JAVA, IL->X86_64, IL->SPARC
+- *DONE*: define-syntax (HIGH 0)
+- IL->JS, IL->C++, IL->JAVA, IL->X86\_64, IL->SPARC
 - support %c, define-alien for self-hosting runtimes.
-- DONE: %include, %prim
+- *DONE*: %include, %prim
 - inline or lift
 - if lift, do free analysis & closure conversion
 - if an inner proc is used in _tail position_, inline it (maybe only if tail rec?)
 - beter param shaddowing; no reliance on another var? no shaddowing
-- optimize more primitives: (DONE)+ - / * < > >= <=
+- optimize more primitives: (*DONE*)+ - / \* < > >= <=
 - open code fnumeq similar to eq?
-- PARTIALLY DONE (for +)possibly look into destructive parameter updates? (foo (+ i 1)) could be AINT(i) += 1
-- DONE: This fails to work correctly: (let ((i 0)) (set! i 10)) [test more; you can see it in Hydra/SAC. Could be only when it is nested in an if]
-- DONE: check in on this: (foreach (fn (x) (write (keys x)) (newline)) some-var). Apparently generates the wrong environment in the output C code
+- PARTIALLY *DONE* (for +)possibly look into destructive parameter updates? (foo (+ i 1)) could be AINT(i) += 1
+- *DONE*: This fails to work correctly: (let ((i 0)) (set! i 10)) \[test more; you can see it in Typhon. Could be only when it is nested in an if\]
+- *DONE*: check in on this: (foreach (fn (x) (write (keys x)) (newline)) some-var). Apparently generates the wrong environment in the output C code
 - add merge-dict! procedure. It should default to _not_ overwriting keys that exist in the destination dictionary. (merge-dict! src : DICT dest : DICT overwrite? :BOOL)
 - fix (string), (vector) compilation in IL->C
-- DONE: fix (if SOME-COND #v SOME-OTHER CODE) in non-tail position
-- DONE: fix COND in non-tail position
+- *DONE*: fix (if SOME-COND #v SOME-OTHER CODE) in non-tail position
+- *DONE*: fix COND in non-tail position
 - add exception system (SRFI-34 via longjmp/setjmp)
 
-* Hydra-only
-- DONE: fix closures
-- DONE: port closure fix to Hydra\/SAC
-- DONE: review user of map, and potentially replace with bespoke, Enyalios\-friendly equivalent (SAC)
+* Hydra/Typhon
+- *DONE*: fix closures
+- *DONE*: port closure fix to Typhon
+- *DONE*: review user of map, and potentially replace with bespoke, Enyalios\-friendly equivalent (SAC)
 - idea: what if, instead of defining a list of primitives, &c., we just code primitives iff there is no other hit in the env? Users could do (define car (fn ...)), but it would not require having "car" defined in the env; a lookup against car could just hit a "default handler" of sorts. 
-- DONE: Detect errors on the stack
-- DONE: Detect errors on the stack in Hydra/SAC
-- DONE: Move "display" instruction to be a call procedure instruction; top of stack is number of parameters.
+- *DONE*: Detect errors on the stack
+- *DONE*: Detect errors on the stack in Typhon
+- *DONE*: Move "display" instruction to be a call procedure instruction; top of stack is number of parameters.
+- *DONE*: fix `(0 '(1 2 3 4 5)) => 1` (i.e. inserting the opcode for CAR allows a user to run CAR)
 - Fix `(define x '(primitive . 0)) (x '(1 2 3 4))` which returns `1`, aka it is able to run CAR (Sandbox escape 0)
 - Fix `(define y '(procedure . "display")) (display 13)` which displays 13 & returns 13, aka is able to run procedures (Sandbox escape 1)
 - For the above two sandbox escapes: maybe test with eq? which would ensure we're only running the values that were pre-allocated...
@@ -65,21 +76,22 @@
 - The "eq?" version is better, I think, because it requires less memory overall; the tagged version requires each user value to be tagged, which is needlessly wasteful
 - Core version without repl/read, for use with IL->JS
 - Move stack from pair to vector with fixed size, stack pointer, &c. (testing)
-- DONE: add define-syntax and syntax-expand to Hydra/SAC
-- add define-syntax and syntax-expand to Hydra
-- add define-macro and macro-expand to Hydra/SAC
-- add define-macro and macro-expand to Hydra
-- DONE: Move dump from pair to vector with fixed size, stack pointer, &c. (testing)
-- DONE: hydra@{operand, instruction} => simple syntax
-- DONE: add BEGIN form to Hydra
-- DONE: add BEGIN form to Hydra/SAC
-- Verify complete language coverage between Vesta and Hydra
+- *DONE*: add define-syntax and syntax-expand to Typhon
+- *WON'T*: add define-syntax and syntax-expand to Hydra
+- add define-macro and macro-expand to Typhon
+- *WON'T*add define-macro and macro-expand to Hydra
+- *DONE*: Move dump from pair to vector with fixed size, stack pointer, &c. (testing)
+- *DONE*: hydra@\{operand, instruction\} => simple syntax
+- *DONE*: add BEGIN form to Hydra
+- *DONE*: add BEGIN form to Typhon
+- Verify complete language coverage between Vesta and Typhon
 - Errors buried deep within compiled code can bubble to the surface much later. Checkout Aneris.ss for a test (e.g. a call to "type" within an if block, when Hydra doesn't have the "type" procedure in its environment will call the error to be swallowed until much later. boo).
-- DONE: Fix SegFault in Hydra/SAC with (append '() 3)
-- DONE: fix the *tlenv* define from Aneris.
-- Delimited Continuations
-- Cut down on calls to `pairlength`; see [http://lojikil.com/d/lisp/typhon-prof-13SEP2013.txt this profile set]
+- *DONE*: Fix SegFault in Typhon with (append '() 3)
+- *DONE*: fix the \*tlenv\* define from Aneris.
+- Delimited Continuations in Typhon
+- *DONE*: Cut down on calls to `pairlength`; see [http://lojikil.com/d/lisp/typhon-prof-13SEP2013.txt this profile set]
 - add FAST-ADD, FAST-SUB, &c instructions for integers? (+ x 6) could be ((env-load x) (fast-add 6)); cuts down on one while-loop iteration
+- Fix `syntaxmystery.ss` weirdness; derived from [https://code.google.com/p/ypsilon/issues/detail?id=107 this issue in Ypsilon]
 
 * Eurydice
 - linting
@@ -91,5 +103,5 @@
 - SRFI-0/7, for supporting different loads, different FFIs, different low-level runtimes...
 - Scheme48-style modules.
 - define-syntax
-- SRFI-55 support (require) + Libraries
-- better typing support
+- fix giant HACK that is SRFI-55 support (require) + Libraries currently
+- better typing (ala Stalin) support
