@@ -13,8 +13,8 @@
         (eq? x #u) #s
         else #t))
 
-(define (cadr x) (car (cdr x)))
-(define (cddr x) (cdr (cdr x))) 
+#;(define (cadr x) (car (cdr x)))
+#;(define (cddr x) (cdr (cdr x))) 
 
 (define (define-syntax name literals patterns)
     "Simple version of define-syntax; Digamma's spec equates
@@ -41,7 +41,9 @@
                 (match-pattern (cdr pat) (cdr form) env literals)
                 (list #f '()))
         (symbol? (car pat)) ;; need to check ... here
-            (if (eq? (cadr pat) '...)
+            (if (and
+                    (pair? (cdr pat)) ;; check if cdr isn't (some . thing)
+                    (eq? (cadr pat) '...))
                 (let* ((pl (length (cddr pat)))
                        (fl (length form))
                        (offset (- fl pl)))
@@ -58,7 +60,9 @@
                             literals)))
                 (match-pattern (cdr pat) (cdr form) (cons (list (car pat) (car form)) env) literals))
         (pair? (car pat)) ;; same as above
-            (if (eq? (cadr pat) '...)
+            (if (and
+                    (pair? (cdr pat)) ;; check if cdr isn't (some . thing)
+                    (eq? (cadr pat) '...))
                 #f
                 (match-pattern (cdr pat) (cdr form)
                     (append (match-pattern (car pat) (car form) '() literals) env) literals))
