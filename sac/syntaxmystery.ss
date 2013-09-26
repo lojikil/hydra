@@ -3,7 +3,7 @@
 (define-syntax define-begin-like
   ()
     ((_ x)
-     (define-syntax x
+     '(define-syntax x
        ()
          ((_ . rest) (begin . rest)))))
 
