@@ -396,7 +396,7 @@ eqp(SExp *s0, SExp *s1)
                 return strue;
             return sfalse;
         case STRING:
-            if(!strncmp(tmp0->object.str,tmp1->object.str, tmp1->length))
+            if(tmp0->length == tmp1->length && !strncmp(tmp0->object.str,tmp1->object.str, tmp1->length))
                 return strue;
             return sfalse;
 		case CHAR:
