@@ -10,5 +10,6 @@
 (define (p x) (write x) (newline) x)
 
 (with begin (lambda (x y) (p "oops"))
- (define-begin-like my-begin)
-      (my-begin (p 1) (p 2)))
+    (display
+        (define-begin-like my-begin))
+        (my-begin (p 1) (p 2)))

@@ -29,6 +29,7 @@
     "Match a syntax-rules pattern defined in pat against form.
     Returns (BOOL BINDINGS*), where BOOL defines success or
     failure, and BINDINGS is an a-list."
+    (display "in match-pattern")
     (cond
         (null? pat)
             (if (null? form)
@@ -72,6 +73,7 @@
                 (list #f '()))))
 
 (define (syntax-expand2 rules form literals)
+    (display "in syntax-expand 2\n")
     (if (null? rules)
         (list #f '())
         (with res (match-pattern (caar rules) form '() literals) ;; really need to get internal procs working in Enyalios
@@ -80,13 +82,13 @@
                 (syntax-expand2 (cdr rules) form '() literals)))))
 
 (define (build-syntax-result env form out)
-    ;(display "in build-syntax-result;\n env == ")
-    ;(write env)
-    ;(display "\nform == ")
-    ;(write form)
-    ;(display "\nout == ")
-    ;(write out)
-    ;(newline)
+    (display "in build-syntax-result;\n env == ")
+    (write env)
+    (display "\nform == ")
+    (write form)
+    (display "\nout == ")
+    (write out)
+    (newline)
     (cond
         (null? form) out
         (symbol? form)
@@ -112,6 +114,7 @@
 
 (define (syntax-expand1 syn form)
     "uses the rules defined in syn to match against form via match-pattern above"
+    (display "in syntax-expand1\n")
     (let* ((literals (car syn))
            (rules (cdr syn))
            (result (syntax-expand2 rules form literals)))
