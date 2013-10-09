@@ -94,10 +94,16 @@
         (symbol? form)
             (with s (assq form env)
                 (if (eq? s #f)
-                    form
-                    (cadr s)))
+                    (append 
+                        out
+                        form)
+                    (append
+                        out
+                        (cadr s))))
         (not (pair? form))
-            form
+            (append
+                out
+                form)
         (symbol? (car form)) ;; need to check ... here & below in pair?
             (with s (assq (car form) env)
                 (if (eq? s #f)

@@ -1,8 +1,9 @@
 (load 'prelude.ss)
+#;(load '../experiments/sr.ss)
 
 (define-syntax define-begin-like
   ()
-    ((_ x)
+  ((_ x)
      '(define-syntax x
        ()
          ((_ . rest) (begin . rest)))))
