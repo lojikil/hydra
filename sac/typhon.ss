@@ -1741,6 +1741,14 @@
         (typhon@load-loop f env dump)
         (close f)
         #v))
+
+(define (typhon@help o env)
+    (let ((res (typhon@lookup o env)))
+        (if (typhon@lambda? res)
+            (begin
+                (display "params: ")
+                (display (nth (cadr res) 2)))
+            #v)))
                                     
 (define (typhon@repl env dump)
     (display ";t ")
@@ -1755,6 +1763,13 @@
                 (eq? (cadr inp) 'dribble) (begin (typhon@repl env dump))
                 (eq? (cadr inp) 'save) (begin (typhon@repl env dump))
                 (eq? (cadr inp) 'save-and-die) (begin (typhon@repl env dump))
+                (or
+                    (eq? (cadr inp) 'h)
+                    (eq? (cadr inp) 'help))
+                    (with item (read)
+                        (typhon@help item env)
+                        (newline)
+                        (typhon@repl env dump))
                 (eq? (cadr inp) 'i) (with item (read) (write (typhon@lookup item env)) (newline) (typhon@repl env dump))
                 else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (typhon@repl env dump)))
         (eof-object? inp)
