@@ -58,3 +58,16 @@ A simple breakdown by `,i x` shows us what `x` becomes: `((3 10) (31 fib) (110 f
 - compiler tracks & emits the fast load & what is stored where
 - down side? need to update _two_ locations for set!
 - Python uses "STORE_FAST", which is pretty reasonable, and I think it should work. Would need a "locals" stack added to `hydra@vm` though...
+
+* Investigate this error:
+
+`;t (load 'prelude.ss)
+;t (with begin (lambda (x y) (display x) (newline) (display y) (newline)) (begin 1 2))
+2
+;t _
+2
+;t (with foo (lambda (x y) (display x) (newline) (display y) (newline)) (foo 1 2))
+#<Error>
+`
+
+What's that error that's occuring in there? Is that a Vesta-level error? Should make the RTS display "#<Error message>"...

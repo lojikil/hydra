@@ -10,11 +10,12 @@
 
 (define (p x) (write x) (newline) x)
 
-(with begin (lambda (x) (p "oops"))
+(with begin (lambda (x y) (p "oops"))
     (display "past the with\n")
     (define-begin-like my-begin)
     (display "past the \"define-begin-like\"\n")
     (display my-begin)
     (newline)
+    (display "my-begin result: ")
     (write (my-begin (p 1) (p 2)))
     (newline))
