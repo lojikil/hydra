@@ -115,12 +115,6 @@
 (define-syntax string? () ((string? n) (type? n "STRING")))
 (define-syntax bool? () ((bool? n) (type? n "BOOL")))
 (define-syntax goal? () ((goal? n) (type? n "GOAL")))
-(define (not x)
-        (cond
-            (eq? x #s) #u
-            (eq? x #f) #t
-            (eq? x #u) #s
-            else #f))
 (define-syntax zero? () ((zero? n) (= n 0)))
 (define-syntax eof-object? () ((eof-object? n) (eq? n #e)))
 (define-syntax void? () ((void? x) (eq? x #v)))

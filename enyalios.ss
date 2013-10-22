@@ -199,6 +199,7 @@
     :error ["f_error" #f 1 1]
     :cupdate ["fcupdate" #f 3 3]
     :cslice ["fcslice" #f 3 3]
+    :not ["fnot" #f 1 1] ;; to be optimized away
     ;:tconc! ["tconc"]
     ;;:make-tconc #t
     ;;:tconc-list #t
@@ -1100,7 +1101,8 @@
                 (eq? (cadr c) "fvset")
                 (eq? (cadr c) "fvref")
                 (eq? (cadr c) "inc")
-                (eq? (cadr c) "typep")))
+                (eq? (cadr c) "typep")
+                (eq? (cadr c) "fnot")))
         (and
             (eq? (car c) 'c-primitive)
             (or
@@ -1433,6 +1435,23 @@
         (display type out)
         (display ")" out)))
 
+(define (optimize-fnot code out status?)
+    (let* ((args (caddr code)) 
+           (obj (car args)))
+        (if (optimizable-primitive? obj)
+            (begin
+                (display "!(" out)
+                (optimize-primitive obj out status?)
+                (if status?
+                    (display ")" out)
+                    (display ") == STRUE ? STRUE : SFALSE" out)))
+            (begin
+                (display "fnot(" out)
+                (il->c obj 0 out)
+                (if status?
+                    (display ") == STRUE" out) 
+                    (display ")" out))))))
+
 (define (optimize-dset o out)
     (let* ((vals (caddr o))
           (d (car vals))
@@ -1526,6 +1545,8 @@
             (optimize-vref o out)
         (eq? (cadr o) "typep")
             (optimize-typep o out status)
+        (eq? (cadr o) "fnot")
+            (optimize-fnot o out status)
         (eq? (cadr o) "inc")
             (let ((first-arg (caaddr o))
                   (second-arg (cadr (caddr o))))
