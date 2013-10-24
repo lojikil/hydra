@@ -1669,6 +1669,9 @@ llprinc(SExp *s, FILE *fd, int mode)
 		case SVOID:
 			fprintf(fd,"#v");
 			break;
+        case ERROR:
+            fprintf(fd,"#<%s \"%s\">", typenames[s->type], s->object.error.message);
+            break;
 		default:
 			fprintf(fd,"#<%s>",typenames[s->type]);
 			break;

@@ -71,3 +71,7 @@ A simple breakdown by `,i x` shows us what `x` becomes: `((3 10) (31 fib) (110 f
 `
 
 What's that error that's occuring in there? Is that a Vesta-level error? Should make the RTS display "#<Error message>"...
+
+ *AH HA!*
+So the error is "Unknown procedure: \"fo\""; it seems like binding things like `begin` or `foo` (which is the procedure "fo") don't work in
+"with" or `lambda`, but do work with `define`; `(define (foo x) (+ x x))` does what you'd expect.
