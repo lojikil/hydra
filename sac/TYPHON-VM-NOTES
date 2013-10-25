@@ -75,3 +75,28 @@ What's that error that's occuring in there? Is that a Vesta-level error? Should 
  *AH HA!*
 So the error is "Unknown procedure: \"fo\""; it seems like binding things like `begin` or `foo` (which is the procedure "fo") don't work in
 "with" or `lambda`, but do work with `define`; `(define (foo x) (+ x x))` does what you'd expect.
+
+`;t (load 'prelude.ss)     
+;t (with begin (fn (x y) (+ x y)) (begin 1 2))
+2
+;t (with begin (fn (x y) (+ x y)) (begin 1 2))
+2
+;t (with foo (fn (x y) (+ x y)) (foo 1 2))
+#<Error "unknown procedure "fo"">
+;t (with bar (fn (x y) (+ x y)) (bar 1 2))
+3
+;t (with foo (fn (x y) (+ x y)) (foo 1 2))
+#<Error "unknown procedure "fo"">
+;t (define foo 10)
+;t (with foo (fn (x y) (+ x y)) (foo 1 2))
+3
+;t (with begin (fn (x y) (+ x y)) (begin 1 2))
+2
+;t (define (baz) (with begin (fn (x y) (+ x y)) (begin 1 2)))
+;t ,i baz
+(compiled-lambda [ (#<Dictionary>) ((3 (compiled-lambda [ (#<Dictionary>) ((112 0) (112 1) (6)) (x y) ])) (109) (3 (compiled-lambda [ (#<Dictionary>) ((3 1) (3 2)) (begin) ])) (109) (110)) () ])
+    ;t (with display (fn (x y) (+ x y)) (display 1 2))
+#<Error "display's p argument must be of type PORT">`
+
+I think I got it: when `compile-lambda` is called, it's not taking into account the environment that's being defined within the `with`, so it's using the
+default notion of `begin`, `display`, `foo`, &c.
