@@ -100,3 +100,35 @@ So the error is "Unknown procedure: \"fo\""; it seems like binding things like `
 
 I think I got it: when `compile-lambda` is called, it's not taking into account the environment that's being defined within the `with`, so it's using the
 default notion of `begin`, `display`, `foo`, &c.
+
+More evidence:
+(also, why does this SEGFAULT...)
+
+`;t ((fn (begin) (begin 1 2)) ((fn (x y) (display x) (newline) (+ x y)))
+)
+Segmentation fault: 11
+sae@iduna[~/i/hydra-testing/sac]
+$ ./typhon 
+
+    ()
+      ()
+    ()  ()
+Digamma/Typhon: 2012.0/r0
+;t ((fn (begin) (begin 1 2)) (fn (x y) (display x) (newline) (+ x y)))
+2`
+
+* SegFault in Typhon:
+
+`;t ((fn (x) x))
+Segmentation fault: 11`
+
+Need to fix that...
+
+`;t ((fn (x) (+ x x)))
+call-proc == (compiled-lambda [ (#<Dictionary>) ((112 0) (112 0) (6)) (x) ])
+
+Program received signal EXC_BAD_ACCESS, Could not access memory.
+Reason: KERN_INVALID_ADDRESS at address: 0x0000000000000000
+0x000000010000a3c5 in typhon_vm ()`
+
+This one is happening around the CALL-FROM-STACK (110) instruction, but it could happen at the CALL (30) instruction too.
