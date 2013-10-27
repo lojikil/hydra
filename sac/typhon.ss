@@ -542,15 +542,19 @@
                         (let ((call-proc (typhon@operand c)))
                             ;(display "in <else> of CALL\n")
                             ;(display "c == ")
-                            (write c)
-                            (newline)
-                            (display "(car stack) == ")
-                            (write (car stack))
-                            (display "\n")
+                            ;(write c)
+                            ;(newline)
+                            ;(display "(car stack) == ")
+                            ;(write (car stack))
+                            ;(display "\n")
                             (if (symbol? call-proc)
                                 (set! call-proc (typhon@lookup call-proc env))
                                 #v)
                             (cond
+                                (and
+                                    (eq? (cdr stack) '())
+                                    (not (eq? (nth (cadr call-proc) 2) '())))
+                                    (typhon@error "incorrect arity for user procedure")
                                 (typhon@error? call-proc)
                                     call-proc
                                 (typhon@lambda? call-proc)
@@ -1062,10 +1066,14 @@
                                 dump))
                     (110) ;; call from stack
                         (let ((call-proc (car stack)))
-                            (display "call-proc == ")
-                            (write call-proc)
-                            (display "\n")
+                            ;(display "call-proc == ")
+                            ;(write call-proc)
+                            ;(display "\n")
                             (cond
+                                (and
+                                    (eq? (cdr stack) '())
+                                    (not (eq? (nth (cadr call-proc) 2) '())))
+                                    (typhon@error "incorrect arity for user procedure")
                                 (typhon@error? call-proc)
                                     (begin
                                         ;(display "error: ")
