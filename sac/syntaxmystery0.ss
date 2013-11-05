@@ -6,7 +6,7 @@
   ((_ x)
      (define-syntax x
        ()
-         ((x . rest) '(begin . rest)))))
+         ((x . rest) (begin . rest)))))
 
 (define (p x) (write x) (newline) x)
 

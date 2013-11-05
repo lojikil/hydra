@@ -265,6 +265,14 @@
                     (display (car args))
                 else
                     (error "Incorrect arity for procedure: display"))
+        (eq? proc "write")
+            (cond
+                (= arity 2)
+                    (write (car args) (cadr args))
+                (= arity 1)
+                    (write (car args))
+                else
+                    (error "Incorrect arity for procedure: write"))
         (eq? proc "newline")
             (cond
                 (= arity 0)
