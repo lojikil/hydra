@@ -1421,7 +1421,8 @@
             (pair? line) 
                 (let* ((fst (car line)) ;; decompose line into first & rest
                        (v (typhon@lookup fst env)) ;; find fst in env
-                       (rst (cdr line))) 
+                       (rst (cdr line))
+                       (param-mem? (memq fst params)))
                     ;(display "in decompse LET; fst == ")
                     ;(write fst)
                     ;(display " and rst == " )
@@ -1430,6 +1431,12 @@
                     ;(write v)
                     ;(newline)
                    (cond 
+                        (not (eq? param-mem? #f))
+                            (append
+                                (reverse-append 
+                                    (typhon@map rst params env))
+                                (list (list 112 (- (length params) (length param-mem?))))
+                                (list (list 110 'param)))
                         (typhon@syntax? v) ;; primitive syntax
                             (cond
                                 (eq? (cdr v) 'primitive-syntax-quote)
