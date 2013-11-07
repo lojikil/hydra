@@ -1687,7 +1687,7 @@
                                     (typhon@compile
                                         syn
                                         params
-                                        env))
+                                        env)) ;; TODO: don't use env, use the environment stored in the syntax object
                             (typhon@umacro? v)
                                 #f
                             (typhon@procedure? v) ;; need to add some method of checking proc arity here.
