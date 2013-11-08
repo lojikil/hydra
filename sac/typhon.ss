@@ -1547,7 +1547,7 @@
                                 (eq? (cdr v) 'primitive-syntax-defsyn)
                                     (let ((name (car rst))
                                           (rules (cdr rst)))
-                                        (typhon@add-env! name (list 'user-syntax rules) env)
+                                        (typhon@add-env! name (list 'user-syntax rules (srfi1-list-copy env)) env)
                                         (list (list 107))) ;; %nop
                                 (eq? (cdr v) 'primitive-syntax-defmac)
                                     #t
@@ -1687,7 +1687,7 @@
                                     (typhon@compile
                                         syn
                                         params
-                                        env)) ;; TODO: don't use env, use the environment stored in the syntax object
+                                        (caddr v))) ;; TODO: don't use env, use the environment stored in the syntax object
                             (typhon@umacro? v)
                                 #f
                             (typhon@procedure? v) ;; need to add some method of checking proc arity here.
