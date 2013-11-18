@@ -18,12 +18,14 @@ Since this is my internal notes on what I'm working on with Digamma, I thought I
 - *DONE*: port that to Hydra's runtime
 
 * Vesta/Hydra
+
 - engines
 - current-input-port, current-output-port, current-error-port
 - with-output, with-input, with-error
 - get/set current-X-port
 
 * Enyalios
+
 - *DONE*: top level Symbol for procedures, added to lparams\["env"\]
 - *DONE*: top level static snil, strue, &c.
 - *DONE*: add static snil &c to top level Symbol
@@ -61,6 +63,7 @@ Since this is my internal notes on what I'm working on with Digamma, I thought I
 - add exception system (SRFI-34 via longjmp/setjmp)
 
 * Hydra/Typhon
+
 - *DONE*: fix closures
 - *DONE*: port closure fix to Typhon
 - *DONE*: review user of map, and potentially replace with bespoke, Enyalios\-friendly equivalent (SAC)
@@ -91,15 +94,17 @@ Since this is my internal notes on what I'm working on with Digamma, I thought I
 - Delimited Continuations in Typhon
 - *DONE*: Cut down on calls to `pairlength`; see [http://lojikil.com/d/lisp/typhon-prof-13SEP2013.txt this profile set]
 - add FAST-ADD, FAST-SUB, &c instructions for integers? (+ x 6) could be ((env-load x) (fast-add 6)); cuts down on one while-loop iteration
-- Fix `syntaxmystery.ss` weirdness; derived from [https://code.google.com/p/ypsilon/issues/detail?id=107 this issue in Ypsilon]
+- *DONE* Fix `syntaxmystery.ss` weirdness; derived from [https://code.google.com/p/ypsilon/issues/detail?id=107 this issue in Ypsilon]
 
 * Eurydice
+
 - linting
 - C-stress-style file system checks
 - formatting (ala gofmt)
 - refactoring: if<=>cond, cond<=>case, with<=>let, define<=>define-syntax, &c.
 
 * All
+
 - SRFI-0/7, for supporting different loads, different FFIs, different low-level runtimes...
 - Scheme48-style modules.
 - define-syntax
