@@ -297,6 +297,8 @@
                     (read (car args))
                 else
                     (error "Incorrect arity for procedure: read"))
+        (eq? proc "digamma-implementation")
+            'typhon
         else
             (error (format "unknown procedure \"~a\"" proc))))
 
@@ -477,15 +479,22 @@
                     (16) ;; procedure call
                     (let* ((arity (caddr c))
                            (args (cslice stack 0 arity))
-                           (stk (cslice stack arity (length (cdr stack))))
                            (ret (procedure-runner (typhon@operand c) arity args env dump)))
+                        (if (or (empty? stack) (= arity 0))
                            (typhon@vm
                                 code code-len
                                 env
                                 (+ ip 1)
-                                (cons ret stk)
+                                (cons ret stack)
                                 locals
-                                dump))
+                                dump)
+                           (typhon@vm
+                                code code-len
+                                env
+                                (+ ip 1)
+                                (cons ret (cslice stack (- arity 1) (length (cdr stack))))
+                                locals
+                                dump)))
                     (18) ;; real?
                         (typhon@vm code code-len
                                   env
@@ -1250,6 +1259,7 @@
     (dict-set! env "empty?" '(primitive . 59))
     (dict-set! env "display" '(procedure . "display"))
     (dict-set! env "newline" '(procedure . "newline"))
+    (dict-set! env "digamma-implementation" '(procedure . "digamma-implementation"))
     (dict-set! env "%dict" '(primitive . 94))
     (dict-set! env "dict" '(syntax . primitive-syntax-dict))
     (dict-set! env "dict-has?" '(primitive . 96))

@@ -1,0 +1,8 @@
+(define f #v)
+(set! f (read))
+(display "f: ")
+(display f)
+(display "\n") 
+(if (eq? f "FOO!")
+    (display "FOO!\n")
+    (display "NOOO!\n"))
