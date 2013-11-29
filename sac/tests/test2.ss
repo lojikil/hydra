@@ -1,5 +1,5 @@
 (if (eq? 'typhon (digamma-implementation))
-    (load 'prelude.ss)
+    (load 'typhon_prelude.ss)
     #v)
 (define (say_hello f)
     (cond
