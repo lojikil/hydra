@@ -155,4 +155,11 @@
     (display "begin ")
     (display "work?"))
 
+(display "\nanonymous lambda test: ")
+((lambda () 
+    (display "does ")
+    (display "lambda ")
+    (display "work?")))
+
 (display "\n")
+
