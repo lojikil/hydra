@@ -132,3 +132,27 @@
 (newline)
 (write (/ 1 3.0+4.0i))
 (newline)
+
+(display "multiple argument +: ")
+(write (+ 1 2.0 3/4 5+6i))
+(newline)
+
+(display "multiple argument -: ")
+(write (- 1 2.0 3/4 5+6i))
+(newline)
+
+(display "multiple argument *: ")
+(write (* 1 2.0 3/4 5+6i))
+(newline)
+
+(display "multiple argument /: ")
+(write (/ 1 2.0 3/4 5+6i))
+(newline)
+
+(display "begin test: ")
+(begin
+    (display "does ")
+    (display "begin ")
+    (display "work?"))
+
+(display "\n")
