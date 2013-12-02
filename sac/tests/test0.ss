@@ -161,5 +161,22 @@
     (display "lambda ")
     (display "work?")))
 
-(display "\n")
+(display "\ndefine lambda test: ")
+(define foo (lambda (x) (+ x x)))
+(display "(foo 10) should be 20: ")
+(write (foo 10))
 
+(display "\ndefine lambda test, without explicit fn/lambda: ")
+(display "(bar 10) should be 20: ")
+(define (bar x) (+ x x))
+(write (bar 10))
+
+(display "\nscope test; a2 before should be 1000, in should be equal to 20, and after 1000 again: ")
+(define a2 1000)
+(display "\nbefore, a2 is ")
+(write a2)
+((fn (a2) (display "\nin, a2 is ") (write a2)) 20)
+(display "\nafter, a2 is ")
+(display a2)
+
+(display "\n")
