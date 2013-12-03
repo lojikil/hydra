@@ -179,4 +179,14 @@
 (display "\nafter, a2 is ")
 (display a2)
 
+(display "\nnested scopes: ")
+(define (foo0 x)
+    (display "\nx in foo0 is: ")
+    (write x)
+    (define (foo1 x) (display "\nx in foo1 is ") (write x) (newline))
+    (foo1 (+ x 10))
+    (display "x in foo0 is: ")
+    (write x))
+(foo0 20)
+
 (display "\n")
