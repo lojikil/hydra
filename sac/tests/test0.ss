@@ -189,4 +189,7 @@
     (write x))
 (foo0 20)
 
+(display "\na load test: ")
+(load 'load-test0.ss)
+
 (display "\n")
