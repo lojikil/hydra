@@ -49,6 +49,11 @@
 (display "a is ")
 (write a)
 
+(display "\nset! test: ")
+(set! a 2)
+(display "a should be equal to 2 now: ")
+(write a)
+
 (display "\nif test: ")
 (if #t
     (display "in the true branch")
