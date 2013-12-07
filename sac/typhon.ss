@@ -1478,7 +1478,7 @@
                                                 (typhon@compile (car rst) params env)
                                                 '((55)))
                                         else
-                                            (error "incorrect arity for NTH"))
+                                            (typhon@error "incorrect arity for NTH"))
                                 (eq? (cdr v) 'primitive-syntax-plus)
                                     (cond
                                         (= (length rst) 1)
@@ -1500,7 +1500,7 @@
                                             (append 
                                                 (typhon@compile (car rst) params env)
                                                 (typhon@compile-help '%- (cdr rst) params env))
-                                        else (error "minus fail"))
+                                        else (typhon@error "minus fail"))
                                 (eq? (cdr v) 'primitive-syntax-mult)
                                     (cond
                                         (= (length rst) 1)
@@ -1522,7 +1522,7 @@
                                             (append 
                                                 (typhon@compile (car rst) params env)
                                                 (typhon@compile-help '%/ (cdr rst) params env))
-                                        else (error "division fail"))
+                                        else (typhon@error "division fail"))
                                 (eq? (cdr v) 'primitive-syntax-numeq)
                                     (cond
                                         (= (length rst) 1)
@@ -1531,7 +1531,7 @@
                                             (append
                                                 (typhon@compile (car rst) params env)
                                                 (typhon@compile-help '%= (cdr rst) params env))
-                                        else (error "numeq fail"))
+                                        else (typhon@error "numeq fail"))
                                 (eq? (cdr v) 'primitive-syntax-define)
                                     (let ((name (car rst))
                                           (value (cadr rst)))
@@ -1546,7 +1546,7 @@
                                                     (typhon@compile value params env)
                                                     (list (list 3 name))
                                                     (list (list (cdr (typhon@lookup '%define env)))))
-                                            else (error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*")))
+                                            else (typhon@error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*")))
                                 (eq? (cdr v) 'primitive-syntax-set)
                                     (let ((name (car rst))
                                           (value (cadr rst)))
@@ -1555,7 +1555,7 @@
                                                 (typhon@compile value params env)
                                                 (list (list 3 name))
                                                 (list (list (cdr (typhon@lookup '%set! env)))))
-                                            (error "SET!: set! SYMBOL S-EXPR*")))
+                                            (typhon@error "SET!: set! SYMBOL S-EXPR*")))
                                 (eq? (cdr v) 'primitive-syntax-defsyn)
                                     (let ((name (car rst))
                                           (rules (cdr rst)))
@@ -1680,7 +1680,7 @@
                                             (list (list 28 else-len)) ;; jump else
                                             <else>)) 
                                 else 
-                                    (error "syntax has not been implemented at this time"))
+                                    (typhon@error "syntax has not been implemented at this time"))
                             (pair? fst) 
                                 ;; fst is a pair, so we just blindly attempt to compile it.
                                 ;; May cause an error that has to be caught in CALL. some lifting might fix this...
