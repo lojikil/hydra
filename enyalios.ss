@@ -859,12 +859,13 @@
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'case) (compile-case (cdr c) name tail? rewrites lparams)
-        (eq? (car c) 'catch) (list 'c-catch (compile-begin (cdr c) name tail? rewrites lparams))
+        (eq? (car c) 'catch) (list #f (list 'c-catch (cadr (compile-begin (cdr c) name tail? rewrites lparams)))) ;; FIXME: should check for tail rec here
         (eq? (car c) 'throw)
-            (list
-                'c-throw
-                (generate-code (cadr c) name #f rewrites lparams) 
-                (generate-code (caddr c) name #f rewrites lparams))
+            (list #f
+                (list
+                    'c-throw
+                    (cadr (generate-code (cadr c) name #f rewrites lparams))
+                    (cadr (generate-code (caddr c) name #f rewrites lparams))))
         (eq? (car c) 'quote)
             (if (null? (cadr c))
                 '(#f (c-nil))
