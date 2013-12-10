@@ -598,6 +598,8 @@
             (eq? (car c) 'c-tailcall)
             (eq? (car c) 'c-docstring)
             (eq? (car c) 'c-%prim)
+            (eq? (car c) 'c-catch)
+            (eq? (car c) 'c-throw)
             (eq? (car c) 'c-loop))
             #t
         else
@@ -857,6 +859,12 @@
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'case) (compile-case (cdr c) name tail? rewrites lparams)
+        (eq? (car c) 'catch) (list 'c-catch (compile-begin (cdr c) name tail? rewrites lparams))
+        (eq? (car c) 'throw)
+            (list
+                'c-throw
+                (generate-code (cadr c) name #f rewrites lparams) 
+                (generate-code (caddr c) name #f rewrites lparams))
         (eq? (car c) 'quote)
             (if (null? (cadr c))
                 '(#f (c-nil))
@@ -1745,6 +1753,34 @@
                 (il->c (cdr il) (+ lvl 1) out)
                 (int->spaces lvl out)
                 (display "}\n" out))
+        (eq? (car il) 'c-catch)
+            ;; need to add the return part below
+            ;; maybe something like (throw 'some-tag value) becomes:
+            ;; SExp *some_tag = value;
+            ;; goto some_tag_lbl;
+            (begin
+                (int->spaces lvl out)
+                (display "SExp *" out)
+                (display (cmung (cadr il)) out)
+                (display " = nil;\n" out)
+                (il->c (cddr il) lvl out)
+                (display (cmung (cadr il)) out)  
+                (display "_lbl: " out)
+                (int->spaces lvl out)
+                (display "return " out)
+                (display (cmung (cadr il)) out)
+                (display ";\n"))
+        (eq? (car il) 'c-throw)
+            (begin
+                (int->spaces lvl out)
+                (display (cmung (cadr il)) out)
+                (display " = " out)
+                (il->c (caddr il) 0 out)
+                (display ";\n" out)
+                (int->spaces lvl out)
+                (display "goto " out)
+                (display (cmung (cadr il)) out)
+                (display "_lbl;" out))
         (eq? (car il) 'c-case)
             (ir->c-case (cdr il) lvl out) 
         (eq? (car il) 'c-and)
