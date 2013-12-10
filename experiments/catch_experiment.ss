@@ -1,0 +1,5 @@
+(load "enyalios.ss")
+(define m '(define (foo x) (catch 'some-error (if (< x 10) (throw 'some-error "this is a test") x))))
+(display "code is: ")
+(write (generate-code m '() #f {} {}))
+(newline)
