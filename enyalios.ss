@@ -232,6 +232,8 @@
         #v)
     x)
 
+(define (p x) (display "x: ") (write x) (newline) x)
+
 (define (enyalios@primitive? o)
     (dict-has? *primitives* o))
 
@@ -859,12 +861,18 @@
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'case) (compile-case (cdr c) name tail? rewrites lparams)
-        (eq? (car c) 'catch) (list #f (list 'c-catch (cadr c) (cadr (compile-begin (cddr c) name tail? rewrites lparams)))) ;; FIXME: should check for tail rec here
+        (eq? (car c) 'catch)
+            (list
+                #f
+                (list
+                    'c-catch
+                        (cadr c)
+                        (cadr (compile-begin (cddr c) name tail? rewrites lparams)))) ;; FIXME: should check for tail rec here
         (eq? (car c) 'throw)
             (list #f
                 (list
                     'c-throw
-                    (cadr (generate-code (cadr c) name #f rewrites lparams))
+                    (cadr c)
                     (cadr (generate-code (caddr c) name #f rewrites lparams))))
         (eq? (car c) 'quote)
             (if (null? (cadr c))
@@ -1649,7 +1657,9 @@
         (int->spaces lvl out)
         (display (format "void *~a = nil;\n" offset) out)
         (int->spaces lvl out)
-        (display (format "if(~a == nil){\n" table-name) out)
+        (display (format "if(~a == nil)\n" table-name) out)
+        (int->spaces lvl out)
+        (display "{\n" out)
         (int->spaces (+ lvl 1) out)
         (display (format "~a = makeavlnode(0);\n" table-name) out)
         ;; need to do two things:
@@ -1673,7 +1683,9 @@
         (int->spaces lvl out)
         (display (format "~a = (void *)avl_get(~a, AINT(~a));\n" offset table-name tmp) out)
         (int->spaces (+ lvl 1) out)
-        (display (format "if(~a != nil){\n" offset tmp) out)
+        (display (format "if(~a != nil)\n" offset tmp) out)
+        (int->spaces (+ lvl 1) out)
+        (display "{\n" out)
         (int->spaces (+ lvl 1) out)
         (display (format "goto *~a;~%" offset) out)
         (int->spaces lvl out)
@@ -1734,7 +1746,9 @@
                 (int->spaces lvl out)
                 (display "if(" out)
                 (if-condition (cadr (show il "about to call if-condition: ")) out)
-                (display "){\n" out)
+                (display ")\n" out)
+                (int->spaces lvl out)
+                (display "{\n" out)
                 (il->c (cddr il) (+ lvl 1) out)
                 (int->spaces lvl out)
                 (display "}\n" out))
@@ -1743,14 +1757,18 @@
                 (int->spaces lvl out)
                 (display "else if(" out)
                 (if-condition (cadr il) out)
-                (display "){\n" out)
+                (display ")\n" out)
+                (int->spaces lvl out)
+                (display "{\n" out)
                 (il->c (cddr il) (+ lvl 1) out)
                 (int->spaces lvl out)
                 (display "}\n" out))
         (eq? (car il) 'c-else)
             (begin
                 (int->spaces lvl out)
-                (display "else {\n" out)
+                (display "else\n" out)
+                (int->spaces lvl out)
+                (display "{\n" out)
                 (il->c (cdr il) (+ lvl 1) out)
                 (int->spaces lvl out)
                 (display "}\n" out))
@@ -1766,11 +1784,11 @@
                 (display " = nil;\n" out)
                 (il->c (cddr il) lvl out)
                 (display (cmung (cadr il)) out)  
-                (display "_lbl: " out)
+                (display "_lbl: \n" out)
                 (int->spaces lvl out)
                 (display "return " out)
                 (display (cmung (cadr il)) out)
-                (display ";\n"))
+                (display ";\n" out))
         (eq? (car il) 'c-throw)
             (begin
                 (int->spaces lvl out)
@@ -1781,7 +1799,7 @@
                 (int->spaces lvl out)
                 (display "goto " out)
                 (display (cmung (cadr il)) out)
-                (display "_lbl;" out))
+                (display "_lbl;\n" out))
         (eq? (car il) 'c-case)
             (ir->c-case (cdr il) lvl out) 
         (eq? (car il) 'c-and)
@@ -1855,7 +1873,7 @@
                             (params->c (caddr il) (nth *ulambdas* (cadr il)))
                             ", ")
                         out))
-                (display "){\n" out)
+                (display ")\n{\n" out)
                 (if *profiling*
                     (begin
                         (int->spaces lvl out)
