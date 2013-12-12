@@ -61,6 +61,7 @@ Since this is my internal notes on what I'm working on with Digamma, I thought I
 - *DONE*: fix (if SOME-COND #v SOME-OTHER CODE) in non-tail position
 - *DONE*: fix COND in non-tail position
 - add exception system (SRFI-34 via longjmp/setjmp)
+- *DONE*: add catch/throw
 
 * Hydra/Typhon
 
@@ -95,6 +96,9 @@ Since this is my internal notes on what I'm working on with Digamma, I thought I
 - *DONE*: Cut down on calls to `pairlength`; see [http://lojikil.com/d/lisp/typhon-prof-13SEP2013.txt this profile set]
 - add FAST-ADD, FAST-SUB, &c instructions for integers? (+ x 6) could be ((env-load x) (fast-add 6)); cuts down on one while-loop iteration
 - *DONE* Fix `syntaxmystery.ss` weirdness; derived from [https://code.google.com/p/ypsilon/issues/detail?id=107 this issue in Ypsilon]
+- fix hang when user attempts to `LOAD` a file that doesn't exist.
+- use catch/throw in source
+- add catch/throw to supported language
 
 * Eurydice
 
