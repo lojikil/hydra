@@ -1423,324 +1423,324 @@
             (typhon@map (cdr iter-list) params env))))
 
 (define (typhon@compile line params env)
-    (if (null? line)
-        '()
-        (cond
-            (vector? line) (list (list 3 line))
-            (dict? line) (list (list 3 line) )
-            (symbol? line) 
-                (let ((param-mem? (memq line params)))
-                    (if (not (eq? param-mem? #f))
-                        (list
+    (catch compile-error
+        (if (null? line)
+            '()
+            (cond
+                (vector? line) (list (list 3 line))
+                (dict? line) (list (list 3 line) )
+                (symbol? line) 
+                    (let ((param-mem? (memq line params)))
+                        (if (not (eq? param-mem? #f))
                             (list
-                                112 ;; fast load
-                                (- 
-                                    (length params)
-                                    (length param-mem?))))
-                        (list (list 31 line)))) ;; environment-load
-            (pair? line) 
-                (let* ((fst (car line)) ;; decompose line into first & rest
-                       (v (typhon@lookup fst env)) ;; find fst in env
-                       (rst (cdr line))
-                       (param-mem? (memq fst params)))
-                    ;(display "in decompse LET; fst == ")
-                    ;(write fst)
-                    ;(display " and rst == " )
-                    ;(write rst)
-                    ;(display " and v == " )
-                    ;(write v)
-                    ;(newline)
-                   (cond 
-                        (not (eq? param-mem? #f))
-                            (append
-                                (reverse-append 
-                                    (typhon@map rst params env))
-                                (list (list 112 (- (length params) (length param-mem?))))
-                                (list (list 110 'param)))
-                        (typhon@syntax? v) ;; primitive syntax
-                            (cond
-                                (eq? (cdr v) 'primitive-syntax-quote)
-                                    (if (null? (car rst))
-                                        '((4))
-                                        (list (list 3 (car rst))))
-                                (eq? (cdr v) 'primitive-syntax-nth)
-                                    (cond
-                                        (= (length rst) 2)
-                                            (append
-                                                '((4)) ; this should really be a typhon@error
-                                                (typhon@compile (cadr rst) params env)
-                                                (typhon@compile (car rst) params env)
-                                                '((55)))
-                                        (= (length rst) 3)
-                                            (append
-                                                (typhon@compile (caddr rst) params env)
-                                                (typhon@compile (cadr rst) params env)
-                                                (typhon@compile (car rst) params env)
-                                                '((55)))
-                                        else
-                                            (typhon@error "incorrect arity for NTH"))
-                                (eq? (cdr v) 'primitive-syntax-plus)
-                                    (cond
-                                        (= (length rst) 1)
-                                            (append '((3 0))
-                                                (typhon@compile (car rst) params env)
-                                                (list (list (typhon@lookup '%+ env))))
-                                        (> (length rst) 1)
-                                            (append 
-                                                (typhon@compile (car rst) params env)
-                                                (typhon@compile-help '%+ (cdr rst) params env))
-                                        else (list (list 3 0)))
-                                (eq? (cdr v) 'primitive-syntax-minus)
-                                    (cond
-                                        (= (length rst) 1)
-                                            (append '((3 0))
-                                                (typhon@compile (car rst) params env)
-                                                (list (list (typhon@lookup '%- env))))
-                                        (> (length rst) 1)
-                                            (append 
-                                                (typhon@compile (car rst) params env)
-                                                (typhon@compile-help '%- (cdr rst) params env))
-                                        else (typhon@error "minus fail"))
-                                (eq? (cdr v) 'primitive-syntax-mult)
-                                    (cond
-                                        (= (length rst) 1)
-                                            (append '((3 0))
-                                                (typhon@compile (car rst) params env)
-                                                (list (list (typhon@lookup '%* env))))
-                                        (> (length rst) 1)
-                                            (append 
-                                                (typhon@compile (car rst) params env)
-                                                (typhon@compile-help '%* (cdr rst) params env))
-                                        else (list (list 3 1)))
-                                (eq? (cdr v) 'primitive-syntax-div)
-                                    (cond
-                                        (= (length rst) 1)
-                                            (append '((3 1))
-                                                (typhon@compile (car rst) params env)
-                                                (list (list (typhon@lookup '%/ env))))
-                                        (> (length rst) 1)
-                                            (append 
-                                                (typhon@compile (car rst) params env)
-                                                (typhon@compile-help '%/ (cdr rst) params env))
-                                        else (typhon@error "division fail"))
-                                (eq? (cdr v) 'primitive-syntax-numeq)
-                                    (cond
-                                        (= (length rst) 1)
-                                            (list (list 3 #t))
-                                        (> (length rst) 1)
-                                            (append
-                                                (typhon@compile (car rst) params env)
-                                                (typhon@compile-help '%= (cdr rst) params env))
-                                        else (typhon@error "numeq fail"))
-                                (eq? (cdr v) 'primitive-syntax-define)
-                                    (let ((name (car rst))
-                                          (value (cadr rst)))
+                                (list
+                                    112 ;; fast load
+                                    (- 
+                                        (length params)
+                                        (length param-mem?))))
+                            (list (list 31 line)))) ;; environment-load
+                (pair? line) 
+                    (let* ((fst (car line)) ;; decompose line into first & rest
+                           (v (typhon@lookup fst env)) ;; find fst in env
+                           (rst (cdr line))
+                           (param-mem? (memq fst params)))
+                        ;(display "in decompse LET; fst == ")
+                        ;(write fst)
+                        ;(display " and rst == " )
+                        ;(write rst)
+                        ;(display " and v == " )
+                        ;(write v)
+                        ;(newline)
+                       (cond 
+                            (not (eq? param-mem? #f))
+                                (append
+                                    (reverse-append 
+                                        (typhon@map rst params env))
+                                    (list (list 112 (- (length params) (length param-mem?))))
+                                    (list (list 110 'param)))
+                            (typhon@syntax? v) ;; primitive syntax
+                                (cond
+                                    (eq? (cdr v) 'primitive-syntax-quote)
+                                        (if (null? (car rst))
+                                            '((4))
+                                            (list (list 3 (car rst))))
+                                    (eq? (cdr v) 'primitive-syntax-nth)
                                         (cond
-                                            (pair? name) 
+                                            (= (length rst) 2)
                                                 (append
-                                                    (typhon@compile (cons 'fn (cons (cdar rst) (cdr rst))) params env)
-                                                    (list (list 3 (caar rst)))
-                                                    (list (list (cdr (typhon@lookup '%define env))))) 
-                                            (symbol? name)
+                                                    '((4)) ; this should really be a typhon@error
+                                                    (typhon@compile (cadr rst) params env)
+                                                    (typhon@compile (car rst) params env)
+                                                    '((55)))
+                                            (= (length rst) 3)
+                                                (append
+                                                    (typhon@compile (caddr rst) params env)
+                                                    (typhon@compile (cadr rst) params env)
+                                                    (typhon@compile (car rst) params env)
+                                                    '((55)))
+                                            else
+                                                (throw compile-error (typhon@error "incorrect arity for NTH")))
+                                    (eq? (cdr v) 'primitive-syntax-plus)
+                                        (cond
+                                            (= (length rst) 1)
+                                                (append '((3 0))
+                                                    (typhon@compile (car rst) params env)
+                                                    (list (list (typhon@lookup '%+ env))))
+                                            (> (length rst) 1)
+                                                (append 
+                                                    (typhon@compile (car rst) params env)
+                                                    (typhon@compile-help '%+ (cdr rst) params env))
+                                            else (list (list 3 0)))
+                                    (eq? (cdr v) 'primitive-syntax-minus)
+                                        (cond
+                                            (= (length rst) 1)
+                                                (append '((3 0))
+                                                    (typhon@compile (car rst) params env)
+                                                    (list (list (typhon@lookup '%- env))))
+                                            (> (length rst) 1)
+                                                (append 
+                                                    (typhon@compile (car rst) params env)
+                                                    (typhon@compile-help '%- (cdr rst) params env))
+                                            else (throw compile-error (typhon@error "minus fail")))
+                                    (eq? (cdr v) 'primitive-syntax-mult)
+                                        (cond
+                                            (= (length rst) 1)
+                                                (append '((3 0))
+                                                    (typhon@compile (car rst) params env)
+                                                    (list (list (typhon@lookup '%* env))))
+                                            (> (length rst) 1)
+                                                (append 
+                                                    (typhon@compile (car rst) params env)
+                                                    (typhon@compile-help '%* (cdr rst) params env))
+                                            else (list (list 3 1)))
+                                    (eq? (cdr v) 'primitive-syntax-div)
+                                        (cond
+                                            (= (length rst) 1)
+                                                (append '((3 1))
+                                                    (typhon@compile (car rst) params env)
+                                                    (list (list (typhon@lookup '%/ env))))
+                                            (> (length rst) 1)
+                                                (append 
+                                                    (typhon@compile (car rst) params env)
+                                                    (typhon@compile-help '%/ (cdr rst) params env))
+                                            else (throw compile-error (typhon@error "division fail")))
+                                    (eq? (cdr v) 'primitive-syntax-numeq)
+                                        (cond
+                                            (= (length rst) 1)
+                                                (list (list 3 #t))
+                                            (> (length rst) 1)
+                                                (append
+                                                    (typhon@compile (car rst) params env)
+                                                    (typhon@compile-help '%= (cdr rst) params env))
+                                            else (throw compile-error (typhon@error "numeq fail")))
+                                    (eq? (cdr v) 'primitive-syntax-define)
+                                        (let ((name (car rst))
+                                              (value (cadr rst)))
+                                            (cond
+                                                (pair? name) 
+                                                    (append
+                                                        (typhon@compile (cons 'fn (cons (cdar rst) (cdr rst))) params env)
+                                                        (list (list 3 (caar rst)))
+                                                        (list (list (cdr (typhon@lookup '%define env))))) 
+                                                (symbol? name)
+                                                    (append
+                                                        (typhon@compile value params env)
+                                                        (list (list 3 name))
+                                                        (list (list (cdr (typhon@lookup '%define env)))))
+                                                else (throw compile-error (typhon@error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*"))))
+                                    (eq? (cdr v) 'primitive-syntax-set)
+                                        (let ((name (car rst))
+                                              (value (cadr rst)))
+                                           (if (symbol? name) 
                                                 (append
                                                     (typhon@compile value params env)
                                                     (list (list 3 name))
-                                                    (list (list (cdr (typhon@lookup '%define env)))))
-                                            else (typhon@error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*")))
-                                (eq? (cdr v) 'primitive-syntax-set)
-                                    (let ((name (car rst))
-                                          (value (cadr rst)))
-                                       (if (symbol? name) 
+                                                    (list (list (cdr (typhon@lookup '%set! env)))))
+                                                (throw compile-error (typhon@error "SET!: set! SYMBOL S-EXPR*"))))
+                                    (eq? (cdr v) 'primitive-syntax-defsyn)
+                                        (let ((name (car rst))
+                                              (rules (cdr rst)))
+                                            (typhon@add-env! name (list 'user-syntax rules) env)
+                                            (list (list 107))) ;; %nop
+                                    (eq? (cdr v) 'primitive-syntax-defmac)
+                                        #t
+                                    (eq? (cdr v) 'primitive-syntax-fn)
+                                        (list
+                                            (list 3 ;; load
+                                                (compile-lambda rst env))
+                                            (list (cdr (typhon@lookup '%makeclosure env))))
+                                    (eq? (cdr v) 'primitive-syntax-begin)
+                                        (compile-begin rst params env)
+                                    (eq? (cdr v) 'primitive-syntax-lt)
+                                        (append 
+                                            (typhon@compile (car rst) params env)
+                                            (typhon@compile-help '%< (cdr rst) params env))
+                                    (eq? (cdr v) 'primitive-syntax-gt)
+                                        (append 
+                                            (typhon@compile (car rst) params env)
+                                            (typhon@compile-help '%> (cdr rst) params env))
+                                    (eq? (cdr v) 'primitive-syntax-lte)
+                                        (append 
+                                            (typhon@compile (car rst) params env)
+                                            (typhon@compile-help '%<= (cdr rst) params env))
+                                    (eq? (cdr v) 'primitive-syntax-gte)
+                                        (append 
+                                            (typhon@compile (car rst) params env)
+                                            (typhon@compile-help '%>= (cdr rst) params env))
+                                    (eq? (cdr v) 'primitive-syntax-list)
+                                        ;; if rst is null?, then generate a load-null instruction (4)
+                                        ;; otherwise generate the instructions for the list, a length
+                                        ;; and a call to %list
+                                        (if (null? rst)
+                                            (list (list 4))
                                             (append
-                                                (typhon@compile value params env)
-                                                (list (list 3 name))
-                                                (list (list (cdr (typhon@lookup '%set! env)))))
-                                            (typhon@error "SET!: set! SYMBOL S-EXPR*")))
-                                (eq? (cdr v) 'primitive-syntax-defsyn)
-                                    (let ((name (car rst))
-                                          (rules (cdr rst)))
-                                        (typhon@add-env! name (list 'user-syntax rules) env)
-                                        (list (list 107))) ;; %nop
-                                (eq? (cdr v) 'primitive-syntax-defmac)
-                                    #t
-                                (eq? (cdr v) 'primitive-syntax-fn)
-                                    (list
-                                        (list 3 ;; load
-                                            (compile-lambda rst env))
-                                        (list (cdr (typhon@lookup '%makeclosure env))))
-                                (eq? (cdr v) 'primitive-syntax-begin)
-                                    (compile-begin rst params env)
-                                (eq? (cdr v) 'primitive-syntax-lt)
-                                    (append 
-                                        (typhon@compile (car rst) params env)
-                                        (typhon@compile-help '%< (cdr rst) params env))
-                                (eq? (cdr v) 'primitive-syntax-gt)
-                                    (append 
-                                        (typhon@compile (car rst) params env)
-                                        (typhon@compile-help '%> (cdr rst) params env))
-                                (eq? (cdr v) 'primitive-syntax-lte)
-                                    (append 
-                                        (typhon@compile (car rst) params env)
-                                        (typhon@compile-help '%<= (cdr rst) params env))
-                                (eq? (cdr v) 'primitive-syntax-gte)
-                                    (append 
-                                        (typhon@compile (car rst) params env)
-                                        (typhon@compile-help '%>= (cdr rst) params env))
-                                (eq? (cdr v) 'primitive-syntax-list)
-                                    ;; if rst is null?, then generate a load-null instruction (4)
-                                    ;; otherwise generate the instructions for the list, a length
-                                    ;; and a call to %list
-                                    (if (null? rst)
-                                        (list (list 4))
+                                                (reverse-append
+                                                    (typhon@map rst params env))
+                                                (list (list 3 (length rst)))
+                                                (list (list (cdr (typhon@lookup '%list env))))))
+                                    (eq? (cdr v) 'primitive-syntax-vector)
+                                        ;; if rst is null?, then generate a load with an empty vector
+                                        ;; otherwise generate the instructions for the vector, a length
+                                        ;; and a call to %vector
+                                        (if (null? rst)
+                                            (list (list 3 (make-vector 0)))
+                                            (append
+                                                (reverse-append
+                                                    (typhon@map rst params env))
+                                                (list (list 3 (length rst)))
+                                                (list (list (cdr (typhon@lookup '%vector env))))))
+                                    (eq? (cdr v) 'primitive-syntax-dict)
+                                        ;; if rst is null?, then generate a load with an empty dict
+                                        ;; otherwise generate the instructions for the dict, a length
+                                        ;; and a call to %dict
+                                        (if (null? rst)
+                                            (list (list 3 (make-dict)))
+                                            (append
+                                                (reverse-append
+                                                    (typhon@map rst params env))
+                                                (list (list 3 (length rst)))
+                                                (list (list (cdr (typhon@lookup '%dict env))))))
+                                    (eq? (cdr v) 'primitive-syntax-string)
+                                        (if (null? rst)
+                                            (list (list 3 (make-string 0)))
+                                            (append
+                                                (reverse-append
+                                                    (typhon@map rst params env))
+                                                (list (list 3 (length rst)))
+                                                (list (list (cdr (typhon@lookup '%string env))))))
+                                    (eq? (cdr v) 'primitive-syntax-append)
+                                        (if (null? rst)
+                                            (list (list 4))
+                                            (append
+                                                (reverse-append
+                                                    (typhon@map rst params env))
+                                                (list (list 3 (length rst)))
+                                                (list (list (cdr (typhon@lookup '%append env))))))
+                                        
+                                    (eq? (cdr v) 'primitive-syntax-makevector)
+                                        (with l (length rst)
+                                            (cond
+                                                (= l 1)
+                                                    (append
+                                                        '((4))
+                                                        (typhon@compile (car rst) params env)
+                                                        (list (list (cdr (typhon@lookup '%make-vector env)))))
+                                                (= l 2)
+                                                    (append
+                                                        (reverse-append (typhon@map rst params env))
+                                                        (list (list (cdr (typhon@lookup '%make-vector env)))))
+                                                else (throw compile-error (typhon@error "make-vector len : INTEGER (v : SEXPR) => VECTOR"))))
+                                    (eq? (cdr v) 'primitive-syntax-makestring)
+                                        (with l (length rst)
+                                            (cond
+                                                (= l 1)
+                                                    (append
+                                                        '((3 #\space))
+                                                        (typhon@compile (car rst) params env)
+                                                        (list (list (cdr (typhon@lookup '%make-string env)))))
+                                                (= l 2)
+                                                    (append
+                                                        (reverse-append (typhon@map rst params env))
+                                                        (list (list (cdr (typhon@lookup '%make-string env)))))
+                                                else (throw compile-error (typhon@error "make-string len : INTEGER (c : CHAR) => STRING"))))
+                                    (eq? (cdr v) 'primitive-syntax-if)
+                                        ;; need to generate code for <cond>
+                                        ;; add CMP instruction '(30)
+                                        ;; generate code for <then>
+                                        ;; generate code for <else>
+                                        ;; add count to CMP instruction to jump to <else>
+                                        ;; add count to <then> to skip <else>
+                                        (let* ((<cond> (typhon@compile (car rst) params env))
+                                               (<then> (typhon@compile (cadr rst) params env))
+                                               (<else> (typhon@compile (caddr rst) params env))
+                                               (then-len (+ (length <then>) 2)) ;; +2 in order to avoid the jump over else
+                                               (else-len (+ (length <else>) 1)))
+                                            (append <cond>
+                                                (list (list 29 then-len)) ;; compare & jump
+                                                <then>
+                                                (list (list 28 else-len)) ;; jump else
+                                                <else>)) 
+                                    else 
+                                        (throw compile-error (typhon@error "syntax has not been implemented at this time")))
+                                (pair? fst) 
+                                    ;; fst is a pair, so we just blindly attempt to compile it.
+                                    ;; May cause an error that has to be caught in CALL. some lifting might fix this...
+                                    (append (reverse-append (typhon@map rst params env))
+                                            (typhon@compile fst params env)
+                                            (list (list 110)))
+                                (typhon@usyntax? v)
+                                    (let ((syn (syntax-expand1 (cadr v) line)))
+                                        ;(display "in typhon@usyntax? in typhon@compile. v == ")
+                                        ;(write v)
+                                        ;(display "\n and fst == ")
+                                        ;(write fst)
+                                        ;(display "\n and expansion == ")
+                                        ;(write syn)
+                                        ;(display "\n")
+                                        (typhon@compile
+                                            syn
+                                            params
+                                            env)) ;; TODO: don't use env, use the environment stored in the syntax object; NEW: nope; expand items in place?
+                                (typhon@umacro? v)
+                                    #f
+                                (typhon@procedure? v) ;; need to add some method of checking proc arity here.
+                                    (let* ((rlen (length rst)))
                                         (append
-                                            (reverse-append
-                                                (typhon@map rst params env))
-                                            (list (list 3 (length rst)))
-                                            (list (list (cdr (typhon@lookup '%list env))))))
-                                (eq? (cdr v) 'primitive-syntax-vector)
-                                    ;; if rst is null?, then generate a load with an empty vector
-                                    ;; otherwise generate the instructions for the vector, a length
-                                    ;; and a call to %vector
-                                    (if (null? rst)
-                                        (list (list 3 (make-vector 0)))
-                                        (append
-                                            (reverse-append
-                                                (typhon@map rst params env))
-                                            (list (list 3 (length rst)))
-                                            (list (list (cdr (typhon@lookup '%vector env))))))
-                                (eq? (cdr v) 'primitive-syntax-dict)
-                                    ;; if rst is null?, then generate a load with an empty dict
-                                    ;; otherwise generate the instructions for the dict, a length
-                                    ;; and a call to %dict
-                                    (if (null? rst)
-                                        (list (list 3 (make-dict)))
-                                        (append
-                                            (reverse-append
-                                                (typhon@map rst params env))
-                                            (list (list 3 (length rst)))
-                                            (list (list (cdr (typhon@lookup '%dict env))))))
-                                (eq? (cdr v) 'primitive-syntax-string)
-                                    (if (null? rst)
-                                        (list (list 3 (make-string 0)))
-                                        (append
-                                            (reverse-append
-                                                (typhon@map rst params env))
-                                            (list (list 3 (length rst)))
-                                            (list (list (cdr (typhon@lookup '%string env))))))
-                                (eq? (cdr v) 'primitive-syntax-append)
-                                    (if (null? rst)
-                                        (list (list 4))
-                                        (append
-                                            (reverse-append
-                                                (typhon@map rst params env))
-                                            (list (list 3 (length rst)))
-                                            (list (list (cdr (typhon@lookup '%append env))))))
-                                    
-                                (eq? (cdr v) 'primitive-syntax-makevector)
-                                    (with l (length rst)
-                                        (cond
-                                            (= l 1)
-                                                (append
-                                                    '((4))
-                                                    (typhon@compile (car rst) params env)
-                                                    (list (list (cdr (typhon@lookup '%make-vector env)))))
-                                            (= l 2)
-                                                (append
-                                                    (reverse-append (typhon@map rst params env))
-                                                    (list (list (cdr (typhon@lookup '%make-vector env)))))
-                                            else (typhon@error "make-vector len : INTEGER (v : SEXPR) => VECTOR")))
-                                (eq? (cdr v) 'primitive-syntax-makestring)
-                                    (with l (length rst)
-                                        (cond
-                                            (= l 1)
-                                                (append
-                                                    '((3 #\space))
-                                                    (typhon@compile (car rst) params env)
-                                                    (list (list (cdr (typhon@lookup '%make-string env)))))
-                                            (= l 2)
-                                                (append
-                                                    (reverse-append (typhon@map rst params env))
-                                                    (list (list (cdr (typhon@lookup '%make-string env)))))
-                                            else (typhon@error "make-string len : INTEGER (c : CHAR) => STRING")))
-                                (eq? (cdr v) 'primitive-syntax-if)
-                                    ;; need to generate code for <cond>
-                                    ;; add CMP instruction '(30)
-                                    ;; generate code for <then>
-                                    ;; generate code for <else>
-                                    ;; add count to CMP instruction to jump to <else>
-                                    ;; add count to <then> to skip <else>
-                                    (let* ((<cond> (typhon@compile (car rst) params env))
-                                           (<then> (typhon@compile (cadr rst) params env))
-                                           (<else> (typhon@compile (caddr rst) params env))
-                                           (then-len (+ (length <then>) 2)) ;; +2 in order to avoid the jump over else
-                                           (else-len (+ (length <else>) 1)))
-                                        (append <cond>
-                                            (list (list 29 then-len)) ;; compare & jump
-                                            <then>
-                                            (list (list 28 else-len)) ;; jump else
-                                            <else>)) 
-                                else 
-                                    (typhon@error "syntax has not been implemented at this time"))
-                            (pair? fst) 
-                                ;; fst is a pair, so we just blindly attempt to compile it.
-                                ;; May cause an error that has to be caught in CALL. some lifting might fix this...
-                                (append (reverse-append (typhon@map rst params env))
-                                        (typhon@compile fst params env)
-                                        (list (list 110)))
-                            (typhon@usyntax? v)
-                                (let ((syn (syntax-expand1 (cadr v) line)))
-                                    ;(display "in typhon@usyntax? in typhon@compile. v == ")
-                                    ;(write v)
-                                    ;(display "\n and fst == ")
-                                    ;(write fst)
-                                    ;(display "\n and expansion == ")
-                                    ;(write syn)
-                                    ;(display "\n")
-                                    (typhon@compile
-                                        syn
-                                        params
-                                        env)) ;; TODO: don't use env, use the environment stored in the syntax object; NEW: nope; expand items in place?
-                            (typhon@umacro? v)
-                                #f
-                            (typhon@procedure? v) ;; need to add some method of checking proc arity here.
-                                (let* ((rlen (length rst)))
+                                            (reverse-append (typhon@map rst params env))
+                                            (list (list 16 (cdr v) rlen))))
+                                (typhon@primitive? v) ;; primitive procedure
+                                    ;; need to generate the list of HLAP code, reverse it
+                                    ;; and flatten it. basically, if we have:
+                                    ;; (cons (+ 1 2) (cons (+ 3 4) '()))
+                                    ;; we need to:
+                                    ;; (quote ())
+                                    ;; (+ 3 4)
+                                    ;; (cons)
+                                    ;; (+ 1 2)
+                                    ;; (cons)
+                                    ;; this isn't the *most* efficient, but it is pretty easy
                                     (append
-                                        (reverse-append (typhon@map rst params env))
-                                        (list (list 16 (cdr v) rlen))))
-                            (typhon@primitive? v) ;; primitive procedure
-                                ;; need to generate the list of HLAP code, reverse it
-                                ;; and flatten it. basically, if we have:
-                                ;; (cons (+ 1 2) (cons (+ 3 4) '()))
-                                ;; we need to:
-                                ;; (quote ())
-                                ;; (+ 3 4)
-                                ;; (cons)
-                                ;; (+ 1 2)
-                                ;; (cons)
-                                ;; this isn't the *most* efficient, but it is pretty easy
-                                (append
-                                    (reverse-append
-                                        (typhon@map rst params env))
-                                    (list (list (cdr v))))
-                            (typhon@lambda? v) ;; hydra closure; change this into (load-from-env fst) (call-from-stack) 
-                                (append
-                                    (reverse-append
-                                        (typhon@map rst params env))
-                                        (list (list 31 fst))
-                                        (list (list 110 'found)))
-                            (typhon@continuation? v) ;; hydra continuation
-                                (append (reverse-append (typhon@map rst params env))
-                                    (list (list 3 v))
-                                    (list (list 108))) ;; 108 -> %ap
-                            (symbol? fst) ;; fst is a symbol, but it has no mapping in our current env; write to environment-load
-                                (append
-                                    (reverse-append
-                                        (typhon@map rst params env)) 
-                                        (list (list 31 fst))
-                                        (list (list 110 'not-found)))
-                            else (error "error: the only applicable types are primitive procedures, closures & syntax")))
-
-            else (list (list 3 line)))))
+                                        (reverse-append
+                                            (typhon@map rst params env))
+                                        (list (list (cdr v))))
+                                (typhon@lambda? v) ;; hydra closure; change this into (load-from-env fst) (call-from-stack) 
+                                    (append
+                                        (reverse-append
+                                            (typhon@map rst params env))
+                                            (list (list 31 fst))
+                                            (list (list 110 'found)))
+                                (typhon@continuation? v) ;; hydra continuation
+                                    (append (reverse-append (typhon@map rst params env))
+                                        (list (list 3 v))
+                                        (list (list 108))) ;; 108 -> %ap
+                                (symbol? fst) ;; fst is a symbol, but it has no mapping in our current env; write to environment-load
+                                    (append
+                                        (reverse-append
+                                            (typhon@map rst params env)) 
+                                            (list (list 31 fst))
+                                            (list (list 110 'not-found)))
+                                else (throw compile-error (typhon@error "error: the only applicable types are primitive procedures, closures & syntax"))))
+                else (list (list 3 line))))))
 
 ;; need to separate user values from what 
 ;; is returned in the eval...
