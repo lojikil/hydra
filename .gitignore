@@ -8,5 +8,6 @@ ceres.ss.c
 hydra
 ceres
 typhon
+*.exe
 *.o
 sac/perf/*

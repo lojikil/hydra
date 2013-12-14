@@ -132,3 +132,16 @@ Reason: KERN_INVALID_ADDRESS at address: 0x0000000000000000
 0x000000010000a3c5 in typhon_vm ()`
 
 This one is happening around the CALL-FROM-STACK (110) instruction, but it could happen at the CALL (30) instruction too.
+
+
+* Ideas
+
+- test using tconc's or vectors with collection cons, to replace append
+- add error checks in `typhon@{compile-helper, map}`
+- Make sure that Typhon can run Hydra without puking
+- Language Parity w/ Vesta
+- Success Typing
+- Clojure-style transients
+- efficient cupdate/ccons
+- destructive?
+- make `typhon@compile` tail recursive
