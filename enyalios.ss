@@ -769,12 +769,12 @@
            (body (compile-begin (cdr block) name tail? var-temps lparams))
            (nulparams (dict-copy (keys lparams) lparams (dict))))
         (cset! nulparams "letvals" (cons vars (nth lparams "letvals" '())))
-        ;(display "\n\nlet.body == ")
-        ;(write body)
-        ;(newline)
-        ;(display "\n\nvars == ")
-        ;(write vars)
-        ;(display "\n")
+        (display "\n\nlet.body == ")
+        (write body)
+        (newline)
+        (display "\n\nvars == ")
+        (write vars)
+        (display "\n")
         (list
             (car body)
             (cons
