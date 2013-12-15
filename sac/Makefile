@@ -17,4 +17,4 @@ ceres: $(CFILE) $(RTSFILES)
 opt-ceres: $(CFILE) $(RTSFILES)
 	$(CC) -O2 -o $(CEXE) $(CFILE) $(RTSFILES) $(LIBS) $(CFLAGS)
 clean:
-	@rm -f $(EXE)
+	@rm -f $(EXE) $(CFILE) $(TFILE)
