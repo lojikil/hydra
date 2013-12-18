@@ -197,4 +197,9 @@
 (display "\na load test: ")
 (load 'load-test0.ss)
 
+(display "\nlcm & gcd tests:\n(gcd 84 99) ")
+(display (gcd 84 99))
+(display "\n(lcm 114 17) ")
+(display (lcm 114 17))
+
 (display "\n")
