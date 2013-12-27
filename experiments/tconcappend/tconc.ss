@@ -1,0 +1,18 @@
+(load 'base.ss)
+
+(define (tconc-test x y)
+    (display "y is ")
+    (write y)
+    (newline)
+    (if (>= x 0)
+        (let ((new-var (base-iota x)))
+            (write new-var)
+            (newline)
+            (tconc-splice! y new-var)
+            (write y)
+            (newline)
+            (tconc-test (- x 1) y))
+        (tconc->pair y)))
+
+(write (tconc-test 10 (make-tconc '())))
+(newline)

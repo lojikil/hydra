@@ -14,3 +14,6 @@ Now, atop all that, I'd like to do this somewhat automatically, with Digamma as 
 all without turning Digamma into Haskell atop SExpressions. Oh, and it must support an `Any` type...
 Polymorphic Variants from OCaml fit the bill here, methinks. Research them further. Plus, unify Term langauge and
 type language ala Coq/Agda/Idris: Anything that is pure, and returns `#s` or `#u` can be used in the Type language...
+
+`nth` must support returning `Any`, because it literally has to, but we can use refinements to pare down the possible
+types (type narrowing). 
