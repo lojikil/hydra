@@ -1,16 +1,15 @@
 (load 'base.ss)
 
+;(define (foo x) (display "in foo\n") (tconc-splice! x (base-iota 10)))
+
+;; there's a bug in how Vesta implements tconc_splice; need to fix that first
+;; before this can be used to test... well, just about anything.
+
 (define (tconc-test x y)
-    (display "y is ")
-    (write y)
-    (newline)
     (if (>= x 0)
-        (let ((new-var (base-iota x)))
-            (write new-var)
-            (newline)
-            (tconc-splice! y new-var)
-            (write y)
-            (newline)
+        (begin
+            ;(foo y)
+            (tconc-splice! x (base-iota 10))
             (tconc-test (- x 1) y))
         (tconc->pair y)))
 
