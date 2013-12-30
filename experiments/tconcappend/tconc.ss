@@ -9,9 +9,9 @@
     (if (>= x 0)
         (begin
             ;(foo y)
-            (tconc-splice! x (base-iota 10))
+            (tconc-splice! y (make-tconc (base-iota x)))
             (tconc-test (- x 1) y))
         (tconc->pair y)))
 
-(write (tconc-test 10 (make-tconc '())))
+(write (tconc-test 1000 (make-tconc '())))
 (newline)
