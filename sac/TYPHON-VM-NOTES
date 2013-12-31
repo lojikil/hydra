@@ -145,3 +145,7 @@ This one is happening around the CALL-FROM-STACK (110) instruction, but it could
 - efficient cupdate/ccons
 - destructive?
 - make `typhon@compile` tail recursive
+
+* Sigsegv:
+
+`;t define-syntax foo () (f . x) (begin . x))`
