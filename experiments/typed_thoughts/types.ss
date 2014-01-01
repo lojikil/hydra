@@ -43,17 +43,31 @@
         (type? o0)
             (cond
                 (type? o1)
-                    #f
+                    (if (eq? o0 o1)
+                        #t
+                        #f)
                 (var? o1)
-                    #f
+                    (let ((v1 (assq (cadr o1) env)))
+                        (cond
+                            (eq? v1 #f) #f
+                            (var? v1) #f
+                            (type? v1) #f
+                            else #f))
                 else
                     #f)
         (type? o1)
             (cond
-                (type? o1)
-                    #f
+                (type? o0)
+                    (if (eq? o0 o1)
+                        #t
+                        #f)
                 (var? o0)
-                    #f
+                    (let ((v0 (assq (cadr o0) env)))
+                        (cond
+                            (eq? v0 #f) #f
+                            (var? v0) #f
+                            (type? v0) #f
+                            else #f))
                 else
                     #f)
         (eq? o0 o1) '()
