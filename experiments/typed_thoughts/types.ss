@@ -17,7 +17,23 @@
     (and (pair? x) (eq? (car x) '?)))
 
 (define (type? x)
-    #f)
+    (or
+        (eq? x 'Integer)
+        (eq? x 'Real)
+        (eq? x 'Rational)
+        (eq? x 'Complex)
+        (eq? x 'Number)
+        (eq? x 'String)
+        (eq? x 'Atom)
+        (eq? x 'Key)
+        (eq? x 'Pair)
+        (eq? x 'Vector)
+        (eq? x 'Dict)
+        (eq? x 'Port)
+        (eq? x 'Void)
+        (eq? x 'Bool)
+        (eq? x 'Goal)
+        (eq? x 'Nil)))
 
 (define (=:= o0 o1 env)
     (cond
@@ -49,7 +65,7 @@
                 (var? o1)
                     (let ((v1 (assq (cadr o1) env)))
                         (cond
-                            (eq? v1 #f) #f
+                            (eq? v1 #f) (list (cadr o1) o0)
                             (var? v1) #f
                             (type? v1) #f
                             else #f))
