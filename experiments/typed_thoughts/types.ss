@@ -46,6 +46,16 @@
                             (eq? v0 #f) (list (cadr o0) o1)
                             (eq? v1 #f) (list (cadr o1) o0)
                             else (=:= (cadr v0) (cadr v1) env)))
+                (type? o1)
+                    (let ((v0 (assq (cadr o0) env)))
+                        (display "in here?\nv0: ")
+                        (write v0)
+                        (newline)
+                        (cond
+                            (eq? v0 #f) (list (cadr o1) o0)
+                            (var? v0) #f
+                            (pair? v0) (eq? o1 (cadr v0))
+                            else #f))
                 else
                     (let ((v0 (assq (cadr o0) env)))
                         (if (eq? v0 #f)
@@ -67,7 +77,7 @@
                         (cond
                             (eq? v1 #f) (list (cadr o1) o0)
                             (var? v1) #f
-                            (type? v1) #f
+                            (type? v1) (eq? v1 o0)
                             else #f))
                 else
                     #f)
@@ -79,10 +89,11 @@
                         #f)
                 (var? o0)
                     (let ((v0 (assq (cadr o0) env)))
+                        (display "in here?\n")
                         (cond
-                            (eq? v0 #f) #f
+                            (eq? v0 #f) (list (cadr o1) o0)
                             (var? v0) #f
-                            (type? v0) #f
+                            (type? v0) (eq? o1 v1)
                             else #f))
                 else
                     #f)
