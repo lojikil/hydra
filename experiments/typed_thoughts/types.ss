@@ -13,6 +13,11 @@
 ;   parameters can be unified simultaneously. Note that this is a
 ;   recursive behavior.
 
+;; Todo:
+;; - add some sort of run*
+;; - support Union types (aka "assq all lists to check list intersecion :D)
+;; - make every/any and support a mini eval system...
+
 (define (var? x)
     (and (pair? x) (eq? (car x) '?)))
 
@@ -48,20 +53,17 @@
                             else (=:= (cadr v0) (cadr v1) env)))
                 (type? o1)
                     (let ((v0 (assq (cadr o0) env)))
-                        (display "in here?\nv0: ")
-                        (write v0)
-                        (newline)
                         (cond
                             (eq? v0 #f) (list (cadr o1) o0)
                             (var? v0) #f
-                            (pair? v0) (eq? o1 (cadr v0))
+                            (pair? v0) (or (and (eq? o1 (cadr v0)) #s) #u)
                             else #f))
                 else
                     (let ((v0 (assq (cadr o0) env)))
                         (if (eq? v0 #f)
                             (list (cadr o0) o1)
                             (=:= v0 o1 env))))
-        (var? o1)
+        (var? o1) ;; need to rework this; should check if o0 is a type first...
             (let ((v1 (assq (cadr o1) env)))
                 (if (eq? v1 #f)
                     (list (cadr o1) o0)
@@ -70,10 +72,11 @@
             (cond
                 (type? o1)
                     (if (eq? o0 o1)
-                        #t
-                        #f)
+                        #s
+                        #u)
                 (var? o1)
                     (let ((v1 (assq (cadr o1) env)))
+                        (display "down in here...\n")
                         (cond
                             (eq? v1 #f) (list (cadr o1) o0)
                             (var? v1) #f
@@ -89,7 +92,6 @@
                         #f)
                 (var? o0)
                     (let ((v0 (assq (cadr o0) env)))
-                        (display "in here?\n")
                         (cond
                             (eq? v0 #f) (list (cadr o1) o0)
                             (var? v0) #f
