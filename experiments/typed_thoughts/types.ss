@@ -40,6 +40,66 @@
         (eq? x 'Goal)
         (eq? x 'Nil)))
 
+(define (type-checks-out? obj type)
+    "A course grained check to see if the type of `obj` matches what is
+    specified by `type`. Does not handle:
+    - sub-typing
+    - constraints
+    - Polymorphic variants
+
+    just yet. All of those are on the to-do list for this. *however*, as
+    a first pass, this isn't bad; basically, this is a PoC to make sure
+    I'm not totally off my rocker."
+    (or
+        (and 
+            (eq? type 'Integer)
+            (integer? obj))
+        (and
+            (eq? type 'Real)
+            (real? obj))
+        (and
+            (eq? type 'Rational)
+            (rational? obj))
+        (and
+            (eq? type 'Complex)
+            (complex? obj))
+        (and
+            (eq? type 'Number)
+            (number? obj))
+        (and
+            (eq? type 'String)
+            (string? obj))
+        (and
+            (eq? type 'Symbol)
+            (symbol? obj))
+        (and
+            (eq? type 'Key)
+            (key? obj))
+        (and
+            (eq? type 'Pair)
+            (pair? obj))
+        (and
+            (eq? type 'Vector)
+            (vector? obj))
+        (and
+            (eq? type 'Dict)
+            (dict? obj))
+        (and
+            (eq? type 'Port)
+            (port? obj))
+        (and
+            (eq? type 'Void)
+            (eq? obj #v))
+        (and
+            (eq? type 'Bool)
+            (boolean? obj))
+        (and
+            (eq? type 'Goal)
+            (goal? obj))
+        (and
+            (eq? type 'Nil)
+            (eq? obj '()))))
+
 (define (=:= o0 o1 env)
     (cond
         (var? o0) 
@@ -57,7 +117,7 @@
                             (eq? v0 #f) (list (cadr o1) o0)
                             (var? v0) #f
                             (pair? v0) (or (and (eq? o1 (cadr v0)) #s) #u)
-                            else #f)) ;; this here should be the actual type check...
+                            else (type-checks-out? v0 o1)) ;; this here should be the actual type check...
                 else
                     (let ((v0 (assq (cadr o0) env)))
                         (if (eq? v0 #f)
@@ -98,7 +158,7 @@
                             (type? v0) (eq? o1 v1)
                             else #f))
                 else
-                    #f)
+                    (type-checks-out o0 o1))
         (eq? o0 o1) '()
         (and (pair? o0) (pair? o1))
             (with u-result (=:= (car o0) (car o1) env)
