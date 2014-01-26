@@ -57,7 +57,7 @@
                             (eq? v0 #f) (list (cadr o1) o0)
                             (var? v0) #f
                             (pair? v0) (or (and (eq? o1 (cadr v0)) #s) #u)
-                            else #f))
+                            else #f)) ;; this here should be the actual type check...
                 else
                     (let ((v0 (assq (cadr o0) env)))
                         (if (eq? v0 #f)
