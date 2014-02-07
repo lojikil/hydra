@@ -2056,6 +2056,12 @@
 ;; END il->c
 ;; BEGIN main-driver
 
+;; so, the multiple passes that transform stuff could
+;; be done here, pretty simply...
+;; need to do a few things, but it shouldn't be too hard:
+;; # Run `split-internals` procedure on `r`
+;; # append the results of `split-internals`, if more than one
+;; # rinse repeat. Could be done for multiple nano-passes
 (define (enyalios@load in)
     (with r (read in)
         (if (eof-object? r)
