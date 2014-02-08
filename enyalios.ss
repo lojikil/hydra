@@ -2056,6 +2056,25 @@
 ;; END il->c
 ;; BEGIN main-driver
 
+(define (define-form? obj)
+    (and
+        (pair? obj)
+        (or
+            (eq? (car obj) 'define)
+            (eq? (car obj) 'def))))
+
+(define (define-lambda-var? obj)
+    (or
+        (and
+            (symbol? (cadr obj))
+            (pair? (caddr obj))
+            (or
+                (eq? (car (caddr obj)) 'lambda)
+                (eq? (car (caddr obj)) 'fn)))))
+
+(define (define-lambda-pair? obj)
+    (pair? (cadr obj)))
+
 ;; so, the multiple passes that transform stuff could
 ;; be done here, pretty simply...
 ;; need to do a few things, but it shouldn't be too hard:
@@ -2067,21 +2086,11 @@
         (if (eof-object? r)
             '()
             (begin
-                (if (and
-                        (pair? r)
-                        (or
-                            (eq? (car r) 'define)
-                            (eq? (car r) 'def)))
+                (if (define-form? r)
                     (cond
-                        (symbol? (cadr r))
-                            (if (and
-                                (pair? (caddr r))
-                                (or
-                                    (eq? (car (caddr r)) 'lambda)
-                                    (eq? (car (caddr r)) 'fn)))
-                                (set-arity! (cadr r) (car (cdaddr r)))
-                                #v)
-                        (pair? (cadr r))
+                        (define-lambda-var? r)
+                            (set-arity! (cadr r) (car (cdaddr r)))
+                        (define-lambda-pair? r)
                             (set-arity! (caadr r) (cdadr r))
                         else #v)
                     #v)
