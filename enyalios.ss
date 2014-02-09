@@ -2075,6 +2075,66 @@
 (define (define-lambda-pair? obj)
     (pair? (cadr obj)))
 
+(define (lambda-form? obj)
+    (and
+        (pair? obj)
+        (or
+            (eq? (car obj) 'lambda)
+            (eq? (car obj) 'fn))))
+
+(define (begin-form? obj)
+    "This is really assuming that begin hasnt'
+     been re-bound in the current environment. This is
+     fine for PreDigamma, but as that merges with
+     Digamma proper, this is going to be problematic..."
+    (and
+        (pair? obj)
+        (eq? (car obj) 'begin)))
+
+(define (collect-free-vars code bound-vars parents-stack free-vars)
+    "a simple method to collect free-vars from a piece of code.
+     Parameters:
+
+     - `code` the procedure being checked; should be called on the cddr of the body
+     - `bound-vars` vars (including the cadr of code, or the parameters) defined therein
+     - `parents-stack` spaghetti stack representing parent's environment
+     - `free-vars` are any vars that are not defined or parameters
+
+     We should also be checking the arity system, and should not assume that
+     appear free are; for instance, Scheme doesn't enforce that items are
+     defined prior to use, and there's nothing stopping code from being
+     written that way (I do it often, for instance). Would be weird, but
+     I wonder if it's reasonable to avoid checking the car of a form
+     for being free. There is one other method: pass in the parent's
+     collected environment as a another parameter, and check *that*;
+     items that are free there can be assumed to be top-level, whereas
+     everything else should exist in the parent's spaghetti stack of
+     free/bound vars. Food for thought.
+
+     I've added a `parents-stack` argument to capture this; I'll first hack
+     out a simpler version, then see about adding this. Shouldn't be
+     terribly difficult to add back in... (famous last words)
+     "
+     (cond
+        (null? code)
+            free-vars
+        (and
+            (define-form? code)
+            (or (define-lambda-var? code) (define-lambda-pair? obj)))
+            ;; add the name to bound-vars, but nothing else, for now.
+            #f
+        (define-form? code)
+            ;; ok, check each piece of `code`...
+        (begin-form? code)
+            ;; iterate over each item in `code`, merging free/bound vars
+        (symbol? code)
+            ;; need to look it up somewhere and decide...
+            #f
+        else
+            ;; could just return #f for "this is something we don't
+            ;; really care about in the free var system..."
+            #f))
+
 ;; so, the multiple passes that transform stuff could
 ;; be done here, pretty simply...
 ;; need to do a few things, but it shouldn't be too hard:
