@@ -2129,6 +2129,12 @@
             ;; iterate over each item in `code`, merging free/bound vars
         (symbol? code)
             ;; need to look it up somewhere and decide...
+            (let ((item (assq bound-vars code)))
+                (if (eq? item #f)
+                    (cons code free-vars)
+                    free-vars))
+        (pair? code)
+            ;; generic form; iterate over it & collect free-vars
             #f
         else
             ;; could just return #f for "this is something we don't
