@@ -2125,8 +2125,16 @@
             #f
         (define-form? code)
             ;; ok, check each piece of `code`...
+            (flat-map
+                (lambda (x)
+                    (collect-free-vars x bound-vars parents-stack free-vars))
+                (caddr code))
         (begin-form? code)
             ;; iterate over each item in `code`, merging free/bound vars
+            (flat-map
+                (lambda (x)
+                    (collect-free-vars x bound-vars parents-stack free-vars))
+                (cdr code))
         (symbol? code)
             ;; need to look it up somewhere and decide...
             (let ((item (assq bound-vars code)))
@@ -2135,7 +2143,12 @@
                     free-vars))
         (pair? code)
             ;; generic form; iterate over it & collect free-vars
-            #f
+            ;; this isn't quite right either, as it will collect the
+            ;; same vars over and over...
+            (flat-map
+                (lambda (x)
+                    (collect-free-vars x bound-vars parents-stack free-vars))
+                code)
         else
             ;; could just return #f for "this is something we don't
             ;; really care about in the free var system..."
