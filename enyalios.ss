@@ -2122,6 +2122,10 @@
             (define-form? code)
             (or (define-lambda-var? code) (define-lambda-pair? obj)))
             ;; add the name to bound-vars, but nothing else, for now.
+            ;; I just realized that this interface doesn't really allow
+            ;; for adding to the bound-vars terribly easily. Need to return
+            ;; (Pair (Pair Symbol+) (Pair Symbol+)) I guess, the first
+            ;; being free vars, the second being bound vars...
             #f
         (define-form? code)
             ;; ok, check each piece of `code`...
