@@ -2115,6 +2115,8 @@
      out a simpler version, then see about adding this. Shouldn't be
      terribly difficult to add back in... (famous last words)
      "
+     ;; add a function, dunno what to call it, to iterate over pieces 
+     ;; of code and keep the bound-vars & free-vars lists separate...
      (cond
         (null? code)
             free-vars
@@ -2126,13 +2128,16 @@
             ;; for adding to the bound-vars terribly easily. Need to return
             ;; (Pair (Pair Symbol+) (Pair Symbol+)) I guess, the first
             ;; being free vars, the second being bound vars...
-            #f
+            (list
+                free-vars
+                (cons (cadr code) bound-vars))
         (define-form? code)
             ;; ok, check each piece of `code`...
-            (flat-map
-                (lambda (x)
-                    (collect-free-vars x bound-vars parents-stack free-vars))
-                (caddr code))
+            (let ((new-bounds (cons (cadr code) bound-vars)))
+                (flat-map
+                    (lambda (x)
+                        (collect-free-vars x new-bounds parents-stack free-vars))
+                    (caddr code)))
         (begin-form? code)
             ;; iterate over each item in `code`, merging free/bound vars
             (flat-map
@@ -2142,9 +2147,11 @@
         (symbol? code)
             ;; need to look it up somewhere and decide...
             (let ((item (assq bound-vars code)))
-                (if (eq? item #f)
-                    (cons code free-vars)
-                    free-vars))
+                (list
+                    (if (eq? item #f)
+                        (cons code free-vars)
+                        free-vars)
+                    bound-vars))
         (pair? code)
             ;; generic form; iterate over it & collect free-vars
             ;; this isn't quite right either, as it will collect the
