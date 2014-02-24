@@ -2146,7 +2146,7 @@
                 (cdr code))
         (symbol? code)
             ;; need to look it up somewhere and decide...
-            (let ((item (assq bound-vars code)))
+            (let ((item (memq code bound-vars)))
                 (list
                     (if (eq? item #f)
                         (cons code free-vars)
