@@ -51,6 +51,14 @@
         (pair? obj)
         (eq? (car obj) 'begin)))
 
+(define (drive-collection code bound-vars parents-stack free-vars)
+    (if (null? code)
+        (list free-vars bound-vars)
+        (let ((result (collect-free-vars (car code) bound-vars parents-stack free-vars)))
+            (if (eq? (car result) #f)
+                (drive-collection (cdr code) bound-vars parents-stack free-vars)
+                (drive-collection (cdr code) (cadr result) parents-stack (car result))))))
+
 (define (collect-free-vars code bound-vars parents-stack free-vars)
     "a simple method to collect free-vars from a piece of code.
      Parameters:
@@ -94,16 +102,10 @@
         (define-form? code)
             ;; ok, check each piece of `code`...
             (let ((new-bounds (cons (cadr code) bound-vars)))
-                (flat-map
-                    (lambda (x)
-                        (collect-free-vars x new-bounds parents-stack free-vars))
-                    (caddr code)))
+                (drive-collection (caddr code) new-bounds parent-stack free-vars))
         (begin-form? code)
             ;; iterate over each item in `code`, merging free/bound vars
-            (flat-map
-                (lambda (x)
-                    (collect-free-vars x bound-vars parents-stack free-vars))
-                (cdr code))
+            (drive-collection (cdr code) bound-vars parents-stack free-vars)
         (symbol? code)
             ;; need to look it up somewhere and decide...
             (let ((item (memq code bound-vars)))
@@ -116,10 +118,7 @@
             ;; generic form; iterate over it & collect free-vars
             ;; this isn't quite right either, as it will collect the
             ;; same vars over and over...
-            (flat-map
-                (lambda (x)
-                    (collect-free-vars x bound-vars parents-stack free-vars))
-                code)
+            (drive-collection code bound-vars parents-stack free-vars)
         else
             ;; could just return #f for "this is something we don't
             ;; really care about in the free var system..."
