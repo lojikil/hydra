@@ -2091,8 +2091,9 @@
         (pair? obj)
         (eq? (car obj) 'begin)))
 
+
 (define (drive-collection code bound-vars parents-stack free-vars)
-    (if (null? code)
+    (if (or (null? code) (not (pair? code)))
         (list free-vars bound-vars)
         (let ((result (collect-free-vars (car code) bound-vars parents-stack free-vars)))
             (if (eq? (car result) #f)
@@ -2127,10 +2128,12 @@
      ;; of code and keep the bound-vars & free-vars lists separate...
      (cond
         (null? code)
-            free-vars
+            (list
+                free-vars
+                bound-vars)
         (and
             (define-form? code)
-            (or (define-lambda-var? code) (define-lambda-pair? obj)))
+            (or (define-lambda-var? code) (define-lambda-pair? code)))
             ;; add the name to bound-vars, but nothing else, for now.
             ;; I just realized that this interface doesn't really allow
             ;; for adding to the bound-vars terribly easily. Need to return
@@ -2142,7 +2145,7 @@
         (define-form? code)
             ;; ok, check each piece of `code`...
             (let ((new-bounds (cons (cadr code) bound-vars)))
-                (drive-collection (caddr code) new-bounds parent-stack free-vars))
+                (drive-collection (caddr code) new-bounds parents-stack free-vars))
         (begin-form? code)
             ;; iterate over each item in `code`, merging free/bound vars
             (drive-collection (cdr code) bound-vars parents-stack free-vars)
