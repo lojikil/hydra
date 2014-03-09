@@ -7,9 +7,15 @@
 ;; rewrite
 (load 'free.ss)
 
-(define (scan-lambdas code)
-    "scans a define object for lambdas to lift"
-    #f)
+(define (walk-lambda! code lambda-info bounds)
+    "walks a define object for lambdas to lift"
+    (if (null? code)
+        #v
+        (let* ((obj (car code)) ;; really need an check here to see if this is actually a lambda
+               (ret (collect-free-vars obj bounds '() '()))A
+               (nu-bounds (append (car ret) bounds)))
+            (cset! lambda-info name ret)
+            (walk-lambda! (cdr code) lambda-info nu-bounds))))
 
 (define (lift-lambda code lm)
     "does the actual work of lifting a lambda"
