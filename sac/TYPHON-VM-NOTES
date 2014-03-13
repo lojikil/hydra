@@ -149,3 +149,11 @@ This one is happening around the CALL-FROM-STACK (110) instruction, but it could
 * Sigsegv:
 
 `;t define-syntax foo () (f . x) (begin . x))`
+
+* Ideas from 15-FEB-2014
+
+I've been thinking about this for a few days; basically, I can support both structs & fix the sandbox escape problem in
+one fell-swoop: never, ever allow naked user structs on the stack. Instead, do the following:
+
+- structs: {type: struct, fields: [list of fields], fieldvalues: {dict}}
+- primitives: {type: primitive|procedure, value: val}
