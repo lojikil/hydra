@@ -324,7 +324,7 @@
                     #f
                     (list 'c-primitive-null (nth prim 0)))
             (and
-                (> (nth prim 2) 0)
+                (>= (nth prim 2) 0)
                 (>= (length args) (nth prim 2))
                 (= (nth prim 3) -1))
                 (list
