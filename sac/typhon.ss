@@ -194,7 +194,7 @@
     (and (dict? x) (eq? (nth x 'type '()) 'primitive))))
 
 (define-syntax typhon@syntax? () ((typhon@syntax? x)
-    (and (pair? x) (eq? (car x) 'syntax))))
+    (and (dict? x) (eq? (nth x 'type '()) 'syntax))))
 
 (define-syntax typhon@error? () ((typhon@error? x)
     (and (pair? x) (eq? (car x) 'error))))
@@ -343,15 +343,15 @@
      ;; define-operator, since that would be much cleaner than what is seen below.
      ;; Syntax could expand the full list of operators in place here, and it would make
      ;; expanding the set of operators *much* easier than it currently is.
-     ;(display "stack: ")
-     ;(display stack)
-     ;(newline)
-     ;(display "code: ") 
-     ;(display code)
-     ;(newline)
-     ;(display "ip: ")
-     ;(display ip)
-     ;(newline)
+     (display "stack: ")
+     (display stack)
+     (newline)
+     (display "code: ") 
+     (display code)
+     (newline)
+     (display "ip: ")
+     (display ip)
+     (newline)
      (cond
         (or (type? (car stack) "ERROR")
             (typhon@error? (car stack)))
@@ -1421,7 +1421,7 @@
         iter-list
         (append
             (typhon@compile (car iter-list) params env)
-            (list (list (cdr (typhon@lookup sym env))))
+            (list (list (primitive-value (typhon@lookup sym env))))
             (typhon@compile-help sym (cdr iter-list) params env))))
 
 (define (typhon@map iter-list params env)
@@ -1457,9 +1457,15 @@
                         ;(write fst)
                         ;(display " and rst == " )
                         ;(write rst)
-                        ;(display " and v == " )
-                        ;(write v)
-                        ;(newline)
+                        (display " and v == " )
+                        (write v)
+                        (newline)
+                        (if (dict? v)
+                            (begin
+                                (display "type: ")
+                                (display (nth v 'type 'NOT-FOUND))
+                                (newline))
+                            #v)
                        (cond 
                             (not (eq? param-mem? #f))
                                 (append
@@ -1728,10 +1734,12 @@
                                     ;; (+ 1 2)
                                     ;; (cons)
                                     ;; this isn't the *most* efficient, but it is pretty easy
+                                    (begin
+                                        (display "in typhon@primitive::compile?\n")
                                     (append
                                         (reverse-append
                                             (typhon@map rst params env))
-                                        (list (list (cdr v))))
+                                        (list (list (primitive-value v)))))
                                 (typhon@lambda? v) ;; hydra closure; change this into (load-from-env fst) (call-from-stack) 
                                     (append
                                         (reverse-append
