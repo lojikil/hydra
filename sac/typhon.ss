@@ -1766,9 +1766,9 @@
     (cond
         (typhon@lambda? x) (display "#<closure>")
         (typhon@continuation? x) (display "#<continuation>")
-        (typhon@primitive? x) (display (format "#<primitive-procedure ~a>" (cdr x)))
-        (typhon@procedure? x) (display (format "#<procedure ~a>" (cdr x)))
-        (typhon@syntax? x) (display (format "#<syntax ~a>" (cdr x)))
+        (typhon@primitive? x) (display (format "#<primitive-procedure ~a>" (primitive-value x)))
+        (typhon@procedure? x) (display (format "#<procedure ~a>" (primitive-value x)))
+        (typhon@syntax? x) (display (format "#<syntax ~a>" (primitive-value x)))
         (typhon@error? x) (display (format "ERROR: ~a" (cdr x)))
         (typhon@usyntax? x) (display "#<syntax rules>")
         else (write x)))
