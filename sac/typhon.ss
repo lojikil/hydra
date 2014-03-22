@@ -770,7 +770,7 @@
                             env
                             (+ ip 1)
                             (cons (ccons (cadr stack) (car stack)) (cddr stack)) locals dump)
-                    (55) ;; %nth
+                    (55) ;; %nth, need to wrap this some how too...
                         (typhon@vm code code-len
                             env
                             (+ ip 1)
@@ -971,7 +971,7 @@
                             env
                             (+ ip 1)
                             (cons (memq (car stack) (cadr stack)) (cddr stack)) locals dump)
-                    (94) ;; %dict
+                    (94) ;; %dict, need to wrap these...
                         (typhon@vm code code-len
                             env
                             (+ ip 1)
@@ -1437,7 +1437,7 @@
             '()
             (cond
                 (vector? line) (list (list 3 line))
-                (dict? line) (list (list 3 line) )
+                (dict? line) (list (list 3 (dict type: 'dict value: line)))
                 (symbol? line) 
                     (let ((param-mem? (memq line params)))
                         (if (not (eq? param-mem? #f))
