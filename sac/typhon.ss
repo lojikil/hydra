@@ -1556,12 +1556,12 @@
                                                     (append
                                                         (typhon@compile (cons 'fn (cons (cdar rst) (cdr rst))) params env)
                                                         (list (list 3 (caar rst)))
-                                                        (list (list (cdr (typhon@lookup '%define env))))) 
+                                                        (list (list (primitive-value (typhon@lookup '%define env))))) 
                                                 (symbol? name)
                                                     (append
                                                         (typhon@compile value params env)
                                                         (list (list 3 name))
-                                                        (list (list (cdr (typhon@lookup '%define env)))))
+                                                        (list (list (primitive-value (typhon@lookup '%define env)))))
                                                 else (throw compile-error (typhon@error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*"))))
                                     (eq? (primitive-value v) 'primitive-syntax-set)
                                         (let ((name (car rst))
@@ -1570,7 +1570,7 @@
                                                 (append
                                                     (typhon@compile value params env)
                                                     (list (list 3 name))
-                                                    (list (list (cdr (typhon@lookup '%set! env)))))
+                                                    (list (list (primitive-value (typhon@lookup '%set! env)))))
                                                 (throw compile-error (typhon@error "SET!: set! SYMBOL S-EXPR*"))))
                                     (eq? (primitive-value v) 'primitive-syntax-defsyn)
                                         (let ((name (car rst))
@@ -1583,7 +1583,7 @@
                                         (list
                                             (list 3 ;; load
                                                 (compile-lambda rst env))
-                                            (list (cdr (typhon@lookup '%makeclosure env))))
+                                            (list (primitive-value (typhon@lookup '%makeclosure env))))
                                     (eq? (primitive-value v) 'primitive-syntax-begin)
                                         (compile-begin rst params env)
                                     (eq? (primitive-value v) 'primitive-syntax-lt)
@@ -1612,7 +1612,7 @@
                                                 (reverse-append
                                                     (typhon@map rst params env))
                                                 (list (list 3 (length rst)))
-                                                (list (list (cdr (typhon@lookup '%list env))))))
+                                                (list (list (primitive-value (typhon@lookup '%list env))))))
                                     (eq? (primitive-value v) 'primitive-syntax-vector)
                                         ;; if rst is null?, then generate a load with an empty vector
                                         ;; otherwise generate the instructions for the vector, a length
@@ -1623,7 +1623,7 @@
                                                 (reverse-append
                                                     (typhon@map rst params env))
                                                 (list (list 3 (length rst)))
-                                                (list (list (cdr (typhon@lookup '%vector env))))))
+                                                (list (list (primitive-value (typhon@lookup '%vector env))))))
                                     (eq? (primitive-value v) 'primitive-syntax-dict)
                                         ;; if rst is null?, then generate a load with an empty dict
                                         ;; otherwise generate the instructions for the dict, a length
@@ -1634,7 +1634,7 @@
                                                 (reverse-append
                                                     (typhon@map rst params env))
                                                 (list (list 3 (length rst)))
-                                                (list (list (cdr (typhon@lookup '%dict env))))))
+                                                (list (list (primitive-value (typhon@lookup '%dict env))))))
                                     (eq? (primitive-value v) 'primitive-syntax-string)
                                         (if (null? rst)
                                             (list (list 3 (make-string 0)))
@@ -1642,7 +1642,7 @@
                                                 (reverse-append
                                                     (typhon@map rst params env))
                                                 (list (list 3 (length rst)))
-                                                (list (list (cdr (typhon@lookup '%string env))))))
+                                                (list (list (primitive-value (typhon@lookup '%string env))))))
                                     (eq? (primitive-value v) 'primitive-syntax-append)
                                         (if (null? rst)
                                             (list (list 4))
@@ -1650,7 +1650,7 @@
                                                 (reverse-append
                                                     (typhon@map rst params env))
                                                 (list (list 3 (length rst)))
-                                                (list (list (cdr (typhon@lookup '%append env))))))
+                                                (list (list (primitive-value (typhon@lookup '%append env))))))
                                         
                                     (eq? (primitive-value v) 'primitive-syntax-makevector)
                                         (with l (length rst)
@@ -1659,11 +1659,11 @@
                                                     (append
                                                         '((4))
                                                         (typhon@compile (car rst) params env)
-                                                        (list (list (cdr (typhon@lookup '%make-vector env)))))
+                                                        (list (list (primitive-value (typhon@lookup '%make-vector env)))))
                                                 (= l 2)
                                                     (append
                                                         (reverse-append (typhon@map rst params env))
-                                                        (list (list (cdr (typhon@lookup '%make-vector env)))))
+                                                        (list (list (primitive-value (typhon@lookup '%make-vector env)))))
                                                 else (throw compile-error (typhon@error "make-vector len : INTEGER (v : SEXPR) => VECTOR"))))
                                     (eq? (primitive-value v) 'primitive-syntax-makestring)
                                         (with l (length rst)
@@ -1672,11 +1672,11 @@
                                                     (append
                                                         '((3 #\space))
                                                         (typhon@compile (car rst) params env)
-                                                        (list (list (cdr (typhon@lookup '%make-string env)))))
+                                                        (list (list (primitive-value (typhon@lookup '%make-string env)))))
                                                 (= l 2)
                                                     (append
                                                         (reverse-append (typhon@map rst params env))
-                                                        (list (list (cdr (typhon@lookup '%make-string env)))))
+                                                        (list (list (primitive-value (typhon@lookup '%make-string env)))))
                                                 else (throw compile-error (typhon@error "make-string len : INTEGER (c : CHAR) => STRING"))))
                                     (eq? (primitive-value v) 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
