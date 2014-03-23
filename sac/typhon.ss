@@ -203,7 +203,7 @@
     (and (pair? x) (eq? (car x) 'continuation))))
 
 (define-syntax typhon@procedure? () ((typhon@procedure? x)
-    (and (pair? x) (eq? (car x) 'procedure))))
+    (and (dict? x) (eq? (nth x 'type '()) 'procedure))))
 
 (define-syntax typhon@usyntax? () ((typhon@usyntax? x)
     (and (pair? x) (eq? (car x) 'user-syntax)))) 
