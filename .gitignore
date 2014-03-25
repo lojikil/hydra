@@ -11,3 +11,4 @@ typhon
 *.exe
 *.o
 sac/perf/*
+*.stackdump

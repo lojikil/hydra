@@ -1,4 +1,4 @@
-os=`uname`
+os=`uname -o`
 case $os in
     DragonFly)
         make CFLAGS="-L /usr/local/lib -I /usr/local/include"

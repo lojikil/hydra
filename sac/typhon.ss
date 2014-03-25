@@ -771,10 +771,17 @@
                             (+ ip 1)
                             (cons (ccons (cadr stack) (car stack)) (cddr stack)) locals dump)
                     (55) ;; %nth, need to wrap this some how too...
-                        (typhon@vm code code-len
-                            env
-                            (+ ip 1)
-                            (cons (nth (car stack) (cadr stack) (caddr stack)) (cdddr stack)) locals dump)
+                        (with local-top (car stack)
+                            (if (type? local-top "DICT")
+                                (typhon@vm code code-len
+                                    env
+                                    (+ ip 1)
+                                    (cons (nth (primitive-value local-top) (cadr stack) (caddr stack)) (cdddr stack))
+                                    locals dump)
+                                (typhon@vm code code-len
+                                    env
+                                    (+ ip 1)
+                                    (cons (nth (car stack) (cadr stack) (caddr stack)) (cdddr stack)) locals dump)))
                     (56) ;; keys
                         (typhon@vm code code-len
                             env
