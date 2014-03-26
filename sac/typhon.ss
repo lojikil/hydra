@@ -770,7 +770,7 @@
                             env
                             (+ ip 1)
                             (cons (ccons (cadr stack) (car stack)) (cddr stack)) locals dump)
-                    (55) ;; %nth, need to wrap this some how too...
+                    (55) ;; %nth
                         (with local-top (car stack)
                             (if (type? local-top "DICT")
                                 (typhon@vm code code-len
@@ -783,27 +783,51 @@
                                     (+ ip 1)
                                     (cons (nth (car stack) (cadr stack) (caddr stack)) (cdddr stack)) locals dump)))
                     (56) ;; keys
-                        (typhon@vm code code-len
-                            env
-                            (+ ip 1)
-                            (cons (keys (car stack)) (cdr stack)) locals dump)
+                        (with local-top (car stack)
+                            (if (type? local-top "DICT")
+                                (typhon@vm code code-len
+                                    env
+                                    (+ ip 1)
+                                    (cons (keys (primitive-value local-top)) (cdr stack)) locals dump)
+                                (typhon@vm code code-len
+                                    env
+                                    (+ ip 1)
+                                    (cons (typhon@error "keys operates on dicts alone") (cdr stack)) locals dump)))
                     (57) ;; partial-key?
-                        (typhon@vm code code-len
-                            env
-                            (+ ip 1)
-                            (cons (partial-key? (car stack) (cadr stack)) (cddr stack)) locals dump)
+                        (with local-top (car stack)
+                            (if (type? local-top "DICT")
+                                (typhon@vm code code-len
+                                    env
+                                    (+ ip 1)
+                                    (cons (partial-key? (primitive-value local-top) (cadr stack)) (cddr stack))
+                                    locals
+                                    dump)
+                                (typhon@vm code code-len
+                                    env
+                                    (+ ip 1)
+                                    (cons (partial-key? (car stack) (cadr stack)) (cddr stack)) locals dump)))
                     (58) ;; cset!
-                        (begin
-                            (cset! (car stack) (cadr stack) (caddr stack))
+                        (with local-top (car stack)
+                            (if (type? local-top "DICT")
+                                (cset! (primitive-value local-top) (cadr stack) (caddr stack))
+                                (cset! local-top (cadr stack) (caddr stack)))
                             (typhon@vm code code-len
                                 env
                                 (+ ip 1)
                                 (cons #v (cdddr stack)) locals dump))
                     (59) ;; empty?
-                        (typhon@vm code code-len
-                            env
-                            (+ ip 1)
-                            (cons (empty? (car stack)) (cdr stack)) locals dump)
+                        (with local-top (car stack)
+                            (if (type? local-top "DICT")
+                                (typhon@vm code code-len
+                                    env
+                                    (+ ip 1)
+                                    (cons (empty? (primitive-value local-top)) (cdr stack))
+                                    locals
+                                    dump)
+                                (typhon@vm code code-len
+                                    env
+                                    (+ ip 1)
+                                    (cons (empty? local-top) (cdr stack)) locals dump)))
                     (60) ;; gensym
                         (typhon@vm code code-len
                             env
