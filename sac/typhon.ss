@@ -1007,7 +1007,7 @@
                             env
                             (+ ip 1)
                             (cons
-                                (apply dict (cslice (cdr stack) 0 (car stack)))
+                                (dict type: 'dict value: (apply dict (cslice (cdr stack) 0 (car stack))))
                                 (cslice (cdr stack) (car stack) (- (length stack) 1)))
                             locals
                             dump)
@@ -1015,18 +1015,18 @@
                         (typhon@vm code code-len
                             env
                             (+ ip 1)
-                            (cons (make-dict) stack) locals dump)
-                    (96) ;; dict-has?
+                            (cons (dict type: 'dict value: (make-dict)) stack) locals dump)
+                    (96) ;; dict-has? need to unwrap this...
                         (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (dict-has? (car stack) (cadr stack)) (cddr stack)) locals dump)
-                    (97) ;; coerce
+                    (97) ;; coerce, check for sanbox escape too...
                         (typhon@vm code code-len
                             env
                             (+ ip 1)
                             (cons (coerce (car stack) (cadr stack)) (cddr stack)) locals dump)
-                    (98) ;; cupdate
+                    (98) ;; cupdate, unwrap dicts, also, need to update cset!
                         (typhon@vm code code-len
                             env
                             (+ ip 1)

@@ -2,7 +2,7 @@
 
 os=`uname`
 
-if [ "${v[@]:0:6}" eq "CYGWIN" ]
+if [ "${os[@]:0:6}" = "CYGWIN" ]
 then
     os="Cygwin"
 fi
