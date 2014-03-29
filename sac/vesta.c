@@ -2042,7 +2042,7 @@ lex(FILE *fdin, char **r)
 						}
 					}
 					break;
-			case 2: /* hash object, #t #s #f #u #\character #|named_char */
+			case 2: /* hash object, #t #s #f #u #\character #\named_char #{avl tree} */
 				tmp = fgetc(fdin);
 				/* I wonder if the return results for #t, #f, #s & #u should
 				 * be constants. I mean, they are constant values, so perhaps this
@@ -2102,7 +2102,9 @@ lex(FILE *fdin, char **r)
 						break;
 					case ',':
 						/* SRFI-10 */
-						break;
+                        return TOK_SRFI10;
+                    case '{':
+                        return TOK_TREE;
 					case 'x':
 					case 'X':
 						/* hex */
