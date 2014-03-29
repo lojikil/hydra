@@ -2507,6 +2507,31 @@ llread(FILE *fdin)
 					trie_put(tmp0->object.str,tmp1,holder->object.dict);
 				}
 				return holder;
+            case TOK_TREE:
+				holder = makedict();
+				while(1)
+				{
+					tmp0 = llread(fdin);
+					if(tmp0 == seof)
+						return makeerror(0,0,"#e received before end of dictionary literal!");
+					if(tmp0 == fake_rcur)
+						break;
+					if(tmp0->type != STRING && tmp0->type != KEY && tmp0->type != ATOM)
+						return makeerror(0,0,"invalid key type used in dict literal");
+					tmp1 = llread(fdin);
+					if(tmp1 == seof)
+					  {
+					    if(feof(fdin))
+						return makeerror(0,0,"#e received before end of dictionary literal!");
+					  }
+					if(tmp1 == fake_rcur)
+					{
+						trie_put(tmp0->object.str,snil,holder->object.dict);
+						break;
+					}
+					trie_put(tmp0->object.str,tmp1,holder->object.dict);
+				}
+				return holder;
 			case TOK_RCURLY:
 				return fake_rcur;
 			case TOK_HERROR:
