@@ -1316,6 +1316,24 @@ avl_insert(AVLNode *tree, int value, SExp *data)
     }
 }
 
+int
+avl_insert_f(AVLNode *tree, SExp *key, SExp *data){
+    int ikey = 0;
+
+    switch(key->type){
+        case ATOM:
+        case NUMBER:
+        case KEYOBJ:
+        case STRING:
+        case CHAR:
+            ikey = fnv1a_s(key);
+            break;
+        default:
+            return -1;
+    }
+    return avl_insert(tree, ikey, data);
+}
+
 SExp *
 avl_get(AVLNode *tree, int key)
 {
@@ -1331,6 +1349,54 @@ avl_get(AVLNode *tree, int key)
         if(key > tmp->key)
             tmp = tmp->right;
     }
+}
+
+SExp *
+avl_get_f(AVLNOde *tree, SExp *key){
+    int ikey = 0;
+
+    switch(key->type){
+        case ATOM:
+        case NUMBER:
+        case KEYOBJ:
+        case STRING:
+        case CHAR:
+            ikey = fnv1a_s(key);
+            break;
+        default:
+            return -1;
+    }
+    return avl_get(tree, ikey);
+}
+
+int
+fnv1a_s(SExp *s_key){
+    char *key;
+    int len = 0;
+
+    switch(s_key->type){
+        case ATOM:
+        case STRING:
+        case KEYOBJ:
+            key = s_key->object.str;
+            len = s_key->length;
+            break;
+        default:
+            /* need to call number->bytes here. */
+            return -1;
+    }
+    uint64_t hash = 14695981039346656037;
+    uint32_t idx = 0;
+    for(; idx < len; idx++){
+        hash ^= key[idx];
+        hash *= 1099511628211;
+    }
+    return hash;
+}
+
+int
+number_bytes(SExp *s_key){
+    return -1; // stub
 }
 
 int
