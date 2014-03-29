@@ -1020,7 +1020,7 @@
                         (typhon@vm code code-len
                             env
                             (+ ip 1)
-                            (cons (dict-has? (car stack) (cadr stack)) (cddr stack)) locals dump)
+                            (cons (dict-has? (primitive-value (car stack)) (cadr stack)) (cddr stack)) locals dump)
                     (97) ;; coerce, check for sanbox escape too...
                         (typhon@vm code code-len
                             env
