@@ -1323,7 +1323,7 @@ avl_insert_f(AVLNode *tree, SExp *key, SExp *data){
     switch(key->type){
         case ATOM:
         case NUMBER:
-        case KEYOBJ:
+        case KEY:
         case STRING:
         case CHAR:
             ikey = fnv1a_s(key);
@@ -1352,19 +1352,19 @@ avl_get(AVLNode *tree, int key)
 }
 
 SExp *
-avl_get_f(AVLNOde *tree, SExp *key){
+avl_get_f(AVLNode *tree, SExp *key){
     int ikey = 0;
 
     switch(key->type){
         case ATOM:
         case NUMBER:
-        case KEYOBJ:
+        case KEY:
         case STRING:
         case CHAR:
             ikey = fnv1a_s(key);
             break;
         default:
-            return -1;
+            return makeerror(1,2, "avl_get_f key error!");
     }
     return avl_get(tree, ikey);
 }
@@ -1377,7 +1377,7 @@ fnv1a_s(SExp *s_key){
     switch(s_key->type){
         case ATOM:
         case STRING:
-        case KEYOBJ:
+        case KEY:
             key = s_key->object.str;
             len = s_key->length;
             break;
@@ -1395,7 +1395,7 @@ fnv1a_s(SExp *s_key){
 }
 
 int
-number_bytes(SExp *s_key){
+number_bytes(SExp *s_key, char *result){
     return -1; // stub
 }
 

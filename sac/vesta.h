@@ -394,7 +394,7 @@ int avl_containsp(AVLNode *,int);
 int avl_insert(AVLNode *, int, SExp *);
 int avl_insert_f(AVLNode *, SExp *, SExp *);
 SExp *avl_get(AVLNode *, int);
-SExp *avl_get(AVLNode *, SExp *);
+SExp *avl_get_f(AVLNode *, SExp *);
 int weight(AVLNode *);
 AVLNode *balance(AVLNode *);
 AVLNode *rotate_left(AVLNode *);
