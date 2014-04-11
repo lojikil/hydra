@@ -356,6 +356,8 @@
         (or (type? (car stack) "ERROR")
             (typhon@error? (car stack)))
             (car stack)
+        (typhon@error? code)
+            code
         (>= ip code-len)
             (if (= (car dump) 0)
                 (car stack)
