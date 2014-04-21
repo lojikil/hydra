@@ -443,6 +443,15 @@
                     #f
                     (list 'c-dec name params (cadr body)))))))
 
+(define (compile-struct code rewrites lparams)
+    "compiles a `define-struct` statement into IL.
+     PARAMETERS:
+    code: define block
+    rewrites : rewrite dict
+    lparams : local compiler parameters.
+    "
+    #f)
+
 (define (compile-if block name tail? rewrites lparams)
     " compiles an if statement into IL.
       PARAMETERS:
@@ -597,6 +606,7 @@
             (eq? (car c) 'c-shadow-params)
             (eq? (car c) 'c-var)
             (eq? (car c) 'c-dec)
+            (eq? (car c) 'c-def-struct)
             (eq? (car c) 'c-tailcall)
             (eq? (car c) 'c-docstring)
             (eq? (car c) 'c-%prim)
@@ -858,6 +868,7 @@
                 (close fh)
                 (set! *ooblambdas* (append *ooblambdas* load-obj-code))
                 (list #f (list 'c-nop)))
+        (eq? (car c) 'define-struct) (compile-struct (cdr c) rewrites lparams)
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'case) (compile-case (cdr c) name tail? rewrites lparams)
