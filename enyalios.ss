@@ -443,6 +443,12 @@
                     #f
                     (list 'c-dec name params (cadr body)))))))
 
+(define (make-struct-setter struct members)
+    #f)
+
+(define (make-struct-getter struct members)
+    #f)
+
 (define (compile-struct code rewrites lparams)
     "compiles a `define-struct` statement into IL.
      PARAMETERS:
@@ -450,7 +456,16 @@
     rewrites : rewrite dict
     lparams : local compiler parameters.
     "
-    #f)
+    ;; should decompose code here, esp. members, since if 
+    ;; the struct has inheritence, this won't work
+    (let ((sets (make-struct-setter (car code) (cadr code)))
+          (gets (make-struct-getter (car code) (cadr code))))
+       (append 
+            (list
+                (list
+                    'c-define-struct (cadr code)))
+            sets
+            gets)))
 
 (define (compile-if block name tail? rewrites lparams)
     " compiles an if statement into IL.
