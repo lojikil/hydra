@@ -444,10 +444,18 @@
                     (list 'c-dec name params (cadr body)))))))
 
 (define (make-struct-setter struct members)
-    #f)
+    (if (null? members)
+        '()
+        (cons
+            (list 'c-def #f)
+            (make-struct-setter struct (cdr members)))))
 
 (define (make-struct-getter struct members)
-    #f)
+    (if (null? members)
+        '()
+        (cons
+            (list 'c-def #f)
+            (make-struct-setter struct (cdr members)))))
 
 (define (compile-struct code rewrites lparams)
     "compiles a `define-struct` statement into IL.
@@ -460,12 +468,14 @@
     ;; the struct has inheritence, this won't work
     (let ((sets (make-struct-setter (car code) (cadr code)))
           (gets (make-struct-getter (car code) (cadr code))))
-       (append 
-            (list
+        (list
+            #f
+            (append 
                 (list
-                    'c-define-struct (cadr code)))
-            sets
-            gets)))
+                    (list
+                        'c-define-struct (cadr code)))
+                sets
+                gets))))
 
 (define (compile-if block name tail? rewrites lparams)
     " compiles an if statement into IL.
