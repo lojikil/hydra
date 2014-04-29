@@ -447,14 +447,14 @@
     (if (null? members)
         '()
         (cons
-            (list 'c-def #f)
+            (list 'c-dec (coerce (format "~a-set-~a!" struct (car members)) 'atom) '(x y) (list 'c-struct-set! 'x (car members) 'y))
             (make-struct-setter struct (cdr members)))))
 
 (define (make-struct-getter struct members)
     (if (null? members)
         '()
         (cons
-            (list 'c-def #f)
+            (list 'c-dec (coerce (format "~a-~a" struct (car members)) 'atom) '(x) (list 'c-struct-ref 'x (car members)))
             (make-struct-setter struct (cdr members)))))
 
 (define (compile-struct code rewrites lparams)
