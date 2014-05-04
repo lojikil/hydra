@@ -470,12 +470,14 @@
           (gets (make-struct-getter (car code) (cadr code))))
         (list
             #f
-            (append 
-                (list
+            (list
+                'c-begin
+                (append 
                     (list
-                        'c-define-struct (cadr code)))
-                sets
-                gets))))
+                        (list
+                            'c-define-struct (cadr code)))
+                    sets
+                    gets)))))
 
 (define (compile-if block name tail? rewrites lparams)
     " compiles an if statement into IL.
