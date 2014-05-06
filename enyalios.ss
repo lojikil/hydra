@@ -443,6 +443,9 @@
                     #f
                     (list 'c-dec name params (cadr body)))))))
 
+(define (make-struct-ctor name)
+    #f)
+
 (define (make-struct-setter struct members)
     (if (null? members)
         '()
@@ -466,8 +469,9 @@
     "
     ;; should decompose code here, esp. members, since if 
     ;; the struct has inheritence, this won't work
-    (let ((sets (make-struct-setter (car code) (cadr code)))
-          (gets (make-struct-getter (car code) (cadr code))))
+    (let ((ctor (make-struct-ctor (car code)))
+          (sets (make-struct-setter (car code) (cadr code)))
+          (gets (make-struct-getter (car code) (cadr code)))) ;; need to define a ctor too...
         (list
             #f
             (list
@@ -476,6 +480,7 @@
                     (list
                         (list
                             'c-define-struct (cadr code)))
+                    ctor
                     sets
                     gets)))))
 
@@ -633,8 +638,10 @@
             (eq? (car c) 'c-shadow-params)
             (eq? (car c) 'c-var)
             (eq? (car c) 'c-dec)
-            (eq? (car c) 'c-def-struct)
+            (eq? (car c) 'c-define-struct)
+            (eq? (car c) 'c-struct-set!)
             (eq? (car c) 'c-tailcall)
+            (eq? (car c) 'c-struct-ref)
             (eq? (car c) 'c-docstring)
             (eq? (car c) 'c-%prim)
             (eq? (car c) 'c-catch)
@@ -1900,6 +1907,12 @@
                 (display " = " out)
                 (il->c (caddr il) 0 out)
                 (display ";\n" out))
+        (eq? (car il) 'c-define-struct) ;; structure declaration
+            #f
+        (eq? (car il) 'c-struct-ref) ;;
+            #f
+        (eq? (car il) 'c-struct-set!) ;;
+            #f
         (eq? (car il) 'c-dec) ;; function declaration
             (begin
                 (display "SExp *\n" out)
