@@ -1083,7 +1083,7 @@
                             ", "))
                     (params->c (cdr params) param-data))
                 (cons
-                    (format "SExp *~a" (cmung cur))
+                    (ormat "SExp *~a" (cmung cur))
                     (params->c (cdr params) param-data))))))
                     
 (define (generate-vector x)
@@ -1909,7 +1909,15 @@
                 (il->c (caddr il) 0 out)
                 (display ";\n" out))
         (eq? (car il) 'c-define-struct) ;; structure declaration
-            #f
+            (begin
+                (int->spaces lvl out)
+                (display (format "struct ~a {~%" (cmung (cadr il))) out)A
+                (display
+                    (string-join
+                        (map (fn (x) (format "SExp *~a" (cmung x))) (caddr il))
+                        ";\n")
+                    out)
+                (display "};\n" out))
         (eq? (car il) 'c-struct-ref) ;; reference a structure member
             #f
         (eq? (car il) 'c-struct-set!) ;; set a structure member
