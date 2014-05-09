@@ -443,8 +443,9 @@
                     #f
                     (list 'c-dec name params (cadr body)))))))
 
-(define (make-struct-ctor name)
-    #f)
+(define (make-struct-ctor name members)
+    (list
+        (list 'c-dec (coerce (format "make-~a" name) 'atom) members (list 'c-make-struct (list 'quote name) members))))
 
 (define (make-struct-setter struct members)
     (if (null? members)
@@ -469,7 +470,7 @@
     "
     ;; should decompose code here, esp. members, since if 
     ;; the struct has inheritence, this won't work
-    (let ((ctor (make-struct-ctor (car code)))
+    (let ((ctor (make-struct-ctor (car code) (cadr code)))
           (sets (make-struct-setter (car code) (cadr code)))
           (gets (make-struct-getter (car code) (cadr code)))) ;; need to define a ctor too...
         (list
@@ -1909,9 +1910,11 @@
                 (display ";\n" out))
         (eq? (car il) 'c-define-struct) ;; structure declaration
             #f
-        (eq? (car il) 'c-struct-ref) ;;
+        (eq? (car il) 'c-struct-ref) ;; reference a structure member
             #f
-        (eq? (car il) 'c-struct-set!) ;;
+        (eq? (car il) 'c-struct-set!) ;; set a structure member
+            #f
+        (eq? (car il) 'c-make-struct) ;; make a structure object
             #f
         (eq? (car il) 'c-dec) ;; function declaration
             (begin
