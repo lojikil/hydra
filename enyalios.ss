@@ -444,22 +444,30 @@
                     (list 'c-dec name params (cadr body)))))))
 
 (define (make-struct-ctor name members)
-    (list
-        (list 'c-dec (coerce (format "make-~a" name) 'atom) members (list 'c-make-struct (list 'quote name) members))))
+    (let ((ctor-name (coerce (format "make-~a" name) 'atom)))
+        (set-arity! ctor-name members)
+        (list
+            (list 'c-dec ctor-name members (list 'c-make-struct (list 'quote name) members)))))
 
 (define (make-struct-setter struct members)
     (if (null? members)
         '()
-        (cons
-            (list 'c-dec (coerce (format "~a-set-~a!" struct (car members)) 'atom) '(x y) (list 'c-struct-set! 'x (list 'quote (car members)) 'y))
-            (make-struct-setter struct (cdr members)))))
+        (let ((setter-name (coerce (format "~a-set-~a!" struct (car members)) 'atom))
+              (params '(x y))
+            (set-arity! setter-name params)
+            (cons
+                (list 'c-dec setter-name params (list 'c-struct-set! 'x (list 'quote (car members)) 'y))
+                (make-struct-setter struct (cdr members)))))))
 
 (define (make-struct-getter struct members)
     (if (null? members)
         '()
-        (cons
-            (list 'c-dec (coerce (format "~a-~a" struct (car members)) 'atom) '(x) (list 'c-struct-ref 'x (list 'quote (car members))))
-            (make-struct-setter struct (cdr members)))))
+        (let ((getter-name (coerce (format "~a-~a" struct (car members)) 'atom))
+              (params '(x)))
+            (set-arity! getter-name params)
+            (cons
+                (list 'c-dec getter-name params (list 'c-struct-ref 'x (list 'quote (car members))))
+                (make-struct-setter struct (cdr members))))))
 
 (define (compile-struct code rewrites lparams)
     "compiles a `define-struct` statement into IL.
@@ -1933,7 +1941,15 @@
                 (display (cmung (cadddr il)) out)
                 (display ";" out))
         (eq? (car il) 'c-make-struct) ;; make a structure object
-            #f
+            (let ((tmp-sym (gensym 'strcttmp)))
+                (display "SExp *" out)
+                (display tmp-sym out)
+                (display " = " out)
+                (display "(SExp *)hmalloc(sizeof(SExp));\n" out)
+                ;; need to flesh out the middle steps here more
+                (display "return " out)
+                (display tmp-sym out)
+                (display ";\n"))
         (eq? (car il) 'c-dec) ;; function declaration
             (begin
                 (display "SExp *\n" out)
