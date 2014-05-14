@@ -1919,9 +1919,19 @@
                     out)
                 (display "};\n" out))
         (eq? (car il) 'c-struct-ref) ;; reference a structure member
-            #f
+            (begin
+                (display (cmung (cadr il)) out)
+                (display "->" out)
+                (display (cmung (car (cdaddr il))) out)
+                (display ";" out))
         (eq? (car il) 'c-struct-set!) ;; set a structure member
-            #f
+            (begin
+                (display (cmung (cadr il)) out)
+                (display "->" out)
+                (display (cmung (car (cdaddr il))) out)
+                (display " = " out)
+                (display (cmung (cadddr il)) out)
+                (display ";" out))
         (eq? (car il) 'c-make-struct) ;; make a structure object
             #f
         (eq? (car il) 'c-dec) ;; function declaration
