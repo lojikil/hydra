@@ -453,11 +453,14 @@
     (if (null? members)
         '()
         (let ((setter-name (coerce (format "~a-set-~a!" struct (car members)) 'atom))
-              (params '(x y))
+              (params '(x y)))
             (set-arity! setter-name params)
             (cons
-                (list 'c-dec setter-name params (list 'c-struct-set! 'x (list 'quote (car members)) 'y))
-                (make-struct-setter struct (cdr members)))))))
+                (list 'c-dec setter-name params
+                    (list 'c-begin
+                        (list 'c-struct-set! 'x (list 'quote (car members)) 'y)
+                        (list 'c-return #v)))
+                (make-struct-setter struct (cdr members))))))
 
 (define (make-struct-getter struct members)
     (if (null? members)
@@ -466,7 +469,9 @@
               (params '(x)))
             (set-arity! getter-name params)
             (cons
-                (list 'c-dec getter-name params (list 'c-struct-ref 'x (list 'quote (car members))))
+                (list 'c-dec getter-name params
+                    (list 'c-return 
+                        (list 'c-struct-ref 'x (list 'quote (car members)))))
                 (make-struct-setter struct (cdr members))))))
 
 (define (compile-struct code rewrites lparams)
@@ -488,7 +493,7 @@
                 (append 
                     (list
                         (list
-                            'c-define-struct (cadr code)))
+                            'c-define-struct (p (car code))))
                     ctor
                     sets
                     gets)))))
@@ -1091,7 +1096,7 @@
                             ", "))
                     (params->c (cdr params) param-data))
                 (cons
-                    (ormat "SExp *~a" (cmung cur))
+                    (format "SExp *~a" (cmung cur))
                     (params->c (cdr params) param-data))))))
                     
 (define (generate-vector x)
@@ -1919,7 +1924,7 @@
         (eq? (car il) 'c-define-struct) ;; structure declaration
             (begin
                 (int->spaces lvl out)
-                (display (format "struct ~a {~%" (cmung (cadr il))) out)A
+                (display (format "struct ~a {~%" (cmung (cadr il))) out)
                 (display
                     (string-join
                         (map (fn (x) (format "SExp *~a" (cmung x))) (caddr il))
@@ -1928,28 +1933,31 @@
                 (display "};\n" out))
         (eq? (car il) 'c-struct-ref) ;; reference a structure member
             (begin
+                (int->spaces lvl out)
                 (display (cmung (cadr il)) out)
-                (display "->" out)
-                (display (cmung (car (cdaddr il))) out)
-                (display ";" out))
+                (display "->" out) ;; these actually need to be one level deeper...
+                (display (cmung (car (cdaddr il))) out))
         (eq? (car il) 'c-struct-set!) ;; set a structure member
             (begin
+                (int->spaces lvl out)
                 (display (cmung (cadr il)) out)
                 (display "->" out)
                 (display (cmung (car (cdaddr il))) out)
                 (display " = " out)
                 (display (cmung (cadddr il)) out)
-                (display ";" out))
+                (display ";\n" out))
         (eq? (car il) 'c-make-struct) ;; make a structure object
             (let ((tmp-sym (gensym 'strcttmp)))
+                (int->spaces lvl out)
                 (display "SExp *" out)
                 (display tmp-sym out)
                 (display " = " out)
                 (display "(SExp *)hmalloc(sizeof(SExp));\n" out)
                 ;; need to flesh out the middle steps here more
+                (int->spaces lvl out)
                 (display "return " out)
                 (display tmp-sym out)
-                (display ";\n"))
+                (display ";\n" out))
         (eq? (car il) 'c-dec) ;; function declaration
             (begin
                 (display "SExp *\n" out)
