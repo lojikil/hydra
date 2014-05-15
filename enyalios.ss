@@ -493,7 +493,7 @@
                 (append 
                     (list
                         (list
-                            'c-define-struct (p (car code))))
+                            'c-define-struct (p (car code)) (cadr code)))
                     ctor
                     sets
                     gets)))))
