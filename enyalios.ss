@@ -447,7 +447,7 @@
     (let ((ctor-name (coerce (format "make-~a" name) 'atom)))
         (set-arity! ctor-name members)
         (list
-            (list 'c-dec ctor-name members (list 'c-make-struct (list 'quote name) members)))))
+            (list 'c-dec ctor-name members (list 'c-make-struct name members)))))
 
 (define (make-struct-setter struct members)
     (if (null? members)
@@ -458,7 +458,7 @@
             (cons
                 (list 'c-dec setter-name params
                     (list 'c-begin
-                        (list 'c-struct-set! 'x (list 'quote (car members)) 'y)
+                        (list 'c-struct-set! 'x  (car members) 'y struct)
                         (list 'c-return #v)))
                 (make-struct-setter struct (cdr members))))))
 
@@ -471,8 +471,8 @@
             (cons
                 (list 'c-dec getter-name params
                     (list 'c-return 
-                        (list 'c-struct-ref 'x (list 'quote (car members)))))
-                (make-struct-setter struct (cdr members))))))
+                        (list 'c-struct-ref 'x (car members) struct)))
+                (make-struct-getter struct (cdr members))))))
 
 (define (compile-struct code rewrites lparams)
     "compiles a `define-struct` statement into IL.
@@ -493,7 +493,7 @@
                 (append 
                     (list
                         (list
-                            'c-define-struct (p (car code)) (cadr code)))
+                            'c-define-struct (car code) (cadr code)))
                     ctor
                     sets
                     gets)))))
@@ -1927,24 +1927,38 @@
                 (display (format "struct ~a {~%" (cmung (cadr il))) out)
                 (display
                     (string-join
-                        (map (fn (x) (format "SExp *~a" (cmung x))) (caddr il))
+                        (map (fn (x) (format "    SExp *~a" (cmung x))) (caddr il))
                         ";\n")
                     out)
-                (display "};\n" out))
+                (display ";\n};\n" out))
         (eq? (car il) 'c-struct-ref) ;; reference a structure member
-            (begin
+            (let ((param (cmung (cadr il)))
+                  (member (cmung (caddr il)))
+                  (struct (cmung (cadddr il)))
+                  (tmp (gensym 'tmp)))
                 (int->spaces lvl out)
-                (display (cmung (cadr il)) out)
+                (display
+                    (format
+                        "struct ~a *~a = (struct ~a *)~a->object.foreign;~%"
+                        struct
+                        tmp
+                        struct
+                        param)
+                    out)
+                (display tmp out)
                 (display "->" out) ;; these actually need to be one level deeper...
-                (display (cmung (car (cdaddr il))) out))
+                (display member out))
         (eq? (car il) 'c-struct-set!) ;; set a structure member
-            (begin
+            (let ((param (cmung (cadr il)))
+                  (memb (cmung (caddr il)))
+                  (val (cadddr il))
+                  (struct (car (cddddr il))))
                 (int->spaces lvl out)
-                (display (cmung (cadr il)) out)
+                (display param out)
                 (display "->" out)
-                (display (cmung (car (cdaddr il))) out)
+                (display memb out)
                 (display " = " out)
-                (display (cmung (cadddr il)) out)
+                (il->c val 0 out)
                 (display ";\n" out))
         (eq? (car il) 'c-make-struct) ;; make a structure object
             (let ((tmp-sym (gensym 'strcttmp)))
