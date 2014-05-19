@@ -470,8 +470,7 @@
             (set-arity! getter-name params)
             (cons
                 (list 'c-dec getter-name params
-                    (list 'c-return 
-                        (list 'c-struct-ref 'x (car members) struct)))
+                    (list 'c-struct-ref 'x (car members) struct))
                 (make-struct-getter struct (cdr members))))))
 
 (define (compile-struct code rewrites lparams)
@@ -1945,29 +1944,72 @@
                         struct
                         param)
                     out)
+                (int->spaces lvl out)
+                (display "return " out)
                 (display tmp out)
                 (display "->" out) ;; these actually need to be one level deeper...
-                (display member out))
+                (display member out)
+                (display ";\n" out))
         (eq? (car il) 'c-struct-set!) ;; set a structure member
             (let ((param (cmung (cadr il)))
                   (memb (cmung (caddr il)))
                   (val (cadddr il))
-                  (struct (car (cddddr il))))
+                  (struct (car (cddddr il)))
+                  (tmp (gensym 'tmp)))
                 (int->spaces lvl out)
-                (display param out)
+                (display
+                    (format
+                        "struct ~a *~a = (struct ~a *)~a->object.foreign;~%"
+                        struct
+                        tmp
+                        struct
+                        param)
+                    out)
+                (int->spaces lvl out)
+                (display tmp out)
                 (display "->" out)
                 (display memb out)
                 (display " = " out)
                 (il->c val 0 out)
                 (display ";\n" out))
         (eq? (car il) 'c-make-struct) ;; make a structure object
-            (let ((tmp-sym (gensym 'strcttmp)))
+            (let ((tmp-sym (gensym 'strcttmp))
+                  (tmp-skt (gensym 'skt))
+                  (name (cmung (cadr il)))
+                  (members (caddr il)))
                 (int->spaces lvl out)
                 (display "SExp *" out)
                 (display tmp-sym out)
                 (display " = " out)
                 (display "(SExp *)hmalloc(sizeof(SExp));\n" out)
                 ;; need to flesh out the middle steps here more
+                (int->spaces lvl out)
+                (display
+                    (format
+                        "struct ~a *~a = (struct ~a *)hmalloc(sizeof(struct ~a));~%"
+                        name
+                        tmp-skt
+                        name
+                        name)
+                    out)
+                (foreach
+                    (fn (x)
+                        (int->spaces lvl out)
+                        (display
+                            (format
+                                "~a->~a = ~a;~%"
+                                tmp-skt
+                                x
+                                x)
+                            out))
+                    members)
+                (int->spaces lvl out)
+                (display 
+                    (format
+                        "~a->object.foreign = (void *)~a;~%"
+                        tmp-sym 
+                        tmp-skt)
+                    out)
                 (int->spaces lvl out)
                 (display "return " out)
                 (display tmp-sym out)
