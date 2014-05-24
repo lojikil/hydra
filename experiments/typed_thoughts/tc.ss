@@ -18,6 +18,14 @@
 ;; - support Union types (aka "assq all lists to check list intersecion :D)
 ;; - make every/any and support a mini eval system...
 
+;; make this less prolog-like, and more an interpreter. Yes we need to be able
+;; to unify things, but more the point is that:
+;; - ANY/EVERY should work
+;; - We needn't have types on both the left & the right
+;; - We should be able to support types like (char Dict) or (Int Vector)
+;; - Some basic-level of constraint should be able to be generated
+
+
 (define (var? x)
     (and (pair? x) (eq? (car x) '?)))
 
