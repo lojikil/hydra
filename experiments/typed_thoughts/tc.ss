@@ -156,6 +156,14 @@
             (eq? obj '()))))
 
 (define (run* o0 o1 env)
+    " run* is a simple, Kanren-like term language evaluator for typing PreDigamma programs. It can be used in 
+      Digamma proper as well. Originally it was a simple Prolog-style unifier that also accepted types, need
+      to add more granular types, as well as the ability to type things with:
+
+      - Constraints
+      - Products, Sums (Every & Any, respectively)
+      - Variable types (parametric types)
+      "
     (cond
         (var? o0) 
             (cond
