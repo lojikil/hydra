@@ -25,6 +25,7 @@
 ;; - We should be able to support types like (char Dict) or (Int Vector)
 ;; - Some basic-level of constraint should be able to be generated
 
+(define (show x) (display "x: ") (write x) (newline) x)
 
 (define (var? x)
     (and (pair? x) (eq? (car x) '?)))
@@ -32,12 +33,24 @@
 (define (every? proc lst)
     (cond
         (null? lst) #t
-        (proc (car lst)) (every proc (cdr lst))
+        (proc (car lst)) (every? proc (cdr lst))
         else #f))
 
 (define (user-type? x)
     "looks up if the atom specified by X is a user type."
     #f)
+
+(define (compound-type? x)
+    "is the type passed in a compound-able primitive type? Read, is the
+     type a Dict, Vector, Tree or Pair, and does the other types check?
+     "
+    (and
+        (pair? x)
+        (or
+            (eq? (car x) 'Dict)
+            (eq? (car x) 'Vector)
+            (eq? (car x) 'Pair))
+        (type? (cdr x))))
 
 (define (type? x)
     (or
@@ -45,6 +58,7 @@
         (eq? x 'Union)
         (eq? x 'Product)
         (eq? x 'Integer)
+        (eq? x 'Int)
         (eq? x 'Real)
         (eq? x 'Rational)
         (eq? x 'Complex)
@@ -60,10 +74,11 @@
         (eq? x 'Bool)
         (eq? x 'Goal)
         (eq? x 'Nil)
-        (user-type? x) ;; structs & newtypes...
-        (and
-            (pair? x)
-            (every? type? x))))
+        (compound-type? x)))
+        ;;(user-type? x) ;; structs & newtypes...
+        ;;(and
+        ;;    (pair? x)
+        ;;    (every? type? x))))
 
 (define (type-checks-out? obj type)
     "A course grained check to see if the type of `obj` matches what is
@@ -101,7 +116,6 @@
     # ('a','b')
       ;;
       - : char * char = ('a', 'b')"
-
     (or
         (eq? type 'Any)
         (eq? type 'Union) ;; these aren't really just passes; need to fill these in...
@@ -206,7 +220,7 @@
                             (type? v1) (eq? v1 o0)
                             else #f))
                 else
-                    #f)
+                    (type-checks-out? o1 o0))
 ;;        (type? o1)
 ;;            (cond
 ;;                (type? o0)
@@ -222,9 +236,13 @@
 ;;                            else #f))
 ;;                else
 ;;                    (type-checks-out o0 o1))
+        (and
+            (eq? o0 '())
+            (eq? o1 '()))
+            #s
         (eq? o0 o1) '()
         (and (pair? o0) (pair? o1))
-            (with u-result (run* (car o0) (car o1) env)
+            (with u-result (run* (show (car o0)) (show (car o1)) env)
                 (cond
                     (pair? u-result)
                         (with n-result (run* (cdr o0) (cdr o1) (cons u-result env))
@@ -232,6 +250,6 @@
                                 #u
                                 (append (list u-result) n-result)))
                     (not (eq? u-result #u))
-                        (run* (cdr o0) (cdr o1) env)
+                        (show (run* (cdr o0) (cdr o1) env))
                     else #u))
-        else #u))
+        else  #u))
