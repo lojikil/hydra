@@ -29,8 +29,21 @@
 (define (var? x)
     (and (pair? x) (eq? (car x) '?)))
 
+(define (every? proc lst)
+    (cond
+        (null? lst) #t
+        (proc (car lst)) (every proc (cdr lst))
+        else #f))
+
+(define (user-type? x)
+    "looks up if the atom specified by X is a user type."
+    #f)
+
 (define (type? x)
     (or
+        (eq? x 'Any)
+        (eq? x 'Union)
+        (eq? x 'Product)
         (eq? x 'Integer)
         (eq? x 'Real)
         (eq? x 'Rational)
@@ -46,7 +59,11 @@
         (eq? x 'Void)
         (eq? x 'Bool)
         (eq? x 'Goal)
-        (eq? x 'Nil)))
+        (eq? x 'Nil)
+        (user-type? x) ;; structs & newtypes...
+        (and
+            (pair? x)
+            (every? type? x))))
 
 (define (type-checks-out? obj type)
     "A course grained check to see if the type of `obj` matches what is
@@ -57,8 +74,38 @@
 
     just yet. All of those are on the to-do list for this. *however*, as
     a first pass, this isn't bad; basically, this is a PoC to make sure
-    I'm not totally off my rocker."
+    I'm not totally off my rocker.
+
+    Also, this needs to work with things like:
+
+    - (Int Vector)
+    - ((? a) Dict)
+    - user structs with types (how does one encode that? (Product ?a ?a) ?
+
+    and the like. Lots of work to be done here...
+
+    Ocaml notes records thusly:
+    # type ratio = {num: int; denom: int};;
+    type ratio = { num : int; denom : int; }
+
+    # let add_ratio r1 r2 =
+        {num = r1.num * r2.denom + r2.num * r1.denom;
+             denom = r1.denom * r2.denom};;
+             val add_ratio : ratio -> ratio -> ratio = <fun>
+
+    # add_ratio {num=1; denom=3} {num=2; denom=5};;
+             - : ratio = {num = 11; denom = 15}
+
+    Which is interesting... of course, tuples are denoted differently:
+
+    # ('a','b')
+      ;;
+      - : char * char = ('a', 'b')"
+
     (or
+        (eq? type 'Any)
+        (eq? type 'Union) ;; these aren't really just passes; need to fill these in...
+        (eq? type 'Product)
         (and 
             (eq? type 'Integer)
             (integer? obj))
@@ -108,7 +155,7 @@
             (eq? type 'Nil)
             (eq? obj '()))))
 
-(define (=:= o0 o1 env)
+(define (run* o0 o1 env)
     (cond
         (var? o0) 
             (cond
@@ -118,24 +165,24 @@
                         (cond
                             (eq? v0 #f) (list (cadr o0) o1)
                             (eq? v1 #f) (list (cadr o1) o0)
-                            else (=:= (cadr v0) (cadr v1) env)))
-                (type? o1)
-                    (let ((v0 (assq (cadr o0) env)))
-                        (cond
-                            (eq? v0 #f) (list (cadr o1) o0)
-                            (var? v0) #f
-                            (pair? v0) (or (and (eq? o1 (cadr v0)) #s) #u)
-                            else (type-checks-out? v0 o1))) ;; this here should be the actual type check...
+                            else (run* (cadr v0) (cadr v1) env)))
+;;                (type? o1)
+;;                    (let ((v0 (assq (cadr o0) env)))
+;;                        (cond
+;;                            (eq? v0 #f) (list (cadr o1) o0)
+;;                            (var? v0) #f
+;;                            (pair? v0) (or (and (eq? o1 (cadr v0)) #s) #u)
+;;                            else (type-checks-out? v0 o1))) ;; this here should be the actual type check...
                 else
                     (let ((v0 (assq (cadr o0) env)))
                         (if (eq? v0 #f)
                             (list (cadr o0) o1)
-                            (=:= v0 o1 env))))
+                            (run* v0 o1 env))))
         (var? o1) ;; need to rework this; should check if o0 is a type first...
             (let ((v1 (assq (cadr o1) env)))
                 (if (eq? v1 #f)
                     (list (cadr o1) o0)
-                    (=:= o0 v1 env)))
+                    (run* o0 v1 env)))
         (type? o0)
             (cond
                 (type? o1)
@@ -152,31 +199,31 @@
                             else #f))
                 else
                     #f)
-        (type? o1)
-            (cond
-                (type? o0)
-                    (if (eq? o0 o1)
-                        #t
-                        #f)
-                (var? o0)
-                    (let ((v0 (assq (cadr o0) env)))
-                        (cond
-                            (eq? v0 #f) (list (cadr o1) o0)
-                            (var? v0) #f
-                            (type? v0) (eq? o1 v1)
-                            else #f))
-                else
-                    (type-checks-out o0 o1))
+;;        (type? o1)
+;;            (cond
+;;                (type? o0)
+;;                    (if (eq? o0 o1)
+;;                        #t
+;;                        #f)
+;;                (var? o0)
+;;                    (let ((v0 (assq (cadr o0) env)))
+;;                        (cond
+;;                            (eq? v0 #f) (list (cadr o1) o0)
+;;                            (var? v0) #f
+;;                            (type? v0) (eq? o1 v1)
+;;                            else #f))
+;;                else
+;;                    (type-checks-out o0 o1))
         (eq? o0 o1) '()
         (and (pair? o0) (pair? o1))
-            (with u-result (=:= (car o0) (car o1) env)
+            (with u-result (run* (car o0) (car o1) env)
                 (cond
                     (pair? u-result)
-                        (with n-result (=:= (cdr o0) (cdr o1) (cons u-result env))
+                        (with n-result (run* (cdr o0) (cdr o1) (cons u-result env))
                             (if (eq? n-result #u)
                                 #u
                                 (append (list u-result) n-result)))
                     (not (eq? u-result #u))
-                        (=:= (cdr o0) (cdr o1) env)
+                        (run* (cdr o0) (cdr o1) env)
                     else #u))
         else #u))
