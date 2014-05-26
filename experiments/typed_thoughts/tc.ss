@@ -200,11 +200,11 @@
                         (if (eq? v0 #f)
                             (list (cadr o0) o1)
                             (run* v0 o1 env))))
-        (var? o1) ;; need to rework this; should check if o0 is a type first...
-            (let ((v1 (assq (cadr o1) env)))
-                (if (eq? v1 #f)
-                    (list (cadr o1) o0)
-                    (run* o0 v1 env)))
+;;        (var? o1) ;; need to rework this; should check if o0 is a type first...
+;;            (let ((v1 (assq (cadr o1) env)))
+;;                (if (eq? v1 #f)
+;;                    (list (cadr o1) o0)
+;;                    (run* o0 v1 env)))
         (type? o0)
             (cond
                 (type? o1)
@@ -213,12 +213,11 @@
                         #u)
                 (var? o1)
                     (let ((v1 (assq (cadr o1) env)))
-                        (display "down in here...\n")
                         (cond
                             (eq? v1 #f) (list (cadr o1) o0)
                             (var? v1) #f
                             (type? v1) (eq? v1 o0)
-                            else #f))
+                            else (type-checks-out? (cadr v1) o0)))
                 else
                     (type-checks-out? o1 o0))
 ;;        (type? o1)

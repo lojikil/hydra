@@ -9,7 +9,7 @@
 (define (tc-test o0 o1 env)
     (display 
         (format
-            "test(~a): "
+            "(test ~a): "
             *test*))
     (write o0)
     (display " ")
@@ -24,4 +24,6 @@
 (tc-test 'Any "foo" '())
 (tc-test 'Integer 10 '())
 (tc-test 'Integer 3/4 '())
+(tc-test 'String 10 '())
+(tc-test 'Integer '(? x) '((x 10)))
 (tc-test '(Integer String) '(10 "this is a test") '())
