@@ -50,7 +50,7 @@
             (eq? (car x) 'Dict)
             (eq? (car x) 'Vector)
             (eq? (car x) 'Pair))
-        (type? (cdr x))))
+        (type? (cdr x)))) ;; this is wrong, kinda: (Dict Integer) should be cadr, but (Pair Pair Integer) is ok...
 
 (define (type? x)
     (or
