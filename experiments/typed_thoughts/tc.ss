@@ -50,7 +50,11 @@
             (eq? (car x) 'Dict)
             (eq? (car x) 'Vector)
             (eq? (car x) 'Pair))
-        (type? (cdr x)))) ;; this is wrong, kinda: (Dict Integer) should be cadr, but (Pair Pair Integer) is ok...
+        (or
+            (and
+                (> (length x) 1)
+                (compound-type? (cdr x)))
+            (type? (cadr x))))) ;; this is wrong, kinda: (Dict Integer) should be cadr, but (Pair Pair Integer) is ok...
 
 (define (type? x)
     (or
@@ -116,6 +120,9 @@
     # ('a','b')
       ;;
       - : char * char = ('a', 'b')"
+    (if (compound-type? type)
+        (show type)
+        #v)
     (or
         (eq? type 'Any)
         (eq? type 'Union) ;; these aren't really just passes; need to fill these in...

@@ -28,3 +28,4 @@
 (tc-test 'Integer '(? x) '((x 10)))
 (tc-test 'Nil '() '())
 (tc-test '(Integer String) '(10 "this is a test") '())
+(tc-test '(Pair Integer) '(10 11 12 13) '())
