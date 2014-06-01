@@ -48,21 +48,28 @@
     "is the type passed in a compound-able primitive type? Read, is the
      type a Dict, Vector, Tree or Pair, and does the other types check?
      "
+    (display "in compound-type?; x == ")
+    (write x)
+    (newline)
     (and
         (pair? x)
-        (or
+        (show (or
             (eq? (car x) 'Dict)
             (eq? (car x) 'Vector)
             (eq? (car x) 'Pair)
             (eq? (car x) 'Produt)
-            (eq? (car x) 'Sum))
+            (eq? (car x) 'Sum)
+            #f))
         (or
-            (and
+            (show (and
                 (> (length x) 1)
-                (compound-type? (cdr x)))
+                (compound-type? (cdr x))))
             (type? (cadr x))))) 
 
 (define (type? x)
+    "verifies that the object is indeed a type. Types are either simple
+     (Pair, Any, Number, Integer, String, &c.) or Compound (Pair Pair Integer, 
+     Dict String, &c.)."
     (or
         (eq? x 'Any)
         (eq? x 'Union)
