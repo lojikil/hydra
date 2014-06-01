@@ -40,6 +40,10 @@
     "looks up if the atom specified by X is a user type."
     #f)
 
+;; TODO: one of these types needs to accept that variables are
+;; part of types as well. Also, type? & compound-type? need to 
+;; have some mechanism to lookup return types from procedures
+
 (define (compound-type? x)
     "is the type passed in a compound-able primitive type? Read, is the
      type a Dict, Vector, Tree or Pair, and does the other types check?
@@ -49,12 +53,14 @@
         (or
             (eq? (car x) 'Dict)
             (eq? (car x) 'Vector)
-            (eq? (car x) 'Pair))
+            (eq? (car x) 'Pair)
+            (eq? (car x) 'Produt)
+            (eq? (car x) 'Sum))
         (or
             (and
                 (> (length x) 1)
                 (compound-type? (cdr x)))
-            (type? (cadr x))))) ;; this is wrong, kinda: (Dict Integer) should be cadr, but (Pair Pair Integer) is ok...
+            (type? (cadr x))))) 
 
 (define (type? x)
     (or
@@ -83,6 +89,21 @@
         ;;(and
         ;;    (pair? x)
         ;;    (every? type? x))))
+
+(define (compound-checks-out? obj type)
+    (cond
+        (eq? (car obj) 'Pair)
+            #f
+        (eq? (car obj) 'Vector)
+            #f
+        (eq? (car obj) 'Dict)
+            #f
+        (eq? (car obj) 'Product)
+            #f
+        (eq? (car obj) 'Sum)
+            #f
+        else
+            #f))
 
 (define (type-checks-out? obj type)
     "A course grained check to see if the type of `obj` matches what is
@@ -120,13 +141,11 @@
     # ('a','b')
       ;;
       - : char * char = ('a', 'b')"
-    (if (compound-type? type)
-        (show type)
-        #v)
     (or
         (eq? type 'Any)
-        (eq? type 'Union) ;; these aren't really just passes; need to fill these in...
-        (eq? type 'Product)
+        (and
+            (compound-type? type)
+            (compound-checks-out? type obj))
         (and 
             (eq? type 'Integer)
             (integer? obj))
