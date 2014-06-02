@@ -25,7 +25,13 @@
 ;; - We should be able to support types like (char Dict) or (Int Vector)
 ;; - Some basic-level of constraint should be able to be generated
 
-(define (show x) (display "x: ") (write x) (newline) x)
+(define (show x (msg '())) 
+    (if (null? msg)
+        (display "x: ")
+        (display msg)) 
+    (write x)
+    (newline)
+    x)
 
 (define (var? x)
     (and (pair? x) (eq? (car x) '?)))
@@ -59,17 +65,18 @@
             (eq? (car x) 'Pair)
             (eq? (car x) 'Produt)
             (eq? (car x) 'Sum)
-            #f))
-        (or
+            #f) "big list: ")
+        (or ;; ohhhhh; this is kinda wrong... the compound type fails, then (Pair f) => Pair, which is #t. Ugh
             (show (and
                 (> (length x) 1)
-                (compound-type? (cdr x))))
-            (type? (cadr x))))) 
+                (compound-type? (cdr x))) "and return: ")
+            (show (type? (cadr x)) "type? return: "))))
 
 (define (type? x)
     "verifies that the object is indeed a type. Types are either simple
      (Pair, Any, Number, Integer, String, &c.) or Compound (Pair Pair Integer, 
      Dict String, &c.)."
+    (show x "(type? x) => ")
     (or
         (eq? x 'Any)
         (eq? x 'Union)
@@ -91,7 +98,8 @@
         (eq? x 'Bool)
         (eq? x 'Goal)
         (eq? x 'Nil)
-        (compound-type? x)))
+        (compound-type? x)
+        #f))
         ;;(user-type? x) ;; structs & newtypes...
         ;;(and
         ;;    (pair? x)
