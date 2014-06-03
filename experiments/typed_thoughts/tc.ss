@@ -54,29 +54,26 @@
     "is the type passed in a compound-able primitive type? Read, is the
      type a Dict, Vector, Tree or Pair, and does the other types check?
      "
-    (display "in compound-type?; x == ")
-    (write x)
-    (newline)
     (and
         (pair? x)
-        (show (or
+        (or
             (eq? (car x) 'Dict)
             (eq? (car x) 'Vector)
             (eq? (car x) 'Pair)
             (eq? (car x) 'Produt)
-            (eq? (car x) 'Sum)
-            #f) "big list: ")
+            (eq? (car x) 'Sum))
         (or ;; ohhhhh; this is kinda wrong... the compound type fails, then (Pair f) => Pair, which is #t. Ugh
-            (show (and
-                (> (length x) 1)
-                (compound-type? (cdr x))) "and return: ")
-            (show (type? (cadr x)) "type? return: "))))
+            (and
+                (> (length x) 2)
+                (compound-type? (cdr x))) 
+            (and
+                (= (length x) 2) 
+                (type? (cadr x))))))
 
 (define (type? x)
     "verifies that the object is indeed a type. Types are either simple
      (Pair, Any, Number, Integer, String, &c.) or Compound (Pair Pair Integer, 
      Dict String, &c.)."
-    (show x "(type? x) => ")
     (or
         (eq? x 'Any)
         (eq? x 'Union)
@@ -282,7 +279,7 @@
             #s
         (eq? o0 o1) '()
         (and (pair? o0) (pair? o1))
-            (with u-result (run* (show (car o0)) (show (car o1)) env)
+            (with u-result (run* (car o0) (car o1) env)
                 (cond
                     (pair? u-result)
                         (with n-result (run* (cdr o0) (cdr o1) (cons u-result env))
@@ -290,6 +287,6 @@
                                 #u
                                 (append (list u-result) n-result)))
                     (not (eq? u-result #u))
-                        (show (run* (cdr o0) (cdr o1) env))
+                        (run* (cdr o0) (cdr o1) env)
                     else #u))
         else  #u))
