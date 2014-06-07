@@ -27,5 +27,15 @@
 (tc-test 'String 10 '())
 (tc-test 'Integer '(? x) '((x 10)))
 (tc-test 'Nil '() '())
+;; there *MUST* be a better dichotomy between these two types
+;; one is saying it's a Pair containing an Integer and a String
+;; The second is saying both a Pair and an Integer, or a
+;; compound type...
+;; Maybe run can delineate between the two?
+;; (run* (Pair Integer) some-val env) 
+;; vs
+;; (run* ((Pair Integer)) some-val env)
+;; the first being a any Pair and an integer, the second
+;; being integer Pair...
 (tc-test '(Integer String) '(10 "this is a test") '())
 (tc-test '(Pair Integer) '(10 11 12 13) '())

@@ -42,6 +42,9 @@
         (proc (car lst)) (every? proc (cdr lst))
         else #f))
 
+(define (every-type? types lst)
+    #f)
+
 (define (user-type? x)
     "looks up if the atom specified by X is a user type."
     #f)
@@ -62,7 +65,7 @@
             (eq? (car x) 'Pair)
             (eq? (car x) 'Produt)
             (eq? (car x) 'Sum))
-        (or ;; ohhhhh; this is kinda wrong... the compound type fails, then (Pair f) => Pair, which is #t. Ugh
+        (or ;; DONE: ohhhhh; this is kinda wrong... the compound type fails, then (Pair f) => Pair, which is #t. Ugh
             (and
                 (> (length x) 2)
                 (compound-type? (cdr x))) 
@@ -105,12 +108,18 @@
 (define (compound-checks-out? obj type)
     (cond
         (eq? (car obj) 'Pair)
-            #f
+            (and
+                (type? obj 'PAIR)
+                (every-type? (cdr type) obj)) 
         (eq? (car obj) 'Vector)
-            #f
+            (and
+                (type? obj 'VECTOR)
+                (every-type? (cdr type) obj))
         (eq? (car obj) 'Dict)
-            #f
-        (eq? (car obj) 'Product)
+            (and
+                (type obj 'DICT)
+                (every-type? (cdr type) obj))
+        (eq? (car obj) 'Product) ;; this is just an every check, no?
             #f
         (eq? (car obj) 'Sum)
             #f
