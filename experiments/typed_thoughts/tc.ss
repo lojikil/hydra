@@ -73,6 +73,9 @@
                 (= (length x) 2) 
                 (type? (cadr x))))))
 
+(define (type-var? x) ;; just (var? x) ?
+    #f)
+
 (define (type? x)
     "verifies that the object is indeed a type. Types are either simple
      (Pair, Any, Number, Integer, String, &c.) or Compound (Pair Pair Integer, 

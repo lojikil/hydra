@@ -38,4 +38,5 @@
 ;; the first being a any Pair and an integer, the second
 ;; being integer Pair...
 (tc-test '(Integer String) '(10 "this is a test") '())
-(tc-test '(Pair Integer) '(10 11 12 13) '())
+(tc-test '((Pair Integer)) '((10 11 12 13)) '())
+(tc-test '(Pair Integer) '((10 11 12 13) 14)
