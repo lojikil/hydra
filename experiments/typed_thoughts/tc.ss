@@ -219,6 +219,16 @@
             (eq? type 'Nil)
             (eq? obj '()))))
 
+(define (run$ o0 o1 env)
+    (cond
+        (and
+            (null? o0)
+            (null? o1))
+            #s
+        (null? o0) #u
+        (null? o1) #u
+        else #f))
+
 (define (run* o0 o1 env)
     " run* is a simple, Kanren-like term language evaluator for typing PreDigamma programs. It can be used in 
       Digamma proper as well. Originally it was a simple Prolog-style unifier that also accepted types, need
@@ -255,6 +265,8 @@
 ;;                (if (eq? v1 #f)
 ;;                    (list (cadr o1) o0)
 ;;                    (run* o0 v1 env)))
+        (compound-type? o0)
+            (show (compound-checks-out? o1 o0) "compound-type? ")
         (type? o0)
             (cond
                 (type? o1)
@@ -269,7 +281,7 @@
                             (type? v1) (eq? v1 o0)
                             else (type-checks-out? (cadr v1) o0)))
                 else
-                    (type-checks-out? o1 o0))
+                    (show (type-checks-out? o1 o0) "type-checks-out? "))
 ;;        (type? o1)
 ;;            (cond
 ;;                (type? o0)
