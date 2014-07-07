@@ -225,8 +225,23 @@
             (null? o0)
             (null? o1))
             #s
-        (null? o0) #u
-        (null? o1) #u
+        (null? o0) (list #u)
+        (null? o1) (list #u)
+        (or
+            (not (pair? o0))
+            (not (pair? o1)))
+            #u
+        (var? (car o0))
+            (cond
+                (var? (car o1))
+                    (let ((v0 (assq (cadar o0) env))
+                          (v1 (assq (cadar o1) env)))
+                        (cond
+                            (eq? v0 #f) (run$ (cdr o0) (cdr o1) (cons (list (cadar o0) o1) env))
+                            (eq? v1 #f) (run$ (cdr o0) (cdr o1) (cons (list (cadar o1) o0) env))
+                            else
+                                (if (eq? (run$ (list v0) (list v1) env) #s)
+                                    #f))))
         else #f))
 
 (define (run* o0 o1 env)
