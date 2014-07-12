@@ -109,22 +109,25 @@
         ;;    (every? type? x))))
 
 (define (compound-checks-out? obj type)
+    (display "Type: ")
+    (write type)
+    (newline)
     (cond
-        (eq? (car obj) 'Pair)
+        (eq? (car type) 'Pair)
             (and
-                (type? obj 'PAIR)
-                (every-type? (cdr type) obj)) 
-        (eq? (car obj) 'Vector)
+                (eq? (type obj) "Pair")
+                (show (every-type? (cdr type) obj)))
+        (eq? (car type) 'Vector)
             (and
-                (type? obj 'VECTOR)
+                (eq? (type obj) "Vector")
                 (every-type? (cdr type) obj))
-        (eq? (car obj) 'Dict)
+        (eq? (car type) 'Dict)
             (and
-                (type obj 'DICT)
+                (eq? (type obj) "Dict")
                 (every-type? (cdr type) obj))
-        (eq? (car obj) 'Product) ;; this is just an every check, no?
+        (eq? (car type) 'Product) ;; this is just an every check, no?
             #f
-        (eq? (car obj) 'Sum)
+        (eq? (car type) 'Sum)
             #f
         else
             #f))
@@ -240,9 +243,27 @@
                             (eq? v0 #f) (run$ (cdr o0) (cdr o1) (cons (list (cadar o0) o1) env))
                             (eq? v1 #f) (run$ (cdr o0) (cdr o1) (cons (list (cadar o1) o0) env))
                             else
-                                (if (eq? (run$ (list v0) (list v1) env) #s)
-                                    #f))))
-        else #f))
+                                (let ((res (run$ (list v0) (list v1) env)))
+                                    (if (eq? (car res) #s)
+                                        (run$ (cdr o0) (cdr o1) (append (cadr res) env))
+                                        (list #u)))))
+                else
+                    (let ((v0 (assq (cadar o0) env)))
+                        (if (eq? v0 #f)
+                            (run$ (cdr o0) (cdr o1) (cons (list (cadar o0) (car o1)) env))
+                            (let ((res (run$ v0 (car o1) env)))
+                                (if (car res)
+                                    (run$ (cdr o0) (cdr o1) (append (cadr res) env))
+                                    (list #u))))))
+        (compound-type? (car o0))
+            (if (compound-checks-out? (car o1) (car o0))
+                (run$ (cdr o0) (cdr o1) env)
+                (list #u))
+        (type? (car o0))
+            (if (type-checks-out? (car o1) (car o0))
+                (run$ (cdr o0) (cdr o1) env)
+                (list #u))
+        else (list #u)))
 
 (define (run* o0 o1 env)
     " run* is a simple, Kanren-like term language evaluator for typing PreDigamma programs. It can be used in 
