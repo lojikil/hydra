@@ -114,3 +114,26 @@ Since this is my internal notes on what I'm working on with Digamma, I thought I
 - define-syntax
 - fix giant HACK that is SRFI-55 support (require) + Libraries currently
 - better typing (ala Stalin) support
+
+* Vesta Sandbox
+
+Another sandbox escape...:
+
+`; (run$ '((Pair Any)) '((10 20)) '())
+Type: (Pair Any)
+
+
+Src == (Pair)
+(Pair Any)
+Symbol: Pair
+Original error expression:
+-----
+(Pair Any)
+begin stack trace
+-----
+Original error expression:
+-----
+(type obj)
+begin stack trace
+-----
+source: (eq? (type obj) "Pair")`

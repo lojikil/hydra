@@ -108,26 +108,26 @@
         ;;    (pair? x)
         ;;    (every? type? x))))
 
-(define (compound-checks-out? obj type)
+(define (compound-checks-out? obj obj-type)
     (display "Type: ")
-    (write type)
+    (write obj-type)
     (newline)
     (cond
-        (eq? (car type) 'Pair)
+        (eq? (car obj-type) 'Pair)
             (and
                 (eq? (type obj) "Pair")
-                (show (every-type? (cdr type) obj)))
-        (eq? (car type) 'Vector)
+                (show (every-type? (cdr obj-type) obj)))
+        (eq? (car obj-type) 'Vector)
             (and
                 (eq? (type obj) "Vector")
-                (every-type? (cdr type) obj))
-        (eq? (car type) 'Dict)
+                (every-type? (cdr obj-type) obj))
+        (eq? (car obj-type) 'Dict)
             (and
                 (eq? (type obj) "Dict")
-                (every-type? (cdr type) obj))
-        (eq? (car type) 'Product) ;; this is just an every check, no?
+                (every-type? (cdr obj-type) obj))
+        (eq? (car obj-type) 'Product) ;; this is just an every check, no?
             #f
-        (eq? (car type) 'Sum)
+        (eq? (car obj-type) 'Sum)
             #f
         else
             #f))
@@ -171,7 +171,7 @@
     (or
         (eq? type 'Any)
         (and
-            (compound-type? type)
+            (show (compound-type? type))
             (compound-checks-out? type obj))
         (and 
             (eq? type 'Integer)
@@ -227,7 +227,7 @@
         (and
             (null? o0)
             (null? o1))
-            #s
+            (list #s env)
         (null? o0) (list #u)
         (null? o1) (list #u)
         (or
