@@ -42,8 +42,15 @@
         (proc (car lst)) (every? proc (cdr lst))
         else #f))
 
-(define (every-type? types lst)
-    #f)
+(define (every-type? types container)
+    (cond
+        (empty? container) #s
+        (type-checks-out? types (first container))
+            (every-type? types (rest container))
+        (compound-checks-out? types (first container))
+            (every-type? types (rest container))
+        else
+            #u))
 
 (define (user-type? x)
     "looks up if the atom specified by X is a user type."
@@ -114,9 +121,11 @@
     (newline)
     (cond
         (eq? (car obj-type) 'Pair)
-            (and
-                (eq? (type obj) "Pair")
-                (show (every-type? (cdr obj-type) obj)))
+            (if (eq? (type obj) "Pair")
+                (if (compound-type? (cdr obj-type))
+                    (show (every-type? (cdr obj-type) obj))
+                    (every-type? (cadr obj-type) obj))
+                #u)
         (eq? (car obj-type) 'Vector)
             (and
                 (eq? (type obj) "Vector")

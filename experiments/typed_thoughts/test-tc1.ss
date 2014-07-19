@@ -19,14 +19,14 @@
     (newline)
     (set! *test* (+ *test* 1)))
 
-(tc-test 'Any 10 '())
-(tc-test 'Any #\c '())
-(tc-test 'Any "foo" '())
-(tc-test 'Integer 10 '())
-(tc-test 'Integer 3/4 '())
-(tc-test 'String 10 '())
-(tc-test 'Integer '(? x) '((x 10)))
-(tc-test 'Nil '() '())
+(tc-test '(Any) '(10) '())
+(tc-test '(Any) '(#\c) '())
+(tc-test '(Any) '("foo") '())
+(tc-test '(Integer) '(10) '())
+(tc-test '(Integer) '(3/4) '())
+(tc-test '(String) '(10) '())
+(tc-test '(Integer) '((? x)) '((x 10)))
+(tc-test '(Nil) '(()) '())
 ;; there *MUST* be a better dichotomy between these two types
 ;; one is saying it's a Pair containing an Integer and a String
 ;; The second is saying both a Pair and an Integer, or a
