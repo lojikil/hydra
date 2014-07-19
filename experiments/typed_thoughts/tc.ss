@@ -42,12 +42,17 @@
         (proc (car lst)) (every? proc (cdr lst))
         else #f))
 
+(define (success? x)
+    (and
+        (pair? x)
+        (eq? (car x) #s)))
+
 (define (every-type? types container)
     (cond
         (empty? container) #s
-        (type-checks-out? types (first container))
+        (success? (type-checks-out? (first container) types))
             (every-type? types (rest container))
-        (compound-checks-out? types (first container))
+        (success? (compound-checks-out? (first container) types))
             (every-type? types (rest container))
         else
             #u))
@@ -120,6 +125,7 @@
     (write obj-type)
     (newline)
     (cond
+        (not (pair? obj-type)) #u
         (eq? (car obj-type) 'Pair)
             (if (eq? (type obj) "Pair")
                 (if (compound-type? (cdr obj-type))
