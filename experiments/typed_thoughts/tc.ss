@@ -50,7 +50,7 @@
 (define (every-type? types container)
     (cond
         (empty? container) #s
-        (success? (type-checks-out? (first container) types))
+        (type-checks-out? (first container) types)
             (every-type? types (rest container))
         (success? (compound-checks-out? (first container) types))
             (every-type? types (rest container))
@@ -125,7 +125,7 @@
     (write obj-type)
     (newline)
     (cond
-        (not (pair? obj-type)) #u
+        (not (pair? obj-type)) (type-checks-out? obj obj-type)
         (eq? (car obj-type) 'Pair)
             (if (eq? (type obj) "Pair")
                 (if (compound-type? (cdr obj-type))
@@ -183,14 +183,19 @@
     # ('a','b')
       ;;
       - : char * char = ('a', 'b')"
+    (display "type: ")
+    (write type)
+    (display " and obj: ")
+    (write obj)
+    (newline)
     (or
         (eq? type 'Any)
         (and
-            (show (compound-type? type))
+            (show (compound-type? type) "compound-type? ")
             (compound-checks-out? type obj))
         (and 
-            (eq? type 'Integer)
-            (integer? obj))
+            (show (eq? type 'Integer) "integer check? ")
+            (show (integer? obj) "integer? return: "))
         (and
             (eq? type 'Real)
             (real? obj))
