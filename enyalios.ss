@@ -478,8 +478,7 @@
           (params '(x)))
         (set-arity! pred-name params)
         (list 'c-dec pred-name params
-            (list #f))))
-
+            (list 'c-struct? 'x name))))
 
 (define (compile-struct code rewrites lparams)
     "compiles a `define-struct` statement into IL.
@@ -663,6 +662,7 @@
             (eq? (car c) 'c-struct-set!)
             (eq? (car c) 'c-tailcall)
             (eq? (car c) 'c-struct-ref)
+            (eq? (car c) 'c-struct?)
             (eq? (car c) 'c-docstring)
             (eq? (car c) 'c-%prim)
             (eq? (car c) 'c-catch)
@@ -1958,6 +1958,8 @@
                 (display "->" out) ;; these actually need to be one level deeper...
                 (display member out)
                 (display ";\n" out))
+        (eq? (car il) 'c-struct?) ;; structure type?
+            #f
         (eq? (car il) 'c-struct-set!) ;; set a structure member
             (let ((param (cmung (cadr il)))
                   (memb (cmung (caddr il)))
@@ -2017,6 +2019,12 @@
                         "~a->object.foreign = (void *)~a;~%"
                         tmp-sym 
                         tmp-skt)
+                    out)
+                (int->spaces lvl out)
+                (display
+                    (format
+                        "~a->type = RECORD;~%"
+                        tmp-sym)
                     out)
                 (int->spaces lvl out)
                 (display "return " out)
