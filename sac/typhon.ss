@@ -76,6 +76,10 @@
 ;; mini-prelude
 ;; should be removed once Enyalios supports load better...
 
+(define-struct primitive (value))
+(define-struct primitive-syntax (name))
+(define-struct procedure (name arity))
+
 (define-syntax caar () ((caar x) (car (car x))))
 (define-syntax cadr () ((cadr x) (car (cdr x))))
 (define-syntax cdar () ((cdar x) (cdr (car x))))
@@ -211,10 +215,10 @@
 (define (typhon@umacro? x)
     #f)
 
-(define (primitive-value obj)
-    (if (dict? obj)
-        (nth obj 'value '())
-        obj))
+;(define (primitive-value obj)
+;    (if (dict? obj)
+;        (nth obj 'value '())
+;        obj))
 
 (define (loop-set-env! env params vals locals lidx)
     (if (null? params)
@@ -1790,7 +1794,7 @@
                                             env)) ;; TODO: don't use env, use the environment stored in the syntax object; NEW: nope; expand items in place?
                                 (typhon@umacro? v)
                                     #f
-                                (typhon@procedure? v) ;; need to add some method of checking proc arity here.
+                                (procedure? v) ;; need to add some method of checking proc arity here.
                                     (let* ((rlen (length rst)))
                                         (append
                                             (reverse-append (typhon@map rst params env))
@@ -1836,9 +1840,9 @@
     (cond
         (typhon@lambda? x) (display "#<closure>")
         (typhon@continuation? x) (display "#<continuation>")
-        (typhon@primitive? x) (display (format "#<primitive-procedure ~a>" (primitive-value x)))
-        (typhon@procedure? x) (display (format "#<procedure ~a>" (primitive-value x)))
-        (typhon@syntax? x) (display (format "#<syntax ~a>" (primitive-value x)))
+        (primitive? x) (display (format "#<primitive-procedure ~a>" (primitive-value x)))
+        (procedure? x) (display (format "#<procedure ~a>" (primitive-value x)))
+        (primitive-syntax? x) (display (format "#<syntax ~a>" (primitive-value x)))
         (typhon@error? x) (display (format "ERROR: ~a" (cdr x)))
         (typhon@usyntax? x) (display "#<syntax rules>")
         else (write x)))
