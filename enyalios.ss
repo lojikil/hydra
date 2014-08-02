@@ -473,6 +473,14 @@
                     (list 'c-struct-ref 'x (car members) struct))
                 (make-struct-getter struct (cdr members))))))
 
+(define (make-struct-predicate name)
+    (let ((pred-name (coerce (format "~a?" name) 'atom))
+          (params '(x)))
+        (set-arity! pred-name params)
+        (list 'c-dec pred-name params
+            (list #f))))
+
+
 (define (compile-struct code rewrites lparams)
     "compiles a `define-struct` statement into IL.
      PARAMETERS:
