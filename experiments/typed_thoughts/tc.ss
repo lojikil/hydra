@@ -25,12 +25,17 @@
 ;; - We should be able to support types like (char Dict) or (Int Vector)
 ;; - Some basic-level of constraint should be able to be generated
 
+(define debug? #f)
+
 (define (show x (msg '())) 
-    (if (null? msg)
-        (display "x: ")
-        (display msg)) 
-    (write x)
-    (newline)
+    (if debug? 
+        (begin
+            (if (null? msg)
+                (display "x: ")
+                (display msg)) 
+            (write x)
+            (newline))
+        #v)
     x)
 
 (define (var? x)
@@ -121,9 +126,12 @@
         ;;    (every? type? x))))
 
 (define (compound-checks-out? obj obj-type)
-    (display "Type: ")
-    (write obj-type)
-    (newline)
+    (if debug?
+        (begin
+            (display "Type: ")
+            (write obj-type)
+            (newline))
+        #v)
     (cond
         (not (pair? obj-type)) (type-checks-out? obj obj-type)
         (eq? (car obj-type) 'Pair)
@@ -183,11 +191,14 @@
     # ('a','b')
       ;;
       - : char * char = ('a', 'b')"
-    (display "type: ")
-    (write type)
-    (display " and obj: ")
-    (write obj)
-    (newline)
+    (if debug?
+        (begin
+            (display "type: ")
+            (write type)
+            (display " and obj: ")
+            (write obj)
+            (newline))
+        #v)
     (or
         (eq? type 'Any)
         (and
