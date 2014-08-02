@@ -151,6 +151,9 @@
     :partial-key? ["fpartial_key" #f 2 2]
     :cset! ["fcset" #f 3 3]
     :dict-set! ["fdset" #f 3 3] ;; to be optimized away below
+    :vector-set! ["fvset" #f 3 3] ;; to be optimized away below
+    :vector-ref ["fvref" #f 2 2] ;; to be optimized away below
+    :type? ["typep" #f 2 2] ;; to be optimized away below
     :string ["fstring" #f 0 -1]
     :dict ["fdict" #f 0 -1]
     :empty? ["fempty" #f 1 1]
@@ -196,6 +199,7 @@
     :error ["f_error" #f 1 1]
     :cupdate ["fcupdate" #f 3 3]
     :cslice ["fcslice" #f 3 3]
+    :not ["fnot" #f 1 1] ;; to be optimized away
     ;:tconc! ["tconc"]
     ;;:make-tconc #t
     ;;:tconc-list #t
@@ -227,6 +231,8 @@
         (newline))
         #v)
     x)
+
+(define (p x) (display "x: ") (write x) (newline) x)
 
 (define (enyalios@primitive? o)
     (dict-has? *primitives* o))
@@ -318,7 +324,7 @@
                     #f
                     (list 'c-primitive-null (nth prim 0)))
             (and
-                (> (nth prim 2) 0)
+                (>= (nth prim 2) 0)
                 (>= (length args) (nth prim 2))
                 (= (nth prim 3) -1))
                 (list
@@ -436,6 +442,60 @@
                 (list
                     #f
                     (list 'c-dec name params (cadr body)))))))
+
+(define (make-struct-ctor name members)
+    (let ((ctor-name (coerce (format "make-~a" name) 'atom)))
+        (set-arity! ctor-name members)
+        (list
+            (list 'c-dec ctor-name members (list 'c-make-struct name members)))))
+
+(define (make-struct-setter struct members)
+    (if (null? members)
+        '()
+        (let ((setter-name (coerce (format "~a-set-~a!" struct (car members)) 'atom))
+              (params '(x y)))
+            (set-arity! setter-name params)
+            (cons
+                (list 'c-dec setter-name params
+                    (list 'c-begin
+                        (list 'c-struct-set! 'x  (car members) 'y struct)
+                        (list 'c-return #v)))
+                (make-struct-setter struct (cdr members))))))
+
+(define (make-struct-getter struct members)
+    (if (null? members)
+        '()
+        (let ((getter-name (coerce (format "~a-~a" struct (car members)) 'atom))
+              (params '(x)))
+            (set-arity! getter-name params)
+            (cons
+                (list 'c-dec getter-name params
+                    (list 'c-struct-ref 'x (car members) struct))
+                (make-struct-getter struct (cdr members))))))
+
+(define (compile-struct code rewrites lparams)
+    "compiles a `define-struct` statement into IL.
+     PARAMETERS:
+    code: define block
+    rewrites : rewrite dict
+    lparams : local compiler parameters.
+    "
+    ;; should decompose code here, esp. members, since if 
+    ;; the struct has inheritence, this won't work
+    (let ((ctor (make-struct-ctor (car code) (cadr code)))
+          (sets (make-struct-setter (car code) (cadr code)))
+          (gets (make-struct-getter (car code) (cadr code)))) ;; need to define a ctor too...
+        (list
+            #f
+            (list
+                'c-begin
+                (append 
+                    (list
+                        (list
+                            'c-define-struct (car code) (cadr code)))
+                    ctor
+                    sets
+                    gets)))))
 
 (define (compile-if block name tail? rewrites lparams)
     " compiles an if statement into IL.
@@ -591,9 +651,14 @@
             (eq? (car c) 'c-shadow-params)
             (eq? (car c) 'c-var)
             (eq? (car c) 'c-dec)
+            (eq? (car c) 'c-define-struct)
+            (eq? (car c) 'c-struct-set!)
             (eq? (car c) 'c-tailcall)
+            (eq? (car c) 'c-struct-ref)
             (eq? (car c) 'c-docstring)
             (eq? (car c) 'c-%prim)
+            (eq? (car c) 'c-catch)
+            (eq? (car c) 'c-throw)
             (eq? (car c) 'c-loop))
             #t
         else
@@ -850,9 +915,24 @@
                 (close fh)
                 (set! *ooblambdas* (append *ooblambdas* load-obj-code))
                 (list #f (list 'c-nop)))
+        (eq? (car c) 'define-struct) (compile-struct (cdr c) rewrites lparams)
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'case) (compile-case (cdr c) name tail? rewrites lparams)
+        (eq? (car c) 'catch)
+            (let ((body (compile-begin (cddr c) name tail? rewrites lparams)))
+                (list
+                    (car body)
+                    (list
+                        'c-catch
+                            (cadr c)
+                            (cadr body))))
+        (eq? (car c) 'throw)
+            (list #f
+                (list
+                    'c-throw
+                    (cadr c)
+                    (cadr (generate-code (caddr c) name #f rewrites lparams))))
         (eq? (car c) 'quote)
             (if (null? (cadr c))
                 '(#f (c-nil))
@@ -907,7 +987,10 @@
                     'c-tailcall
                     name
                     (map
-                        (fn (x) (cadr (generate-code x '() #f rewrites lparams)))
+                        (fn (x)
+                            (if (and (pair? x) (eq? (car x) '+) (symbol? (cadr x)) (integer? (caddr x)))
+                                (list 'c-primitive-fixed "inc" (list (cadr x) (caddr x))) ;; hmm (+ ip 1)
+                                (cadr (generate-code x '() #f rewrites lparams))))
                         (cdr c))))
         (or (eq? (car c) 'or)
             (eq? (car c) 'and))
@@ -1088,14 +1171,139 @@
     (or
         (and
             (eq? (car c) 'c-primitive-fixed)
-            (eq? (cadr c) "eqp"))
+            (or
+                (eq? (cadr c) "eqp")
+                (eq? (cadr c) "fdset")
+                (eq? (cadr c) "fvset")
+                (eq? (cadr c) "fvref")
+                (eq? (cadr c) "inc")
+                (eq? (cadr c) "typep")
+                (eq? (cadr c) "fnot")))
         (and
             (eq? (car c) 'c-primitive)
-            (eq? (cadr c) "fplus"))
-        (and
-            (eq? (car c) 'c-primitive-fixed)
-            (eq? (cadr c) "fdset"))
+            (or
+                (eq? (cadr c) "fplus")
+                (eq? (cadr c) "fnumeq")
+                (eq? (cadr c) "flt")
+                (eq? (cadr c) "flte")
+                (eq? (cadr c) "fgt")
+                (eq? (cadr c) "fgte")))
         #f))
+
+(define (optimize-logical code out status)
+    "optimize a large swath of logical operations: <, >, <=, >=, =. Handle cases similar to
+     optimize +. Probably can be used for most operators (+,/,*,%); would need a NEST-OR-JOIN
+     flag that could be used to either nest or join the operations with && or the like."
+    (let* ((args (caddr code))
+           (a0 (car args))
+           (a1 (cadr args))
+           (lp (length args))
+           (proc (cadr code)))  
+        (if status
+            (display "(" out)
+            #v)
+        (cond
+            (> lp 2)
+                ;; these could be decomposed down properly, but I'm lazy atm
+                (begin
+                    (display proc out)
+                    (display (format "(list(~n," lp) out)
+                    (comma-separated-c args out)
+                    (display ")" out))
+            (and
+                (or
+                    (symbol? a0)
+                    (pair? a0))
+                (or
+                    (symbol? a1)
+                    (pair? a1)))
+                (begin
+                    (display (format "~a_nn(" proc) out)
+                    (comma-separated-c args out)
+                    (display ")" out))
+            ;; this whole thing could be DRYed out a bit, but
+            ;; for now it's fine
+            (or
+                (symbol? a0)
+                (pair? a0))
+                (cond
+                    (integer? a1)
+                        (begin
+                            (display (format "~a_ni(" proc) out)
+                            (il->c a0 0 out)
+                            (display ", " out)
+                            (display a1 out)
+                            (display ")" out))
+                    (real? a1)
+                        (begin
+                            (display (format "~a_nr(" proc) out)
+                            (il->c a0 0 out)
+                            (display ", " out)
+                            (display a1 out)
+                            (display ")" out))
+                    (rationalq? a1)
+                        (begin
+                            (display (format "~a_nq(" proc) out)
+                            (il->c a0 0 out)
+                            (display ", " out)
+                            (display (numerator a1) out)
+                            (display ", " out)
+                            (display (denomenator a1) out)
+                            (display ")" out))
+                    (complex? a1)
+                        (begin
+                            (display (format "~a_nc(" proc) out)
+                            (il->c a0 0 out)
+                            (display ", " out)
+                            (display (real-part a1) out)
+                            (display ", " out)
+                            (display (imag-part a1) out)
+                            (display ")" out))
+                    else
+                        (error "Incorrect argument for logical procedure"))
+            (or 
+                (symbol? a1)
+                (pair? a1))
+                (cond
+                    (integer? a0)
+                        (begin
+                            (display (format "~a_in(" proc) out)
+                            (display a0 out)
+                            (display ", " out)
+                            (il->c a1 0 out)
+                            (display ")" out))
+                    (real? a0)
+                        (begin
+                            (display (format "~a_rn(" proc) out)
+                            (display a0 out)
+                            (display ", " out)
+                            (il->c a1 0 out)
+                            (display ")" out))
+                    (rational? a0)
+                        (begin
+                            (display (format "~a_qn(" proc) out)
+                            (display (numerator a0) out)
+                            (display ", " out)
+                            (display (denomenator a0) out)
+                            (display ", " out)
+                            (il->c a1 0 out)
+                            (display ")" out))
+                    (complex? a0)
+                        (begin
+                            (display (format "~a_cn(" proc) out)
+                            (display (real-part a0) out)
+                            (display ", " out)
+                            (display (imag-part a0) out)
+                            (display ", " out)
+                            (il->c a1 0 out)
+                            (display ")" out))
+                    else
+                        (error "Incorrect argument for logical procedure"))
+            else
+                (error "Unable to optimize logical procedure; incorrect arguments provided."))
+            (if status
+                (display ") == STRUE" out)
+                #v)))
 
 (define (optimize-eq code out status)
     (show status "optimize-eq stats == ")
@@ -1104,7 +1312,7 @@
            (a0 (car args))
            (a1 (cadr args)))
         (cond
-            status ;; even here, could be a0 == a1 ? STRUE : SFALSE
+            (not status) ;; even here, could be a0 == a1 ? STRUE : SFALSE
                 (begin
                     (display "eqp(" out)
                     (il->c a0 0 out)
@@ -1144,6 +1352,24 @@
                         "(~a->type == STRING && !strncmp(~a->object.str, \"~s\", ~a->length))"
                         a0 a0 a1 a0)
                     out)
+            (and ;; (eq? x 'ATOM) optimization...
+                (symbol? a0)
+                (pair? a1)
+                (eq? (car a1) 'c-quote)
+                (eq? (type (caadr a1)) "Symbol"))
+                (display
+                    (format
+                        "(~a->type == STRING && !strncasecmp(~a->object.str,\"~a\", ~a->length))"
+                        a0 a0 (caadr a1) a0)
+                    out)
+            (and
+                (pair? a1)
+                (eq? (car a1) 'c-quote)
+                (eq? (type (caadr a1)) "Symbol"))
+                (begin
+                    (display "(eqp_atom(" out)
+                    (il->c a0 0 out)
+                    (display (format ", \"~a\") == STRUE)" (caadr a1)) out))
             else
                 (begin
                     (display "(eqp(" out)
@@ -1275,6 +1501,33 @@
                                 (il->c a1 0 out)
                                 (display ")" out)))))))
 
+(define (optimize-typep code out status?)
+    (let* ((args (caddr code)) ; destructuring bind would be nice here...
+           (obj (car args))
+           (type (cadr args)))
+        (display "TYPEP(" out)
+        (il->c obj 0 out)
+        (display ", " out)
+        (display type out)
+        (display ")" out)))
+
+(define (optimize-fnot code out status?)
+    (let* ((args (caddr code)) 
+           (obj (car args)))
+        (if (optimizable-primitive? obj)
+            (begin
+                (display "!(" out)
+                (optimize-primitive obj out status?)
+                (if status?
+                    (display ")" out)
+                    (display ") == STRUE ? STRUE : SFALSE" out)))
+            (begin
+                (display "fnot(" out)
+                (il->c obj 0 out)
+                (if status?
+                    (display ") == STRUE" out) 
+                    (display ")" out))))))
+
 (define (optimize-dset o out)
     (let* ((vals (caddr o))
           (d (car vals))
@@ -1292,7 +1545,7 @@
             (begin
                 (display "trie_put(" out)
                 (cond
-                    (symbol? key) (display (cmung key) out)
+                    (symbol? key) (display (format "ASTRING(~s)" (cmung key)) out)
                     (or (key? key) (string? key)) (display (format "\"~a\"" key) out)
                     else (il->c key 0 out))
                 (display ", " out)
@@ -1301,7 +1554,60 @@
                 (display d out)
                 (display "->object.dict)" out)))))
 
+(define (optimize-vset o out)
+    (let* ((vals (caddr o))
+          (d (car vals))
+          (key (cadr vals))
+          (obj (caddr vals)))
+        (if (not (symbol? d))
+            (begin
+                (display "fcset(" out)
+                (il->c d 0 out)
+                (display ", " out)
+                (il->c key 0 out)
+                (display ", " out)
+                (il->c obj 0 out)
+                (display ")" out))
+            (begin
+                (display (cmung d) out)
+                (display "->object.vec[" out)
+                (cond
+                    (symbol? key) (display (format "AINT(~s)" (cmung key)) out)
+                    (integer? key) (display key out)
+                    else 
+                        (begin
+                            (display "AINT(" out) 
+                            (il->c key 0 out)
+                            (display ")" out)))
+                (display "] = " out)
+                (il->c obj 0 out)))))
+
+(define (optimize-vref o out)
+    (let* ((vals (caddr o))
+          (d (car vals))
+          (key (cadr vals)))
+        (if (not (symbol? d))
+            (begin
+                (display "fnth(" out)
+                (il->c d 0 out)
+                (display ", " out)
+                (il->c key 0 out)
+                (display ", SNIL)" out))
+            (begin
+                (display (cmung d) out)
+                (display "->object.vec[" out)
+                (cond
+                    (symbol? key) (display (format "AINT(~s)" (cmung key)) out)
+                    (integer? key) (display key out)
+                    else 
+                        (begin
+                            (display "AINT(" out) 
+                            (il->c key 0 out)
+                            (display ")" out)))
+                (display "]" out)))))
+
 (define (optimize-primitive o out (status #f))
+    ;; should probably be a case on (cadr o)
     (cond
         (eq? (cadr o) "eqp")
             (optimize-eq o out status)
@@ -1309,6 +1615,29 @@
             (optimize-add o out)
         (eq? (cadr o) "fdset")
             (optimize-dset o out)
+        (eq? (cadr o) "fvset")
+            (optimize-vset o out)
+        (eq? (cadr o) "fvref")
+            (optimize-vref o out)
+        (eq? (cadr o) "typep")
+            (optimize-typep o out status)
+        (eq? (cadr o) "fnot")
+            (optimize-fnot o out status)
+        (eq? (cadr o) "inc")
+            (let ((first-arg (caaddr o))
+                  (second-arg (cadr (caddr o))))
+                (display "inc_i(" out) ;; FIXME: do actual type dispatch here
+                (display (cmung first-arg) out)
+                (display ", " out)
+                (display second-arg out)
+                (display ")" out))
+        (or
+            (eq? (cadr o) "flt")
+            (eq? (cadr o) "flte")
+            (eq? (cadr o) "fgt")
+            (eq? (cadr o) "fgte")
+            (eq? (cadr o) "fnumeq"))
+            (optimize-logical o out status)
         else
             (error "unable to optimize primitive form")))
 
@@ -1329,7 +1658,7 @@
                 "||"
                 out)
         (optimizable-primitive? <cond>)
-            (optimize-primitive <cond> out)
+            (optimize-primitive <cond> out #t)
         else
             (begin
                 (display "(" out)
@@ -1387,7 +1716,9 @@
         (int->spaces lvl out)
         (display (format "void *~a = nil;\n" offset) out)
         (int->spaces lvl out)
-        (display (format "if(~a == nil){\n" table-name) out)
+        (display (format "if(~a == nil)\n" table-name) out)
+        (int->spaces lvl out)
+        (display "{\n" out)
         (int->spaces (+ lvl 1) out)
         (display (format "~a = makeavlnode(0);\n" table-name) out)
         ;; need to do two things:
@@ -1411,7 +1742,9 @@
         (int->spaces lvl out)
         (display (format "~a = (void *)avl_get(~a, AINT(~a));\n" offset table-name tmp) out)
         (int->spaces (+ lvl 1) out)
-        (display (format "if(~a != nil){\n" offset tmp) out)
+        (display (format "if(~a != nil)\n" offset tmp) out)
+        (int->spaces (+ lvl 1) out)
+        (display "{\n" out)
         (int->spaces (+ lvl 1) out)
         (display (format "goto *~a;~%" offset) out)
         (int->spaces lvl out)
@@ -1472,7 +1805,9 @@
                 (int->spaces lvl out)
                 (display "if(" out)
                 (if-condition (cadr (show il "about to call if-condition: ")) out)
-                (display "){\n" out)
+                (display ")\n" out)
+                (int->spaces lvl out)
+                (display "{\n" out)
                 (il->c (cddr il) (+ lvl 1) out)
                 (int->spaces lvl out)
                 (display "}\n" out))
@@ -1481,17 +1816,49 @@
                 (int->spaces lvl out)
                 (display "else if(" out)
                 (if-condition (cadr il) out)
-                (display "){\n" out)
+                (display ")\n" out)
+                (int->spaces lvl out)
+                (display "{\n" out)
                 (il->c (cddr il) (+ lvl 1) out)
                 (int->spaces lvl out)
                 (display "}\n" out))
         (eq? (car il) 'c-else)
             (begin
                 (int->spaces lvl out)
-                (display "else {\n" out)
+                (display "else\n" out)
+                (int->spaces lvl out)
+                (display "{\n" out)
                 (il->c (cdr il) (+ lvl 1) out)
                 (int->spaces lvl out)
                 (display "}\n" out))
+        (eq? (car il) 'c-catch)
+            ;; need to add the return part below
+            ;; maybe something like (throw 'some-tag value) becomes:
+            ;; SExp *some_tag = value;
+            ;; goto some_tag_lbl;
+            (begin
+                (int->spaces lvl out)
+                (display "SExp *" out)
+                (display (cmung (cadr il)) out)
+                (display " = nil;\n" out)
+                (il->c (cddr il) lvl out)
+                (display (cmung (cadr il)) out)  
+                (display "_lbl: \n" out)
+                (int->spaces lvl out)
+                (display "return " out)
+                (display (cmung (cadr il)) out)
+                (display ";\n" out))
+        (eq? (car il) 'c-throw)
+            (begin
+                (int->spaces lvl out)
+                (display (cmung (cadr il)) out)
+                (display " = " out)
+                (il->c (caddr il) 0 out)
+                (display ";\n" out)
+                (int->spaces lvl out)
+                (display "goto " out)
+                (display (cmung (cadr il)) out)
+                (display "_lbl;\n" out))
         (eq? (car il) 'c-case)
             (ir->c-case (cdr il) lvl out) 
         (eq? (car il) 'c-and)
@@ -1500,7 +1867,7 @@
             (stand-alone-logic->c (cdr il) lvl out #f)
         (eq? (car il) 'c-loop)
             (begin
-                ;(int->spaces lvl out)
+                (int->spaces lvl out)
                 (display "while(1) {\n" out)
                 (il->c (cadr il) (+ lvl 1) out)
                 (int->spaces lvl out)
@@ -1516,7 +1883,11 @@
                     #v)
                 (int->spaces lvl out)
                 (display "return " out)
-                (il->c (cadr il) 0 out)
+                (if (and
+                        (pair? (caddr il))
+                        (optimizable-primitive? (cadr il)))
+                    (optimize-primitive (cadr il) out #t)
+                    (il->c (cadr il) 0 out))
                 (display ";\n" out))
         (eq? (car il) 'c-no-return)
             (begin
@@ -1549,6 +1920,100 @@
                 (display " = " out)
                 (il->c (caddr il) 0 out)
                 (display ";\n" out))
+        (eq? (car il) 'c-define-struct) ;; structure declaration
+            (begin
+                (int->spaces lvl out)
+                (display (format "struct ~a {~%" (cmung (cadr il))) out)
+                (display
+                    (string-join
+                        (map (fn (x) (format "    SExp *~a" (cmung x))) (caddr il))
+                        ";\n")
+                    out)
+                (display ";\n};\n" out))
+        (eq? (car il) 'c-struct-ref) ;; reference a structure member
+            (let ((param (cmung (cadr il)))
+                  (member (cmung (caddr il)))
+                  (struct (cmung (cadddr il)))
+                  (tmp (gensym 'tmp)))
+                (int->spaces lvl out)
+                (display
+                    (format
+                        "struct ~a *~a = (struct ~a *)~a->object.foreign;~%"
+                        struct
+                        tmp
+                        struct
+                        param)
+                    out)
+                (int->spaces lvl out)
+                (display "return " out)
+                (display tmp out)
+                (display "->" out) ;; these actually need to be one level deeper...
+                (display member out)
+                (display ";\n" out))
+        (eq? (car il) 'c-struct-set!) ;; set a structure member
+            (let ((param (cmung (cadr il)))
+                  (memb (cmung (caddr il)))
+                  (val (cadddr il))
+                  (struct (car (cddddr il)))
+                  (tmp (gensym 'tmp)))
+                (int->spaces lvl out)
+                (display
+                    (format
+                        "struct ~a *~a = (struct ~a *)~a->object.foreign;~%"
+                        struct
+                        tmp
+                        struct
+                        param)
+                    out)
+                (int->spaces lvl out)
+                (display tmp out)
+                (display "->" out)
+                (display memb out)
+                (display " = " out)
+                (il->c val 0 out)
+                (display ";\n" out))
+        (eq? (car il) 'c-make-struct) ;; make a structure object
+            (let ((tmp-sym (gensym 'strcttmp))
+                  (tmp-skt (gensym 'skt))
+                  (name (cmung (cadr il)))
+                  (members (caddr il)))
+                (int->spaces lvl out)
+                (display "SExp *" out)
+                (display tmp-sym out)
+                (display " = " out)
+                (display "(SExp *)hmalloc(sizeof(SExp));\n" out)
+                ;; need to flesh out the middle steps here more
+                (int->spaces lvl out)
+                (display
+                    (format
+                        "struct ~a *~a = (struct ~a *)hmalloc(sizeof(struct ~a));~%"
+                        name
+                        tmp-skt
+                        name
+                        name)
+                    out)
+                (foreach
+                    (fn (x)
+                        (int->spaces lvl out)
+                        (display
+                            (format
+                                "~a->~a = ~a;~%"
+                                tmp-skt
+                                x
+                                x)
+                            out))
+                    members)
+                (int->spaces lvl out)
+                (display 
+                    (format
+                        "~a->object.foreign = (void *)~a;~%"
+                        tmp-sym 
+                        tmp-skt)
+                    out)
+                (int->spaces lvl out)
+                (display "return " out)
+                (display tmp-sym out)
+                (display ";\n" out))
         (eq? (car il) 'c-dec) ;; function declaration
             (begin
                 (display "SExp *\n" out)
@@ -1561,7 +2026,7 @@
                             (params->c (caddr il) (nth *ulambdas* (cadr il)))
                             ", ")
                         out))
-                (display "){\n" out)
+                (display ")\n{\n" out)
                 (if *profiling*
                     (begin
                         (int->spaces lvl out)
@@ -1617,7 +2082,7 @@
                     (display "))" out)))
         (eq? (car il) 'c-primitive-fixed) ;; fixed arity primitive
             (if (optimizable-primitive? il)
-                (optimize-primitive il out #t)
+                (optimize-primitive il out)
                 (begin
                     (display (cadr il) out)
                     (display "(" out)
@@ -1743,26 +2208,133 @@
 ;; END il->c
 ;; BEGIN main-driver
 
+(define (define-form? obj)
+    (and
+        (pair? obj)
+        (or
+            (eq? (car obj) 'define)
+            (eq? (car obj) 'def))))
+
+(define (define-lambda-var? obj)
+    (or
+        (and
+            (symbol? (cadr obj))
+            (pair? (caddr obj))
+            (or
+                (eq? (car (caddr obj)) 'lambda)
+                (eq? (car (caddr obj)) 'fn)))))
+
+(define (define-lambda-pair? obj)
+    (pair? (cadr obj)))
+
+(define (lambda-form? obj)
+    (and
+        (pair? obj)
+        (or
+            (eq? (car obj) 'lambda)
+            (eq? (car obj) 'fn))))
+
+(define (begin-form? obj)
+    "This is really assuming that begin hasnt'
+     been re-bound in the current environment. This is
+     fine for PreDigamma, but as that merges with
+     Digamma proper, this is going to be problematic..."
+    (and
+        (pair? obj)
+        (eq? (car obj) 'begin)))
+
+
+(define (drive-collection code bound-vars parents-stack free-vars)
+    (if (or (null? code) (not (pair? code)))
+        (list free-vars bound-vars)
+        (let ((result (collect-free-vars (car code) bound-vars parents-stack free-vars)))
+            (if (eq? (car result) #f)
+                (drive-collection (cdr code) bound-vars parents-stack free-vars)
+                (drive-collection (cdr code) (cadr result) parents-stack (car result))))))
+
+(define (collect-free-vars code bound-vars parents-stack free-vars)
+    "a simple method to collect free-vars from a piece of code.
+     Parameters:
+
+     - `code` the procedure being checked; should be called on the cddr of the body
+     - `bound-vars` vars (including the cadr of code, or the parameters) defined therein
+     - `parents-stack` spaghetti stack representing parent's environment
+     - `free-vars` are any vars that are not defined or parameters
+
+     We should also be checking the arity system, and should not assume that
+     appear free are; for instance, Scheme doesn't enforce that items are
+     defined prior to use, and there's nothing stopping code from being
+     written that way (I do it often, for instance). Would be weird, but
+     I wonder if it's reasonable to avoid checking the car of a form
+     for being free. There is one other method: pass in the parent's
+     collected environment as a another parameter, and check *that*;
+     items that are free there can be assumed to be top-level, whereas
+     everything else should exist in the parent's spaghetti stack of
+     free/bound vars. Food for thought.
+
+     I've added a `parents-stack` argument to capture this; I'll first hack
+     out a simpler version, then see about adding this. Shouldn't be
+     terribly difficult to add back in... (famous last words)
+     "
+     ;; add a function, dunno what to call it, to iterate over pieces 
+     ;; of code and keep the bound-vars & free-vars lists separate...
+     (cond
+        (null? code)
+            (list
+                free-vars
+                bound-vars)
+        (and
+            (define-form? code)
+            (or (define-lambda-var? code) (define-lambda-pair? code)))
+            ;; add the name to bound-vars, but nothing else, for now.
+            ;; I just realized that this interface doesn't really allow
+            ;; for adding to the bound-vars terribly easily. Need to return
+            ;; (Pair (Pair Symbol+) (Pair Symbol+)) I guess, the first
+            ;; being free vars, the second being bound vars...
+            (list
+                free-vars
+                (cons (cadr code) bound-vars))
+        (define-form? code)
+            ;; ok, check each piece of `code`...
+            (let ((new-bounds (cons (cadr code) bound-vars)))
+                (drive-collection (caddr code) new-bounds parents-stack free-vars))
+        (begin-form? code)
+            ;; iterate over each item in `code`, merging free/bound vars
+            (drive-collection (cdr code) bound-vars parents-stack free-vars)
+        (symbol? code)
+            ;; need to look it up somewhere and decide...
+            (let ((item (memq code bound-vars)))
+                (list
+                    (if (eq? item #f)
+                        (cons code free-vars)
+                        free-vars)
+                    bound-vars))
+        (pair? code)
+            ;; generic form; iterate over it & collect free-vars
+            ;; this isn't quite right either, as it will collect the
+            ;; same vars over and over...
+            (drive-collection code bound-vars parents-stack free-vars)
+        else
+            ;; could just return #f for "this is something we don't
+            ;; really care about in the free var system..."
+            (list #f)))
+
+;; so, the multiple passes that transform stuff could
+;; be done here, pretty simply...
+;; need to do a few things, but it shouldn't be too hard:
+;; # Run `split-internals` procedure on `r`
+;; # append the results of `split-internals`, if more than one
+;; # rinse repeat. Could be done for multiple nano-passes
 (define (enyalios@load in)
     (with r (read in)
         (if (eof-object? r)
             '()
             (begin
-                (if (and
-                        (pair? r)
-                        (or
-                            (eq? (car r) 'define)
-                            (eq? (car r) 'def)))
+                (if (define-form? r)
                     (cond
-                        (symbol? (cadr r))
-                            (if (and
-                                (pair? (caddr r))
-                                (or
-                                    (eq? (car (caddr r)) 'lambda)
-                                    (eq? (car (caddr r)) 'fn)))
-                                (set-arity! (cadr r) (car (cdaddr r)))
-                                #v)
-                        (pair? (cadr r))
+                        (define-lambda-var? r)
+                            (set-arity! (cadr r) (car (cdaddr r)))
+                        (define-lambda-pair? r)
                             (set-arity! (caadr r) (cdadr r))
                         else #v)
                     #v)

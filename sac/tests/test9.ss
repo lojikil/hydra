@@ -1,0 +1,5 @@
+(define z 0)
+(define (foo x)
+    (if (< z x)
+        (set! z x)
+        #v))

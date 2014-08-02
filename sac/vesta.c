@@ -390,12 +390,15 @@ eqp(SExp *s0, SExp *s1)
 					return strue;
 			}
 			break;
-		case KEY:
-		case STRING:
-		case ATOM:
-			if(!strcasecmp(tmp0->object.str,tmp1->object.str))
-				return strue;
-			return sfalse;
+        case KEY: 
+        case ATOM:
+            if(!strcasecmp(tmp0->object.str,tmp1->object.str))
+                return strue;
+            return sfalse;
+        case STRING:
+            if(tmp0->length == tmp1->length && !strncmp(tmp0->object.str,tmp1->object.str, tmp1->length))
+                return strue;
+            return sfalse;
 		case CHAR:
 			if(tmp0->object.c == tmp1->object.c)
 				return strue;
@@ -409,6 +412,15 @@ eqp(SExp *s0, SExp *s1)
 	}
 	return sfalse;
 }
+
+SExp *
+eqp_atom(SExp *item, char *atom)
+{
+    if(item->type == ATOM && !strcasecmp(item->object.str, atom))
+        return strue;
+    return sfalse;
+}
+
 SExp *
 assq(SExp *item, SExp *alist)
 {
@@ -1304,6 +1316,24 @@ avl_insert(AVLNode *tree, int value, SExp *data)
     }
 }
 
+int
+avl_insert_f(AVLNode *tree, SExp *key, SExp *data){
+    int ikey = 0;
+
+    switch(key->type){
+        case ATOM:
+        case NUMBER:
+        case KEY:
+        case STRING:
+        case CHAR:
+            ikey = fnv1a_s(key);
+            break;
+        default:
+            return -1;
+    }
+    return avl_insert(tree, ikey, data);
+}
+
 SExp *
 avl_get(AVLNode *tree, int key)
 {
@@ -1319,6 +1349,54 @@ avl_get(AVLNode *tree, int key)
         if(key > tmp->key)
             tmp = tmp->right;
     }
+}
+
+SExp *
+avl_get_f(AVLNode *tree, SExp *key){
+    int ikey = 0;
+
+    switch(key->type){
+        case ATOM:
+        case NUMBER:
+        case KEY:
+        case STRING:
+        case CHAR:
+            ikey = fnv1a_s(key);
+            break;
+        default:
+            return makeerror(1,2, "avl_get_f key error!");
+    }
+    return avl_get(tree, ikey);
+}
+
+int
+fnv1a_s(SExp *s_key){
+    char *key;
+    int len = 0;
+
+    switch(s_key->type){
+        case ATOM:
+        case STRING:
+        case KEY:
+            key = s_key->object.str;
+            len = s_key->length;
+            break;
+        default:
+            /* need to call number->bytes here. */
+            return -1;
+    }
+    uint64_t hash = 14695981039346656037;
+    uint32_t idx = 0;
+    for(; idx < len; idx++){
+        hash ^= key[idx];
+        hash *= 1099511628211;
+    }
+    return hash;
+}
+
+int
+number_bytes(SExp *s_key, char *result){
+    return -1; // stub
 }
 
 int
@@ -1657,6 +1735,9 @@ llprinc(SExp *s, FILE *fd, int mode)
 		case SVOID:
 			fprintf(fd,"#v");
 			break;
+        case ERROR:
+            fprintf(fd,"#<%s \"%s\">", typenames[s->type], s->object.error.message);
+            break;
 		default:
 			fprintf(fd,"#<%s>",typenames[s->type]);
 			break;
@@ -1961,7 +2042,7 @@ lex(FILE *fdin, char **r)
 						}
 					}
 					break;
-			case 2: /* hash object, #t #s #f #u #\character #|named_char */
+			case 2: /* hash object, #t #s #f #u #\character #\named_char #{avl tree} */
 				tmp = fgetc(fdin);
 				/* I wonder if the return results for #t, #f, #s & #u should
 				 * be constants. I mean, they are constant values, so perhaps this
@@ -2021,7 +2102,9 @@ lex(FILE *fdin, char **r)
 						break;
 					case ',':
 						/* SRFI-10 */
-						break;
+                        return TOK_SRFI10;
+                    case '{':
+                        return TOK_TREE;
 					case 'x':
 					case 'X':
 						/* hex */
@@ -2400,6 +2483,31 @@ llread(FILE *fdin)
 			case TOK_RSQUAR:
 				return fake_rsqr;
 			case TOK_LCURLY:
+				holder = makedict();
+				while(1)
+				{
+					tmp0 = llread(fdin);
+					if(tmp0 == seof)
+						return makeerror(0,0,"#e received before end of dictionary literal!");
+					if(tmp0 == fake_rcur)
+						break;
+					if(tmp0->type != STRING && tmp0->type != KEY && tmp0->type != ATOM)
+						return makeerror(0,0,"invalid key type used in dict literal");
+					tmp1 = llread(fdin);
+					if(tmp1 == seof)
+					  {
+					    if(feof(fdin))
+						return makeerror(0,0,"#e received before end of dictionary literal!");
+					  }
+					if(tmp1 == fake_rcur)
+					{
+						trie_put(tmp0->object.str,snil,holder->object.dict);
+						break;
+					}
+					trie_put(tmp0->object.str,tmp1,holder->object.dict);
+				}
+				return holder;
+            case TOK_TREE:
 				holder = makedict();
 				while(1)
 				{
@@ -3435,6 +3543,26 @@ fnum(SExp *tmp0)
 	if(tmp0->type != NUMBER || (tmp0->type == NUMBER && tmp0->object.n->type != RATIONAL))
 		return makeerror(1,0,"type clash: numerator expects a rational...");
 	return makeinteger(tmp0->object.n->nobject.rational.num);
+}
+SExp *
+inc_i(SExp *n, int i)
+{
+    switch(NTYPE(n))
+    {
+        case INTEGER:
+            AINT(n) += i;
+            break;
+        case REAL:
+            AREAL(n) += (i * 1.0);
+            break;
+        case RATIONAL:
+            NUM(n) += (i * DEN(n));
+            break;
+        case COMPLEX:
+            CEREAL(n) += (i * 1.0);
+            break;
+    }
+    return n;
 }
 SExp *
 fplus_in(int i, SExp *n)
@@ -5031,831 +5159,631 @@ fmag(SExp *tmp1)
 	return tmp0;
 }
 SExp *
-flt(SExp *rst)
+flt_in(int i, SExp *n)
 {
-	SExp *tmp0 = nil, *tmp1 = nil;
-	int itmp = pairlength(rst);
-	if(itmp < 1)
-		return makeerror(1,0,"< expects at least one argument...");
-	tmp1 = car(rst);
-	rst = cdr(rst);
-	if(tmp1->type != NUMBER)
-		return makeerror(1,0,"< operates on numbers only...");
-	if(itmp == 1)
-		return strue;
-	tmp0 = makenumber(INTEGER);
-	switch(tmp1->object.n->type)
-	{
-		case INTEGER:
-			tmp0->object.n->nobject.z = tmp1->object.n->nobject.z;
-			break;
-		case REAL:
-			tmp0->object.n->nobject.real = tmp1->object.n->nobject.real;
-			tmp0->object.n->type = REAL;
-			break;
-		case RATIONAL:
-			tmp0->object.n->nobject.rational.num = tmp1->object.n->nobject.rational.num;
-			tmp0->object.n->nobject.rational.den = tmp1->object.n->nobject.rational.den;
-			tmp0->object.n->type = RATIONAL;
-			break;
-		case COMPLEX:
-			tmp0->object.n->nobject.complex.r = tmp1->object.n->nobject.complex.r;
-			tmp0->object.n->nobject.complex.i = tmp1->object.n->nobject.complex.i;
-			tmp0->object.n->type = COMPLEX;
-			break;
-	}
-	while(rst != snil)
-	{
-		tmp1 = car(rst);
-		if(tmp1->type != NUMBER)
-			return makeerror(1,0,"< operates on numbers only...");
-		switch(tmp1->object.n->type)
-		{
-			case INTEGER:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if(tmp0->object.n->nobject.z >= tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real >= (tmp1 ->object.n->nobject.z * 1.0))
-							return sfalse;
-						break;
-					case RATIONAL:
-						itmp = (tmp0->object.n->nobject.rational.num / tmp0->object.n->nobject.rational.den);
-						if(itmp >= tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) < 0.0)
-							return sfalse;
-						if(CEREAL(tmp0) >= (tmp1->object.n->nobject.z * 1.0))
-							return sfalse;
-						break;
-				}
-				break;
-			case REAL:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if((tmp0->object.n->nobject.z * 1.0) >= tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real >= tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-					case RATIONAL:
-						if( ((tmp0->object.n->nobject.rational.num * 1.0) / (tmp0->object.n->nobject.rational.den * 1.0)) >= tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) < 0.0)
-							return sfalse;
-						if(CEREAL(tmp0) >= tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-				}
-				break;
-			case RATIONAL:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						itmp = (tmp1->object.n->nobject.rational.num / tmp1->object.n->nobject.rational.den);
-						if(tmp0->object.n->nobject.z >= itmp)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real >= ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;
-						break;
-					case RATIONAL:
-						/* this is a loss of precision issue; there is a better way than upconverting to REAL;
-						 * however, this is quite easy to do for PoC. FIXME later...
-						 */
-						if(((NUM(tmp0) * 1.0) / (DEN(tmp0) * 1.0)) >= ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;	
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) < 0.0)
-							return sfalse;
-						if(IMMAG(tmp0) >= ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;
-						break;
-				}
-				break;
-			case COMPLEX:
-				/*printf("IMMAG(tmp1) == 0.0? %s\n", IMMAG(tmp1) == 0.0 ? "#t" : "#f");
-				printf("%f\n",IMMAG(tmp1));*/
-				if(NTYPE(tmp0) != COMPLEX && IMMAG(tmp1) < 0.0) /* up conversion... */
-					return sfalse;
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if((tmp0->object.n->nobject.z * 1.0) >= CEREAL(tmp1))
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real >= CEREAL(tmp1))
-							return sfalse;
-						break;
-					case RATIONAL:
-						if(((NUM(tmp0) * 1.0) / (DEN(tmp0) * 1.0)) >= CEREAL(tmp1))
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(CEREAL(tmp0) >= CEREAL(tmp1))
-							return sfalse;
-						if(IMMAG(tmp0) >= IMMAG(tmp1))
-							return sfalse;
-						break;
-				}
-				break;
-		}
-		switch(tmp1->object.n->type)
-		{
-			case INTEGER:
-				tmp0->object.n->nobject.z = tmp1->object.n->nobject.z;
-				tmp0->object.n->type = INTEGER;
-				break;
-			case REAL:
-				tmp0->object.n->nobject.real = tmp1->object.n->nobject.real;
-				tmp0->object.n->type = REAL;
-				break;
-			case RATIONAL:
-				tmp0->object.n->nobject.rational.num = tmp1->object.n->nobject.rational.num;
-				tmp0->object.n->nobject.rational.den = tmp1->object.n->nobject.rational.den;
-				tmp0->object.n->type = RATIONAL;
-				break;
-			case COMPLEX:
-				tmp0->object.n->nobject.complex.r = tmp1->object.n->nobject.complex.r;
-				tmp0->object.n->nobject.complex.i = tmp1->object.n->nobject.complex.i;
-				tmp0->object.n->type = COMPLEX;
-				break;
-		}
-		rst = cdr(rst);
-	}
-	return strue;
+    if(n->type != NUMBER)
+        return makeerror(1,0,"< operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            if(i < AINT(n))
+                return strue;
+            break;
+        case REAL:
+            if(i < AREAL(n))
+                return strue;
+            break;
+        case RATIONAL:
+            if(i < (NUM(n) / DEN(n)))
+                return strue;
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0)
+                return sfalse;
+            if(i < CEREAL(n))
+                return strue;
+            break;
+    }
+    return sfalse;
 }
 SExp *
-flte(SExp *rst)
+flt_ni(SExp *n, int i)
 {
-	SExp *tmp0 = nil, *tmp1 = nil;
-	int itmp = pairlength(rst);
-	if(itmp < 1)
-		return makeerror(1,0,"<= expects at least one argument...");
-	tmp1 = car(rst);
-	rst = cdr(rst);
-	if(tmp1->type != NUMBER)
-		return makeerror(1,0,"<= operates on numbers only...");
-	if(itmp == 1)
-		return strue;
-	tmp0 = makenumber(INTEGER);
-	switch(tmp1->object.n->type)
-	{
-		case INTEGER:
-			tmp0->object.n->nobject.z = tmp1->object.n->nobject.z;
-			break;
-		case REAL:
-			tmp0->object.n->nobject.real = tmp1->object.n->nobject.real;
-			tmp0->object.n->type = REAL;
-			break;
-		case RATIONAL:
-			tmp0->object.n->nobject.rational.num = tmp1->object.n->nobject.rational.num;
-			tmp0->object.n->nobject.rational.den = tmp1->object.n->nobject.rational.den;
-			tmp0->object.n->type = RATIONAL;
-			break;
-		case COMPLEX:
-			tmp0->object.n->nobject.complex.r = tmp1->object.n->nobject.complex.r;
-			tmp0->object.n->nobject.complex.i = tmp1->object.n->nobject.complex.i;
-			tmp0->object.n->type = COMPLEX;
-			break;
-	}
-	while(rst != snil)
-	{
-		tmp1 = car(rst);
-		if(tmp1->type != NUMBER)
-			return makeerror(1,0,"<= operates on numbers only...");
-		switch(tmp1->object.n->type)
-		{
-			case INTEGER:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if(tmp0->object.n->nobject.z > tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real > (tmp1 ->object.n->nobject.z * 1.0))
-							return sfalse;
-						break;
-					case RATIONAL:
-						itmp = (tmp0->object.n->nobject.rational.num / tmp0->object.n->nobject.rational.den);
-						if(itmp > tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) < 0.0)
-							return sfalse;
-						if(CEREAL(tmp0) > (tmp1->object.n->nobject.z * 1.0))
-							return sfalse;
-						break;
-				}
-				break;
-			case REAL:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if((tmp0->object.n->nobject.z * 1.0) > tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real > tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-					case RATIONAL:
-						if( ((tmp0->object.n->nobject.rational.num * 1.0) / (tmp0->object.n->nobject.rational.den * 1.0)) > tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) < 0.0)
-							return sfalse;
-						if(CEREAL(tmp0) > tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-				}
-				break;
-			case RATIONAL:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						itmp = (tmp1->object.n->nobject.rational.num / tmp1->object.n->nobject.rational.den);
-						if(tmp0->object.n->nobject.z > itmp)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real > ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;
-						break;
-					case RATIONAL:
-						/* this is a loss of precision issue; there is a better way than upconverting to REAL;
-						 * however, this is quite easy to do for PoC. FIXME later...
-						 */
-						if(((NUM(tmp0) * 1.0) / (DEN(tmp0) * 1.0)) > ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;	
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) < 0.0)
-							return sfalse;
-						if(IMMAG(tmp0) > ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;
-						break;
-				}
-				break;
-			case COMPLEX:
-				/*printf("IMMAG(tmp1) == 0.0? %s\n", IMMAG(tmp1) == 0.0 ? "#t" : "#f");
-				printf("%f\n",IMMAG(tmp1));*/
-				if(NTYPE(tmp0) != COMPLEX && IMMAG(tmp1) < 0.0) /* up conversion... */
-					return sfalse;
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if((tmp0->object.n->nobject.z * 1.0) > CEREAL(tmp1))
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real > CEREAL(tmp1))
-							return sfalse;
-						break;
-					case RATIONAL:
-						if(((NUM(tmp0) * 1.0) / (DEN(tmp0) * 1.0)) > CEREAL(tmp1))
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(CEREAL(tmp0) > CEREAL(tmp1))
-							return sfalse;
-						if(IMMAG(tmp0) > IMMAG(tmp1))
-							return sfalse;
-						break;
-				}
-				break;
-		}
-		switch(tmp1->object.n->type)
-		{
-			case INTEGER:
-				tmp0->object.n->nobject.z = tmp1->object.n->nobject.z;
-				tmp0->object.n->type = INTEGER;
-				break;
-			case REAL:
-				tmp0->object.n->nobject.real = tmp1->object.n->nobject.real;
-				tmp0->object.n->type = REAL;
-				break;
-			case RATIONAL:
-				tmp0->object.n->nobject.rational.num = tmp1->object.n->nobject.rational.num;
-				tmp0->object.n->nobject.rational.den = tmp1->object.n->nobject.rational.den;
-				tmp0->object.n->type = RATIONAL;
-				break;
-			case COMPLEX:
-				tmp0->object.n->nobject.complex.r = tmp1->object.n->nobject.complex.r;
-				tmp0->object.n->nobject.complex.i = tmp1->object.n->nobject.complex.i;
-				tmp0->object.n->type = COMPLEX;
-				break;
-		}
-		rst = cdr(rst);
-	}
-	return strue;
+    if(n->type != NUMBER)
+        return makeerror(1,0,"< operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            if(AINT(n) < i)
+                return strue;
+            break;
+        case REAL:
+            if(AREAL(n) < i)
+                return strue;
+            break;
+        case RATIONAL:
+            if(i < (NUM(n) / DEN(n)))
+                return strue;
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0)
+                return sfalse;
+            if(CEREAL(n) < i)
+                return strue;
+            break;
+    }
+    return sfalse;
 }
 SExp *
-fgt(SExp *rst)
+fgt_ni(SExp *n, int i)
 {
-	SExp *tmp0 = nil, *tmp1 = nil;
-	int itmp = pairlength(rst);
-	itmp = pairlength(rst);
-	if(itmp < 1)
-		return makeerror(1,0,"> expects at least one argument...");
-	tmp1 = car(rst);
-	rst = cdr(rst);
-	if(tmp1->type != NUMBER)
-		return makeerror(1,0,"> operates on numbers only...");
-	if(itmp == 1)
-		return strue;
-	tmp0 = makenumber(INTEGER);
-	switch(tmp1->object.n->type)
-	{
-		case INTEGER:
-			tmp0->object.n->nobject.z = tmp1->object.n->nobject.z;
-			break;
-		case REAL:
-			tmp0->object.n->nobject.real = tmp1->object.n->nobject.real;
-			tmp0->object.n->type = REAL;
-			break;
-		case RATIONAL:
-			tmp0->object.n->nobject.rational.num = tmp1->object.n->nobject.rational.num;
-			tmp0->object.n->nobject.rational.den = tmp1->object.n->nobject.rational.den;
-			tmp0->object.n->type = RATIONAL;
-			break;
-		case COMPLEX:
-			tmp0->object.n->nobject.complex.r = tmp1->object.n->nobject.complex.r;
-			tmp0->object.n->nobject.complex.i = tmp1->object.n->nobject.complex.i;
-			tmp0->object.n->type = COMPLEX;
-			break;
-	}
-	while(rst != snil)
-	{
-		tmp1 = car(rst);
-		if(tmp1->type != NUMBER)
-			return makeerror(1,0,"> operates on numbers only...");
-		/*printf("tmp0:tmp1 => ");
-		princ(tmp0);
-		printf(" : ");
-		princ(tmp1);
-		printf("\n");*/
-		switch(tmp1->object.n->type)
-		{
-			case INTEGER:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if(tmp0->object.n->nobject.z <= tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real <= (tmp1 ->object.n->nobject.z * 1.0))
-							return sfalse;
-						break;
-					case RATIONAL:
-						itmp = (tmp0->object.n->nobject.rational.num / tmp0->object.n->nobject.rational.den);
-						if(itmp <= tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) >= 0.0)
-							return sfalse;
-						if(CEREAL(tmp0) <= (tmp1->object.n->nobject.z * 1.0))
-							return sfalse;
-						break;
-				}
-				break;
-			case REAL:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if((tmp0->object.n->nobject.z * 1.0) <= tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real <= tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-					case RATIONAL:
-						if( ((tmp0->object.n->nobject.rational.num * 1.0) / (tmp0->object.n->nobject.rational.den * 1.0)) <= tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) <= 0.0)
-							return sfalse;
-						if(CEREAL(tmp0) <= tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-				}
-				break;
-			case RATIONAL:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						itmp = (tmp1->object.n->nobject.rational.num / tmp1->object.n->nobject.rational.den);
-						if(tmp0->object.n->nobject.z <= itmp)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real <= ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;
-						break;
-					case RATIONAL:
-						/* this is a loss of precision issue; there is a better way than upconverting to REAL;
-						 * however, this is quite easy to do for PoC. FIXME later...
-						 */
-						if(((NUM(tmp0) * 1.0) / (DEN(tmp0) * 1.0)) <= ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;	
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) <= 0.0)
-							return sfalse;
-						if(IMMAG(tmp0) <= ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;
-						break;
-				}
-				break;
-			case COMPLEX:
-				/*printf("IMMAG(tmp1) == 0.0? %s\n", IMMAG(tmp1) == 0.0 ? "#t" : "#f");
-				printf("%f\n",IMMAG(tmp1));*/
-				if(NTYPE(tmp0) != COMPLEX && IMMAG(tmp1) <= 0.0) /* up conversion... */
-					return sfalse;
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if((tmp0->object.n->nobject.z * 1.0) <= CEREAL(tmp1))
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real <= CEREAL(tmp1))
-							return sfalse;
-						break;
-					case RATIONAL:
-						if(((NUM(tmp0) * 1.0) / (DEN(tmp0) * 1.0)) <= CEREAL(tmp1))
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(CEREAL(tmp0) <= CEREAL(tmp1))
-							return sfalse;
-						if(IMMAG(tmp0) <= IMMAG(tmp1))
-							return sfalse;
-						break;
-				}
-				break;
-		}
-		switch(tmp1->object.n->type)
-		{
-			case INTEGER:
-				tmp0->object.n->nobject.z = tmp1->object.n->nobject.z;
-				tmp0->object.n->type = INTEGER;
-				break;
-			case REAL:
-				tmp0->object.n->nobject.real = tmp1->object.n->nobject.real;
-				tmp0->object.n->type = REAL;
-				break;
-			case RATIONAL:
-				tmp0->object.n->nobject.rational.num = tmp1->object.n->nobject.rational.num;
-				tmp0->object.n->nobject.rational.den = tmp1->object.n->nobject.rational.den;
-				tmp0->object.n->type = RATIONAL;
-				break;
-			case COMPLEX:
-				tmp0->object.n->nobject.complex.r = tmp1->object.n->nobject.complex.r;
-				tmp0->object.n->nobject.complex.i = tmp1->object.n->nobject.complex.i;
-				tmp0->object.n->type = COMPLEX;
-				break;
-		}
-		rst = cdr(rst);
-	}
-	return strue;
+    if(n->type != NUMBER)
+        return makeerror(1,0,"> operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            if(AINT(n) > i)
+                return strue;
+            break;
+        case REAL:
+            if(AREAL(n) > i)
+                return strue;
+            break;
+        case RATIONAL:
+            if(i > (NUM(n) / DEN(n)))
+                return strue;
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0)
+                return sfalse;
+            if(CEREAL(n) > i)
+                return strue;
+            break;
+    }
+    return sfalse;
 }
 SExp *
-fgte(SExp *rst)
+fnumeq_ni(SExp *n, int i)
 {
-	SExp *tmp0 = nil, *tmp1 = nil;
-	int itmp = pairlength(rst);
-	if(itmp < 1)
-		return makeerror(1,0,">= expects at least one argument...");
-	tmp1 = car(rst);
-	rst = cdr(rst);
-	if(tmp1->type != NUMBER)
-		return makeerror(1,0,">= operates on numbers only...");
-	if(itmp == 1)
-		return strue;
-	tmp0 = makenumber(INTEGER);
-	switch(tmp1->object.n->type)
-	{
-		case INTEGER:
-			tmp0->object.n->nobject.z = tmp1->object.n->nobject.z;
-			break;
-		case REAL:
-			tmp0->object.n->nobject.real = tmp1->object.n->nobject.real;
-			tmp0->object.n->type = REAL;
-			break;
-		case RATIONAL:
-			tmp0->object.n->nobject.rational.num = tmp1->object.n->nobject.rational.num;
-			tmp0->object.n->nobject.rational.den = tmp1->object.n->nobject.rational.den;
-			tmp0->object.n->type = RATIONAL;
-			break;
-		case COMPLEX:
-			tmp0->object.n->nobject.complex.r = tmp1->object.n->nobject.complex.r;
-			tmp0->object.n->nobject.complex.i = tmp1->object.n->nobject.complex.i;
-			tmp0->object.n->type = COMPLEX;
-			break;
-	}
-	while(rst != snil)
-	{
-		tmp1 = car(rst);
-		if(tmp1->type != NUMBER)
-			return makeerror(1,0,">= operates on numbers only...");
-		/*printf("tmp0:tmp1 => ");
-		princ(tmp0);
-		printf(" : ");
-		princ(tmp1);
-		printf("\n");*/
-		switch(tmp1->object.n->type)
-		{
-			case INTEGER:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if(tmp0->object.n->nobject.z < tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real < (tmp1 ->object.n->nobject.z * 1.0))
-							return sfalse;
-						break;
-					case RATIONAL:
-						itmp = (tmp0->object.n->nobject.rational.num / tmp0->object.n->nobject.rational.den);
-						if(itmp < tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) < 0.0)
-							return sfalse;
-						if(CEREAL(tmp0) < (tmp1->object.n->nobject.z * 1.0))
-							return sfalse;
-						break;
-				}
-				break;
-			case REAL:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if((tmp0->object.n->nobject.z * 1.0) < tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case REAL:
-					  if(tmp0->object.n->nobject.real < tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-					case RATIONAL:
-						if( ((tmp0->object.n->nobject.rational.num * 1.0) / (tmp0->object.n->nobject.rational.den * 1.0)) < tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) < 0.0)
-							return sfalse;
-						if(CEREAL(tmp0) < tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-				}
-				break;
-			case RATIONAL:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						itmp = (tmp1->object.n->nobject.rational.num / tmp1->object.n->nobject.rational.den);
-						if(tmp0->object.n->nobject.z < itmp)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real < ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;
-						break;
-					case RATIONAL:
-						/* this is a loss of precision issue; there is a better way than upconverting to REAL;
-						 * however, this is quite easy to do for PoC. FIXME later...
-						 */
-						if(((NUM(tmp0) * 1.0) / (DEN(tmp0) * 1.0)) < ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;	
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) < 0.0)
-							return sfalse;
-						if(IMMAG(tmp0) < ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;
-						break;
-				}
-				break;
-			case COMPLEX:
-				/*printf("IMMAG(tmp1) == 0.0? %s\n", IMMAG(tmp1) == 0.0 ? "#t" : "#f");
-				printf("%f\n",IMMAG(tmp1));*/
-				if(NTYPE(tmp0) != COMPLEX && IMMAG(tmp1) < 0.0) /* up conversion... */
-					return sfalse;
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if((tmp0->object.n->nobject.z * 1.0) < CEREAL(tmp1))
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real < CEREAL(tmp1))
-							return sfalse;
-						break;
-					case RATIONAL:
-						if(((NUM(tmp0) * 1.0) / (DEN(tmp0) * 1.0)) < CEREAL(tmp1))
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(CEREAL(tmp0) < CEREAL(tmp1))
-							return sfalse;
-						if(IMMAG(tmp0) < IMMAG(tmp1))
-							return sfalse;
-						break;
-				}
-				break;
-		}
-		switch(tmp1->object.n->type)
-		{
-			case INTEGER:
-				tmp0->object.n->nobject.z = tmp1->object.n->nobject.z;
-				tmp0->object.n->type = INTEGER;
-				break;
-			case REAL:
-				tmp0->object.n->nobject.real = tmp1->object.n->nobject.real;
-				tmp0->object.n->type = REAL;
-				break;
-			case RATIONAL:
-				tmp0->object.n->nobject.rational.num = tmp1->object.n->nobject.rational.num;
-				tmp0->object.n->nobject.rational.den = tmp1->object.n->nobject.rational.den;
-				tmp0->object.n->type = RATIONAL;
-				break;
-			case COMPLEX:
-				tmp0->object.n->nobject.complex.r = tmp1->object.n->nobject.complex.r;
-				tmp0->object.n->nobject.complex.i = tmp1->object.n->nobject.complex.i;
-				tmp0->object.n->type = COMPLEX;
-				break;
-		}
-		rst = cdr(rst);
-	}
-	return strue;
+    if(n->type != NUMBER)
+        return makeerror(1,0,"= operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            if(AINT(n) == i)
+                return strue;
+            break;
+        case REAL:
+            if(AREAL(n) == i)
+                return strue;
+            break;
+        case RATIONAL:
+            if(i == (NUM(n) / DEN(n)))
+                return strue;
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0)
+                return sfalse;
+            if(CEREAL(n) == i)
+                return strue;
+            break;
+    }
+    return sfalse;
 }
 SExp *
-fnumeq(SExp *rst)
+fnumeq_nn(SExp *n, SExp *p)
 {
-	SExp *tmp0 = nil, *tmp1 = nil;
-	int itmp = pairlength(rst);
-	if(itmp < 1)
-		return makeerror(1,0,"= expects at least one argument...");
-	tmp1 = car(rst);
-	rst = cdr(rst);
-	if(tmp1->type != NUMBER)
-		return makeerror(1,0,"= operates on numbers only...");
-	else if(itmp == 1)
-		return strue;
-	tmp0 = makenumber(INTEGER);
-	switch(tmp1->object.n->type)
-	{
-		case INTEGER:
-			tmp0->object.n->nobject.z = tmp1->object.n->nobject.z;
-			break;
-		case REAL:
-			tmp0->object.n->nobject.real = tmp1->object.n->nobject.real;
-			tmp0->object.n->type = REAL;
-			break;
-		case RATIONAL:
-			NUM(tmp0) = NUM(tmp1);
-			DEN(tmp0) = DEN(tmp1);
-			tmp0->object.n->type = RATIONAL;
-			break;
-		case COMPLEX:
-			CEREAL(tmp0) = CEREAL(tmp1);
-			IMMAG(tmp0) = IMMAG(tmp1);
-			tmp0->object.n->type = COMPLEX;
-			break;
-	}
-	while(rst != snil)
-	{
-		tmp1 = car(rst);
-		switch(tmp1->object.n->type)
-		{
-			case INTEGER:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if(tmp0->object.n->nobject.z != tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real != (1.0 * tmp1->object.n->nobject.z))
-							return sfalse;
-						break;
-					case RATIONAL:
-						if((NUM(tmp0)/DEN(tmp0)) != tmp1->object.n->nobject.z)
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) != 0.0)
-							return sfalse;
-						if(CEREAL(tmp0) != (1.0 * tmp1->object.n->nobject.z))
-							return sfalse;
-						break;
-				}
-				break;
-			case REAL:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if((1.0 * tmp0->object.n->nobject.z) != tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real != tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-					case RATIONAL:
-						if(((NUM(tmp0) * 1.0) / (DEN(tmp0) * 1.0)) != tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) != 0.0)
-							return sfalse;
-						if(CEREAL(tmp0) != tmp1->object.n->nobject.real)
-							return sfalse;
-						break;
-				}
-				break;
-			case RATIONAL:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if(tmp0->object.n->nobject.z != (NUM(tmp1) / DEN(tmp1)))
-							return sfalse;
-						break;
-					case REAL:
-						if(tmp0->object.n->nobject.real != ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;
-						break;
-					case RATIONAL:
-						if(NUM(tmp1) != NUM(tmp0))
-							return sfalse;
-						if(DEN(tmp1) != DEN(tmp0))
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp0) != 0.0)
-							return sfalse;
-						if(CEREAL(tmp0) != ((NUM(tmp1) * 1.0) / (DEN(tmp1) * 1.0)))
-							return sfalse;
-						break;
-				}
-				break;
-			case COMPLEX:
-				switch(tmp0->object.n->type)
-				{
-					case INTEGER:
-						if(IMMAG(tmp1) != 0.0)
-							return sfalse;
-						if(CEREAL(tmp1) != (1.0 * tmp0->object.n->nobject.z))
-							return sfalse;
-						break;
-					case REAL:
-						if(IMMAG(tmp1) != 0.0)
-							return sfalse;
-						if(CEREAL(tmp1) != tmp0->object.n->nobject.real)
-							return sfalse;
-						break;
-					case RATIONAL:
-						if(IMMAG(tmp1) != 0.0)
-							return sfalse;
-						if(CEREAL(tmp1) != ((NUM(tmp0) * 1.0) / (DEN(tmp0) * 1.0)))
-							return sfalse;
-						break;
-					case COMPLEX:
-						if(IMMAG(tmp1) != IMMAG(tmp0))
-							return sfalse;
-						if(CEREAL(tmp1) != CEREAL(tmp0))
-							return sfalse;
-						break;
-				}
-				break;
-			}
-		rst = cdr(rst);
-	}
-	return strue;
+    if(n->type != NUMBER)
+        return makeerror(1,0,"= operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AINT(n) == AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AINT(n) == AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AINT(n) == (NUM(p) / DEN(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AINT(n) == CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case REAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AREAL(n) == (AINT(p) * 1.0))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AREAL(n) == AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AREAL(n) == ((NUM(p) / DEN(p)) * 1.0))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AREAL(n) == CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case RATIONAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if((NUM(n) / DEN(p)) == AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(((NUM(n) / DEN(p)) * 1.0) == AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    // WRONG! but quick for now :D
+                    if((NUM(n) == NUM(p)) && (NUM(n) == NUM(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(((NUM(n) / DEN(p)) * 1.0) == CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0.0 && NTYPE(p) != COMPLEX)
+                break;
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(CEREAL(n) == (1.0 * AINT(p)))
+                        return strue;
+                    break;
+                case REAL:
+                    if(CEREAL(n) == AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(CEREAL(n) == (1.0 * (NUM(p) / DEN(p))))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(CEREAL(n) == CEREAL(p) && IMMAG(n) == IMMAG(p))
+                        return strue;
+                    break;
+            }
+            break;
+    }
+    return sfalse;
+}
+SExp *
+fgte_nn(SExp *n, SExp *p)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,">= operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AINT(n) >= AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AINT(n) >= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AINT(n) >= (NUM(p) / DEN(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AINT(n) >= CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case REAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AREAL(n) >= (AINT(p) * 1.0))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AREAL(n) >= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AREAL(n) >= ((NUM(p) / DEN(p)) * 1.0))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AREAL(n) >= CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case RATIONAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if((NUM(n) / DEN(p)) >= AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(((NUM(n) / DEN(p)) * 1.0) >= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    // WRONG! but quick for now :D
+                    if((NUM(n) >= NUM(p)) && (NUM(n) >= NUM(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(((NUM(n) / DEN(p)) * 1.0) >= CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0.0 && NTYPE(p) != COMPLEX)
+                break;
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(CEREAL(n) >= (1.0 * AINT(p)))
+                        return strue;
+                    break;
+                case REAL:
+                    if(CEREAL(n) >= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(CEREAL(n) >= (1.0 * (NUM(p) / DEN(p))))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(CEREAL(n) >= CEREAL(p) && IMMAG(n) >= IMMAG(p))
+                        return strue;
+                    break;
+            }
+            break;
+    }
+    return sfalse;
+}
+SExp *
+fgt_nn(SExp *n, SExp *p)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,"> operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AINT(n) > AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AINT(n) > AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AINT(n) > (NUM(p) / DEN(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AINT(n) > CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case REAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AREAL(n) > (AINT(p) * 1.0))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AREAL(n) > AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AREAL(n) > ((NUM(p) / DEN(p)) * 1.0))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AREAL(n) > CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case RATIONAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if((NUM(n) / DEN(p)) > AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(((NUM(n) / DEN(p)) * 1.0) > AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    // WRONG! but quick for now :D
+                    if((NUM(n) > NUM(p)) && (NUM(n) > NUM(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(((NUM(n) / DEN(p)) * 1.0) > CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0.0 && NTYPE(p) != COMPLEX)
+                break;
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(CEREAL(n) > (1.0 * AINT(p)))
+                        return strue;
+                    break;
+                case REAL:
+                    if(CEREAL(n) > AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(CEREAL(n) > (1.0 * (NUM(p) / DEN(p))))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(CEREAL(n) > CEREAL(p) && IMMAG(n) > IMMAG(p))
+                        return strue;
+                    break;
+            }
+            break;
+    }
+    return sfalse;
+}
+SExp *
+flte_nn(SExp *n, SExp *p)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,"<= operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AINT(n) <= AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AINT(n) <= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AINT(n) <= (NUM(p) / DEN(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AINT(n) <= CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case REAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AREAL(n) <= (AINT(p) * 1.0))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AREAL(n) <= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AREAL(n) <= ((NUM(p) / DEN(p)) * 1.0))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AREAL(n) <= CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case RATIONAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if((NUM(n) / DEN(p)) <= AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(((NUM(n) / DEN(p)) * 1.0) <= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    // WRONG! but quick for now :D
+                    if((NUM(n) <= NUM(p)) && (NUM(n) <= NUM(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(((NUM(n) / DEN(p)) * 1.0) <= CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0.0 && NTYPE(p) != COMPLEX)
+                break;
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(CEREAL(n) <= (1.0 * AINT(p)))
+                        return strue;
+                    break;
+                case REAL:
+                    if(CEREAL(n) <= AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(CEREAL(n) <= (1.0 * (NUM(p) / DEN(p))))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(CEREAL(n) <= CEREAL(p) && IMMAG(n) <= IMMAG(p))
+                        return strue;
+                    break;
+            }
+            break;
+    }
+    return sfalse;
+}
+SExp *
+flt_nn(SExp *n, SExp *p)
+{
+    if(n->type != NUMBER)
+        return makeerror(1,0,"< operates on numbers only...");
+    switch(n->object.n->type)
+    {
+        case INTEGER:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AINT(n) < AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AINT(n) < AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AINT(n) < (NUM(p) / DEN(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AINT(n) < CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case REAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(AREAL(n) < (AINT(p) * 1.0))
+                        return strue;
+                    break;
+                case REAL:
+                    if(AREAL(n) < AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(AREAL(n) < ((NUM(p) / DEN(p)) * 1.0))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(AREAL(n) < CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case RATIONAL:
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if((NUM(n) / DEN(p)) < AINT(p))
+                        return strue;
+                    break;
+                case REAL:
+                    if(((NUM(n) / DEN(p)) * 1.0) < AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    // WRONG! but quick for now :D
+                    if((NUM(n) < NUM(p)) && (NUM(n) < NUM(p)))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(IMMAG(p) != 0)
+                        return sfalse;
+                    if(((NUM(n) / DEN(p)) * 1.0) < CEREAL(p))
+                        return strue;
+                    break;
+            }
+            break;
+        case COMPLEX:
+            if(IMMAG(n) != 0.0 && NTYPE(p) != COMPLEX)
+                break;
+            switch(NTYPE(p))
+            {
+                case INTEGER:
+                    if(CEREAL(n) < (1.0 * AINT(p)))
+                        return strue;
+                    break;
+                case REAL:
+                    if(CEREAL(n) < AREAL(p))
+                        return strue;
+                    break;
+                case RATIONAL:
+                    if(CEREAL(n) < (1.0 * (NUM(p) / DEN(p))))
+                        return strue;
+                    break;
+                case COMPLEX:
+                    if(CEREAL(n) < CEREAL(p) && IMMAG(n) < IMMAG(p))
+                        return strue;
+                    break;
+            }
+            break;
+    }
+    return sfalse;
 }
 /* collection functions */
 SExp *
@@ -5906,7 +5834,7 @@ frest(SExp *tmp0)
 	}
 }
 SExp *
-fnth(SExp *tmp0, SExp *tmp1,SExp *dvalue)
+fnth(SExp *tmp0, SExp *tmp1, SExp *dvalue)
 {
 	int iter = 0, itmp = 0;
 	SExp *tmp2 = snil;

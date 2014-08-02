@@ -21,11 +21,13 @@
 #define set_str(x,y) (x)->object.str = hstrdup(y)
 #define AINT(x) (x)->object.n->nobject.z
 #define AREAL(x) (x)->object.n->nobject.real
+#define ASTRING(x) (x)->object.str
 #define NUM(x) (x)->object.n->nobject.rational.num
 #define DEN(x) (x)->object.n->nobject.rational.den
 #define CEREAL(x) (x)->object.n->nobject.complex.r
 #define IMMAG(x) (x)->object.n->nobject.complex.i
 #define TYPE(x) (x)->type
+#define TYPEP(x, y) ((x)->type == (y))
 #define NTYPE(x) (x)->object.n->type
 #define PORT(x) (x)->object.p
 #define PTYPE(x) (x)->object.p->type
@@ -78,6 +80,8 @@
 #define TOK_LEOF   26 /* #e */
 #define TOK_LVOID  27 /* #v */
 #define TOK_DATCOM 28 /* #;OBJECT */
+#define TOK_SRFI10 29 /* SRFI-10 style #, */
+#define TOK_TREE   30 /* #{ tree } */
 #define TOK_SERROR 97 /* EOF before end of string */
 #define TOK_HERROR 98 /* syntax error on hash object */
 #define TOK_EOF    99
@@ -296,6 +300,7 @@ typedef struct _SYM
 } Symbol;
 
 SExp *eqp(SExp *,SExp *); /* eq? */
+SExp *eqp_atom(SExp *, char *);
 SExp *assq(SExp *, SExp *); /* standard assq */
 SExp *memq(SExp *, SExp *); /* standard memq */
 
@@ -387,11 +392,15 @@ SExp *trie_partial(Trie *, char *, int); /* partial-key? */
 AVLNode *makeavlnode(int);
 int avl_containsp(AVLNode *,int);
 int avl_insert(AVLNode *, int, SExp *);
+int avl_insert_f(AVLNode *, SExp *, SExp *);
 SExp *avl_get(AVLNode *, int);
+SExp *avl_get_f(AVLNode *, SExp *);
 int weight(AVLNode *);
 AVLNode *balance(AVLNode *);
 AVLNode *rotate_left(AVLNode *);
 AVLNode *rotate_right(AVLNode *);
+int fnv1a_s(SExp *);
+int number_bytes(SExp *, char *);
 
 /* wrapper around llprinc */
 void princ(SExp *); /* for history's sake */
@@ -420,6 +429,7 @@ SExp *fnum(SExp *);
 SExp *fplus(SExp *);
 SExp *fplus_in(int, SExp *);
 SExp *fplus_nn(SExp *, SExp *);
+SExp *inc_i(SExp *, int);
 SExp *fmult(SExp *);
 SExp *fdivd(SExp *);
 SExp *fsubt(SExp *);
@@ -459,6 +469,16 @@ SExp *flte(SExp *);
 SExp *fgt(SExp *);
 SExp *fgte(SExp *);
 SExp *fnumeq(SExp *);
+SExp *flt_ni(SExp *, int);
+SExp *flte_ni(SExp *, int);
+SExp *fgt_ni(SExp *, int);
+SExp *fgte_ni(SExp *, int);
+SExp *fnumeq_ni(SExp *, int);
+SExp *flt_nn(SExp *, SExp *);
+SExp *flte_nn(SExp *, SExp *);
+SExp *fgt_nn(SExp *, SExp *);
+SExp *fgte_nn(SExp *, SExp *);
+SExp *fnumeq_nn(SExp *, SExp *);
 SExp *fbitand(SExp *,SExp *);
 SExp *fbitor(SExp *,SExp *);
 SExp *fbitxor(SExp *,SExp *);

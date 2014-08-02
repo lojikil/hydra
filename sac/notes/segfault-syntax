@@ -1,0 +1,14 @@
+Need to look into this:
+
+`;t (define-syntax foo () ((foo x) (begin . x)))
+()
+;t (foo 10)
+10
+;t (foo 1 2 3 4 5)
+#f
+;t (define-syntax goo () ((foo . x) (begin . x)))
+()
+;t (foo 1 2 3 4 5)
+#f
+;t (goo 1 2 3 4 5)
+Segmentation fault: 11`

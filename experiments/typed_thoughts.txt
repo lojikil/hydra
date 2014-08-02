@@ -1,0 +1,19 @@
+The type signature for a basic (and safe) constrained nth would be:
+`(nth (x (U Seq Dict)) (y (~or (~and (~:~ x Seq) (~:~ y Nat)) (and (~:~ x Dict) (~:~ y (U String Atom Key))))) => Any)`
+
+That doesn't even really capture the fact that some Seqs contain specific types of elements, such as strings to characters...
+
+Further, that doesn't really even tell us that `y` is in the range of `x`; that would be something approaching dependent types.
+Now, atop all that, I'd like to do this somewhat automatically, with Digamma as it currently stands, and add:
+
+- Extensible records from Elm.
+- Stream Fusion
+- Racket-style structs (ala SRFI-9)
+- User types for Union &c.
+
+all without turning Digamma into Haskell atop SExpressions. Oh, and it must support an `Any` type...
+Polymorphic Variants from OCaml fit the bill here, methinks. Research them further. Plus, unify Term langauge and
+type language ala Coq/Agda/Idris: Anything that is pure, and returns `#s` or `#u` can be used in the Type language...
+
+`nth` must support returning `Any`, because it literally has to, but we can use refinements to pare down the possible
+types (type narrowing). 

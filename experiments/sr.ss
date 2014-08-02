@@ -1,5 +1,21 @@
 ;; simple syntax-rules experiment...
 
+;(define (test x) (vector-set! x 0 "f"))
+
+;(define (null? x) (eq? x '()))
+;(define (list? x) (type? x "PAIR"))
+;(define (pair? x) (eq? (type x) "Pair"))
+;(define (symbol? x) (eq? (type x) "Symbol"))
+#;(define (not x)
+    (cond
+        (eq? x #t) #f
+        (eq? x #s) #u
+        (eq? x #u) #s
+        else #t))
+
+#;(define (cadr x) (car (cdr x)))
+#;(define (cddr x) (cdr (cdr x))) 
+
 (define (define-syntax name literals patterns)
     "Simple version of define-syntax; Digamma's spec equates
     define-syntax with Scheme's syntax-rules for simplicity
@@ -25,7 +41,9 @@
                 (match-pattern (cdr pat) (cdr form) env literals)
                 (list #f '()))
         (symbol? (car pat)) ;; need to check ... here
-            (if (eq? (cadr pat) '...)
+            (if (and
+                    (pair? (cdr pat)) ;; check if cdr isn't (some . thing)
+                    (eq? (cadr pat) '...))
                 (let* ((pl (length (cddr pat)))
                        (fl (length form))
                        (offset (- fl pl)))
@@ -42,7 +60,9 @@
                             literals)))
                 (match-pattern (cdr pat) (cdr form) (cons (list (car pat) (car form)) env) literals))
         (pair? (car pat)) ;; same as above
-            (if (eq? (cadr pat) '...)
+            (if (and
+                    (pair? (cdr pat)) ;; check if cdr isn't (some . thing)
+                    (eq? (cadr pat) '...))
                 #f
                 (match-pattern (cdr pat) (cdr form)
                     (append (match-pattern (car pat) (car form) '() literals) env) literals))
@@ -60,22 +80,21 @@
                 (syntax-expand2 (cdr rules) form '() literals)))))
 
 (define (build-syntax-result env form out)
-    ;(display "in build-syntax-result;\n env == ")
-    ;(write env)
-    ;(display "\nform == ")
-    ;(write form)
-    ;(display "\nout == ")
-    ;(write out)
-    ;(newline)
     (cond
         (null? form) out
         (symbol? form)
             (with s (assq form env)
                 (if (eq? s #f)
-                    form
-                    (cadr s)))
+                    (append 
+                        out
+                        form)
+                    (append
+                        out
+                        (cadr s))))
         (not (pair? form))
-            form
+            (append
+                out
+                form)
         (symbol? (car form)) ;; need to check ... here & below in pair?
             (with s (assq (car form) env)
                 (if (eq? s #f)
