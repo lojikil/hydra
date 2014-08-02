@@ -477,8 +477,8 @@
     (let ((pred-name (coerce (format "~a?" name) 'atom))
           (params '(x)))
         (set-arity! pred-name params)
-        (list 'c-dec pred-name params
-            (list 'c-struct? 'x name))))
+        (list (list 'c-dec pred-name params
+            (list 'c-struct? 'x name)))))
 
 (define (compile-struct code rewrites lparams)
     "compiles a `define-struct` statement into IL.
@@ -491,7 +491,8 @@
     ;; the struct has inheritence, this won't work
     (let ((ctor (make-struct-ctor (car code) (cadr code)))
           (sets (make-struct-setter (car code) (cadr code)))
-          (gets (make-struct-getter (car code) (cadr code)))) ;; need to define a ctor too...
+          (gets (make-struct-getter (car code) (cadr code))) ;; need to define a ctor too...
+          (pred (make-struct-predicate (car code))))
         (list
             #f
             (list
@@ -502,7 +503,8 @@
                             'c-define-struct (car code) (cadr code)))
                     ctor
                     sets
-                    gets)))))
+                    gets
+                    pred)))))
 
 (define (compile-if block name tail? rewrites lparams)
     " compiles an if statement into IL.
@@ -1959,7 +1961,16 @@
                 (display member out)
                 (display ";\n" out))
         (eq? (car il) 'c-struct?) ;; structure type?
-            #f
+            ;; TODO: expand to include an actual struct type check
+            ;; the type system should use this as a type hint too...
+            (let ((obj (cmung (cadr il)))
+                  (param (cmung (caddr il))))
+                (int->spaces lvl out)
+                (display
+                    (format
+                        "return (~a->type == RECORD) ? STRUE : SFALSE;\n"
+                        obj)
+                    out))
         (eq? (car il) 'c-struct-set!) ;; set a structure member
             (let ((param (cmung (cadr il)))
                   (memb (cmung (caddr il)))
