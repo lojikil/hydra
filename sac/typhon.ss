@@ -1795,11 +1795,11 @@
                                             env)) ;; TODO: don't use env, use the environment stored in the syntax object; NEW: nope; expand items in place?
                                 (typhon@umacro? v)
                                     #f
-                                (procedure? v) ;; need to add some method of checking proc arity here.
+                                (typhon-procedure? v) ;; need to add some method of checking proc arity here.
                                     (let* ((rlen (length rst)))
                                         (append
                                             (reverse-append (typhon@map rst params env))
-                                            (list (list 16 (primitive-value v) rlen))))
+                                            (list (list 16 (typhon-procedure-name v) rlen))))
                                 (typhon-primitive? v) ;; primitive procedure
                                     ;; need to generate the list of HLAP code, reverse it
                                     ;; and flatten it. basically, if we have:
@@ -1814,7 +1814,7 @@
                                     (append
                                         (reverse-append
                                             (typhon@map rst params env))
-                                        (list (list (primitive-value v))))
+                                        (list (list (typhon-primitive-value v))))
                                 (typhon@lambda? v) ;; hydra closure; change this into (load-from-env fst) (call-from-stack) 
                                     (append
                                         (reverse-append
