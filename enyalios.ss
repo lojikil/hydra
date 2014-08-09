@@ -926,6 +926,7 @@
                 (set! *ooblambdas* (append *ooblambdas* load-obj-code))
                 (list #f (list 'c-nop)))
         (eq? (car c) 'define-struct) (compile-struct (cdr c) rewrites lparams)
+        (eq? (car c) 'define-type) (compile-define-type (cdr c) rewrites lparams)
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'case) (compile-case (cdr c) name tail? rewrites lparams)
