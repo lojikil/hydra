@@ -348,15 +348,15 @@
      ;; define-operator, since that would be much cleaner than what is seen below.
      ;; Syntax could expand the full list of operators in place here, and it would make
      ;; expanding the set of operators *much* easier than it currently is.
-     ;(display "stack: ")
-     ;(display stack)
-     ;(newline)
-     ;(display "code: ") 
-     ;(display code)
-     ;(newline)
-     ;(display "ip: ")
-     ;(display ip)
-     ;(newline)
+     (display "stack: ")
+     (display stack)
+     (newline)
+     (display "code: ") 
+     (display code)
+     (newline)
+     (display "ip: ")
+     (display ip)
+     (newline)
      (cond
         (or (type? (car stack) "ERROR")
             (typhon@error? (car stack)))
@@ -1923,6 +1923,6 @@
                 (typhon@add-env! '*command-line* (cslice args 1 (length args)) (list e))
                 (typhon@load (nth args 0) (list e) (list 0 dump)))
             (begin
-                (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Typhon: 2012.0/r0\n")
+                (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Typhon: 2014.3/r0\n")
                 (typhon@add-env! '*command-line* '() (list e))
                 (typhon@repl (list e) (list 0 dump))))))

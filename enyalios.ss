@@ -1965,18 +1965,27 @@
             ;; TODO: expand to include an actual struct type check
             ;; the type system should use this as a type hint too...
             (let ((obj (cmung (cadr il)))
-                  (param (cmung (caddr il))))
+                  (param (cmung (caddr il)))
+                  (tmp (gensym 'tmp)))
+                (int->spaces lvl out)
+                (display
+                    (format "static int ~a = fnv1a(\"~a\");~%"
+                        tmp
+                        param)
+                    out)
                 (int->spaces lvl out)
                 (display
                     (format
-                        "return (~a->type == RECORD) ? STRUE : SFALSE;\n"
-                        obj)
+                        "return (~a->type == RECORD && ~a->length == ~a) ? STRUE : SFALSE;\n"
+                        obj
+                        obj
+                        tmp)
                     out))
         (eq? (car il) 'c-struct-set!) ;; set a structure member
             (let ((param (cmung (cadr il)))
                   (memb (cmung (caddr il)))
                   (val (cadddr il))
-                  (struct (car (cddddr il)))
+                  (struct (cmung (car (cddddr il))))
                   (tmp (gensym 'tmp)))
                 (int->spaces lvl out)
                 (display
@@ -2037,6 +2046,13 @@
                     (format
                         "~a->type = RECORD;~%"
                         tmp-sym)
+                    out)
+                (int->spaces lvl out)
+                (display
+                    (format
+                        "~a->length = fnv1a(\"~a\");~%"
+                        tmp-sym
+                        name)
                     out)
                 (int->spaces lvl out)
                 (display "return " out)
