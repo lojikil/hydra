@@ -1969,9 +1969,10 @@
                   (tmp (gensym 'tmp)))
                 (int->spaces lvl out)
                 (display
-                    (format "static int ~a = fnv1a(\"~a\");~%"
+                    (format "static int ~a = fnv1a(\"~a\", ~a);~%"
                         tmp
-                        param)
+                        param
+                        (length param))
                     out)
                 (int->spaces lvl out)
                 (display
@@ -2050,9 +2051,10 @@
                 (int->spaces lvl out)
                 (display
                     (format
-                        "~a->length = fnv1a(\"~a\");~%"
+                        "~a->length = fnv1a(\"~a\", ~a);~%"
                         tmp-sym
-                        name)
+                        name
+                        (length name))
                     out)
                 (int->spaces lvl out)
                 (display "return " out)
