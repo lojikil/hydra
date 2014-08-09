@@ -400,6 +400,7 @@ AVLNode *balance(AVLNode *);
 AVLNode *rotate_left(AVLNode *);
 AVLNode *rotate_right(AVLNode *);
 int fnv1a_s(SExp *);
+int fnv1a_s(char *, int);
 int number_bytes(SExp *, char *);
 
 /* wrapper around llprinc */

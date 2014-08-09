@@ -1385,6 +1385,11 @@ fnv1a_s(SExp *s_key){
             /* need to call number->bytes here. */
             return -1;
     }
+    return fnv1a(key, len);
+}
+
+int
+fnv1a(char *key, int len){
     uint64_t hash = 14695981039346656037;
     uint32_t idx = 0;
     for(; idx < len; idx++){
