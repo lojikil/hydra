@@ -1969,11 +1969,23 @@
                   (tmp (gensym 'tmp)))
                 (int->spaces lvl out)
                 (display
-                    (format "static int ~a = fnv1a(\"~a\", ~a);~%"
+                    (format "static int ~a = -1;~%"
+                        tmp)
+                    out)
+                (int->spaces lvl out)
+                (display
+                    (format "if(~a == -1) {~%"
+                        tmp)
+                    out)
+                (int->spaces (+ lvl 1) out)
+                (display
+                    (format "~a = fnv1a(\"~a\", ~a);~%"
                         tmp
                         param
                         (length param))
                     out)
+                (int->spaces lvl out)
+                (display "}\n" out)
                 (int->spaces lvl out)
                 (display
                     (format
