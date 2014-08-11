@@ -348,15 +348,15 @@
      ;; define-operator, since that would be much cleaner than what is seen below.
      ;; Syntax could expand the full list of operators in place here, and it would make
      ;; expanding the set of operators *much* easier than it currently is.
-     ;(display "stack: ")
-     ;(display stack)
-     ;(newline)
-     ;(display "code: ") 
-     ;(display code)
-     ;(newline)
-     ;(display "ip: ")
-     ;(display ip)
-     ;(newline)
+     (display "stack: ")
+     (display stack)
+     (newline)
+     (display "code: ") 
+     (display code)
+     (newline)
+     (display "ip: ")
+     (display ip)
+     (newline)
      (cond
         (or (type? (car stack) "ERROR")
             (typhon@error? (car stack)))
