@@ -1194,6 +1194,8 @@
             (eq? (car c) 'c-primitive)
             (or
                 (eq? (cadr c) "fplus")
+                (eq? (cadr c) "fsubt")
+                (eq? (cadr c) "fappend")
                 (eq? (cadr c) "fnumeq")
                 (eq? (cadr c) "flt")
                 (eq? (cadr c) "flte")
@@ -1409,6 +1411,83 @@
         (and (number? o0) (not (number? o1))) #t
         else #f))
 
+(define (optimize-sub o out)
+    " optimize the primitive \"fsubt\" to be more performant.
+      very similar to what's done below, and the two *should* be folded together
+      before long, but for testing purposes, I'm going the easier route and
+      making a new function...
+    "
+    (let* ((args (caddr o))
+          (arg-len (length (caddr o)))
+          (a0 (nth args 0 #f)))
+        (cond
+            (> arg-len 2)
+                (begin
+                    (display "fplus(list(" out)
+                    (display arg-len out)
+                    (display ", " out)
+                    (comma-separated-c args out)
+                    (display "))" out))
+            (= arg-len 0) 
+                (display "makeintger(0)" out)
+            (= arg-len 1)
+                (cond
+                    (integer? a0)
+                        (display (format "makeinteger(~a)" a0) out)
+                    (rational? a0)
+                        (display
+                            (format
+                                "makerational(~a, ~a)"
+                                (numerator a0)
+                                (denomenator a0))
+                            out)
+                    (real? a0)
+                        (display (format "makereal(~a)" a0) out)
+                    (complex? a0)
+                        (display
+                            (format
+                                "makecomplex(~a, ~a)"
+                                (real-part a0)
+                                (imag-part a0))
+                            out)
+                    else
+                        (il->c a0 0 out))
+            (= arg-len 2)
+                (let ((a1 (nth args 1)))
+                    (cond
+                        (integer? a0)
+                            (begin
+                                (display (format "fsubt_in(~a, " a0) out)
+                                (il->c a1 0 out)
+                                (display ")" out))
+                        (integer? a1)
+                            (begin
+                                (display "fsubt_ni("  out)
+                                (il->c a0 0 out)
+                                (display (format ", ~a)" a1) out))
+                        (rational? a0)
+                            (begin
+                                (display (format "fsubt_qn(~a, ~a, " (numerator a0) (denomenator a0)) out)
+                                (il->c a1 0 out)
+                                (display ")" out))
+                        (real? a0)
+                            (begin
+                                (display (format "fsubt_rn(~a, " a0) out)
+                                (il->c a1 0 out)
+                                (display ")" out))
+                        (complex? a0)
+                            (begin
+                                (display (format "fsubt_cn(~a, ~a, " (real-part a0) (imag-part a0)) out)
+                                (il->c a1 0 out)
+                                (display ")" out))
+                        else
+                            (begin
+                                (display "fsubt_nn(" out)
+                                (il->c a0 0 out)
+                                (display ", " out)
+                                (il->c a1 0 out)
+                                (display ")" out)))))))
+
 (define (optimize-add o out)
     " optimize the primitive \"fplus\" to be a bit more
       performance-friendly. Things to look into:
@@ -1522,6 +1601,26 @@
         (display type out)
         (display ")" out)))
 
+(define (optimize-fappend code out)
+    (let* ((args (caddr code))
+          (len (length args)))
+        (if (= len 2)
+            (let ((a0 (car args))
+                  (a1 (cadr args)))
+                (display "bappend(" out)
+                (il->c a0 0 out)
+                (display ", " out)
+                (il->c a1 0 out)
+                (display ")" out))
+            (begin
+                (display
+                    (format
+                        "fappend(list(~a,"
+                        len)
+                    out)
+                (comma-separated-c args out)
+                (display "))" out)))))
+
 (define (optimize-fnot code out status?)
     (let* ((args (caddr code)) 
            (obj (car args)))
@@ -1624,6 +1723,8 @@
             (optimize-eq o out status)
         (eq? (cadr o) "fplus")
             (optimize-add o out)
+        (eq? (cadr o) "fsubt")
+            (optimize-sub o out)
         (eq? (cadr o) "fdset")
             (optimize-dset o out)
         (eq? (cadr o) "fvset")
@@ -1634,6 +1735,8 @@
             (optimize-typep o out status)
         (eq? (cadr o) "fnot")
             (optimize-fnot o out status)
+        (eq? (cadr o) "fappend")
+            (optimize-fappend o out)
         (eq? (cadr o) "inc")
             (let ((first-arg (caaddr o))
                   (second-arg (cadr (caddr o))))

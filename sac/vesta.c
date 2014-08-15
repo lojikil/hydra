@@ -1390,7 +1390,7 @@ fnv1a_s(SExp *s_key){
 
 int
 fnv1a(char *key, int len){
-    uint64_t hash = 14695981039346656037;
+    uint64_t hash = 14695981039346656037ul;
     uint32_t idx = 0;
     for(; idx < len; idx++){
         hash ^= key[idx];
@@ -3651,6 +3651,109 @@ fplus_nn(SExp *i, SExp *n)
                     return makerational((NUM(i) * DEN(n)) + (NUM(n) * DEN(i)), DEN(i) * DEN(n));
                 case COMPLEX:
                     return makecomplex(AREAL(i) + CEREAL(n), IMMAG(n));
+            }
+    }
+}
+SExp *
+fsubt_in(int i, SExp *n)
+{
+    SExp *ret = nil;
+    if(n->type != NUMBER)
+        return makeerror(1,0,"type class: - operates only on numbers...");
+    switch(NTYPE(n))
+    {
+        case INTEGER:
+            return makeinteger(i - AINT(n));
+        case REAL:
+            return makereal(i - AREAL(n));
+        case RATIONAL:
+            return makerational((i * DEN(n) - NUM(n)), DEN(n));
+        case COMPLEX:
+            return makecomplex(i - CEREAL(n), IMMAG(n));
+    }
+}
+SExp *
+fsubt_ni(SExp *n, int i)
+{
+    SExp *ret = nil;
+    if(n->type != NUMBER)
+        return makeerror(1,0,"type class: - operates only on numbers...");
+    switch(NTYPE(n))
+    {
+        case INTEGER:
+            return makeinteger(AINT(n) - i);
+        case REAL:
+            return makereal(AREAL(n) - i);
+        case RATIONAL:
+            return makerational((i * DEN(n) - NUM(n)), DEN(n));
+        case COMPLEX:
+            return makecomplex(CEREAL(n) - i, IMMAG(n));
+    }
+}
+SExp *
+fsubt_nn(SExp *i, SExp *n)
+{
+    SExp *ret = nil;
+    if(n->type != NUMBER)
+        return makeerror(1,0,"type class: - operates only on numbers...");
+    switch(NTYPE(i))
+    {
+        case INTEGER:
+            switch(NTYPE(n))
+            {
+                case INTEGER:
+                    return makeinteger(AINT(i) - AINT(n));
+                case REAL:
+                    return makereal(AINT(i) - AREAL(n));
+                case RATIONAL:
+                    /*
+                       a      c
+                      --- +- ---
+                       b      d
+                          =
+                       ad +- bc
+                       --------
+                          bd
+                    */
+                    return makerational((AINT(i) * DEN(n) - NUM(n)), DEN(n)); // b == 1 for ints
+                case COMPLEX: /* nothing for now */
+                    return makecomplex(AINT(i) + CEREAL(n), IMMAG(n));
+            }
+        case REAL:
+            switch(NTYPE(n))
+            {
+                case INTEGER:
+                    return makereal(AREAL(i) - AINT(n));
+                case REAL:
+                    return makereal(AREAL(i) - AREAL(n));
+                case RATIONAL:
+                    return makereal(AREAL(i) - ((NUM(n) * 1.0) / (DEN(n) * 1.0)));
+                case COMPLEX:
+                    return makecomplex(AREAL(i) - CEREAL(n), IMMAG(n));
+            }
+        case COMPLEX:
+            switch(NTYPE(n))
+            {
+                case INTEGER:
+                    return makecomplex(CEREAL(i) - AINT(n), IMMAG(i));
+                case REAL:
+                    return makecomplex(CEREAL(i) - AREAL(n), IMMAG(i));
+                case RATIONAL:
+                    return makecomplex(CEREAL(i) - ((NUM(n) * 1.0) / (DEN(n) * 1.0)), IMMAG(i));
+                case COMPLEX:
+                    return makecomplex(CEREAL(i) - CEREAL(n), IMMAG(i) - IMMAG(n));
+            }
+        case RATIONAL:
+            switch(NTYPE(n))
+            {
+                case INTEGER:
+                    return makerational((AINT(n) * DEN(i) - NUM(i)), DEN(i));
+                case REAL:
+                    return makereal(AREAL(i) - AREAL(n));
+                case RATIONAL:
+                    return makerational((NUM(i) * DEN(n)) - (NUM(n) * DEN(i)), DEN(i) * DEN(n));
+                case COMPLEX:
+                    return makecomplex(AREAL(i) - CEREAL(n), IMMAG(n));
             }
     }
 }
