@@ -107,6 +107,13 @@ cons(SExp *s0, SExp *s1)
 	ret->type = PAIR;
 	ret->object.clist.first = s0;
 	ret->object.clist.rest = s1;
+    //printf("s1 == %s\n", typenames[s1->type]);
+    if(s1->type != PAIR){
+        ret->length = 1;
+    } else {
+        //printf("s1 == PAIR and length == %d\n", s1->length);
+        ret->length = s1->length + 1;
+    }
 	cons_cnt++;
 	return ret;
 }
@@ -346,6 +353,8 @@ pairlength(SExp *s)
 	SExp *holder = s;
 	if(s == nil || s->type != PAIR)
 		return 0;
+    //printf("in pairlength; len == %d\n", s->length);
+    //return s->length;
 	while(holder != snil)
 	{
 		i++;

@@ -377,10 +377,10 @@
                         (cons (car stack) (vector-ref top-dump (- offset 5)))
                         (vector-ref top-dump (- offset 6))
                         (list (- offset 6) top-dump))))
-        (typhon@error? (nth code ip))
-            (nth code ip)
+        (typhon@error? (vector-ref code ip))
+            (vector-ref code ip)
          else
-         (let* ((c (nth code ip))
+         (let* ((c (vector-ref code ip))
                 (instr (typhon@instruction c)))
               ;(display (format "current ip: ~n~%current instruction: " ip))
               ;(write (nth code ip))
@@ -1451,7 +1451,7 @@
     (list 'compiled-lambda
         (vector
             env
-            (compile-begin (cdr rst) (car rst) env)
+            (coerce (compile-begin (cdr rst) (car rst) env) 'vector)
             (car rst)))) 
 
 (define (typhon@add-env! name value environment)
@@ -1485,7 +1485,7 @@
 
 (define (typhon@eval line env dump)
     "simple wrapper around typhon@vm & typhon@compile"
-    (with code (typhon@compile line '() env)
+    (with code (coerce (typhon@compile line '() env) 'vector)
         (typhon@vm code (length code) env 0 '() '() dump)))
 
 (define (typhon@compile-help sym iter-list params env)
