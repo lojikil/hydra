@@ -9,7 +9,7 @@ CFLAGS=
 typhon: $(TFILE) $(RTSFILES)
 	$(CC) -o $(TEXE) $(TFILE) $(RTSFILES) $(LIBS) $(CFLAGS)
 opt-typhon: $(TFILE) $(RTSFILES)
-	$(CC) -O2 -o $(TEXE) $(TFILE) $(RTSFILES) $(LIBS) $(CFLAGS)
+	$(CC) -O2 -o opt-$(TEXE) $(TFILE) $(RTSFILES) $(LIBS) $(CFLAGS)
 debug-typhon: $(TFILE) $(RTSFILES)
 	$(CC) -pg -g -o $(TEXE)-debug $(TFILE) $(RTSFILES) $(LIBS) $(CFLAGS)
 ceres: $(CFILE) $(RTSFILES)
