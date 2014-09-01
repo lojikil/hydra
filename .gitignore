@@ -5,6 +5,10 @@ hydra.ss.c
 typhon.ss.c
 ceres.ss.c
 *.ss.c
+gmon.out
+gprof.out
+opt-typhon
+typhon-debug
 hydra
 ceres
 typhon
