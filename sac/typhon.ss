@@ -80,6 +80,7 @@
 (define-struct typhon-syntax (name))
 (define-struct typhon-procedure (name)) ;; should include arity, but for now...
 (define-struct typhon-error (message))
+(define-struct typhon-struct (name keys vals))
 
 (define-syntax caar () ((caar x) (car (car x))))
 (define-syntax cadr () ((cadr x) (car (cdr x))))
