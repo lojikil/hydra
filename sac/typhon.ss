@@ -1182,7 +1182,13 @@
                                 (+ ip 1)
                                 (cdr stack)
                                 locals
-                                dump))))))
+                                dump))
+                    (114) ;; return
+                        (car stack)
+                    (115) ;; return from literal
+                        (typhon@operand c)
+                    (116) ;; return from environment/locals
+                        #f))))
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))

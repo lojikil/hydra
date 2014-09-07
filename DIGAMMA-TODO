@@ -73,17 +73,17 @@ Since this is my internal notes on what I'm working on with Digamma, I thought I
 - *DONE*: Detect errors on the stack in Typhon
 - *DONE*: Move "display" instruction to be a call procedure instruction; top of stack is number of parameters.
 - *DONE*: fix `(0 '(1 2 3 4 5)) => 1` (i.e. inserting the opcode for CAR allows a user to run CAR)
-- Fix `(define x '(primitive . 0)) (x '(1 2 3 4))` which returns `1`, aka it is able to run CAR (Sandbox escape 0)
-- Fix `(define y '(procedure . "display")) (display 13)` which displays 13 & returns 13, aka is able to run procedures (Sandbox escape 1)
-- For the above two sandbox escapes: maybe test with eq? which would ensure we're only running the values that were pre-allocated...
-- For the above sandbox issues: wrap/tag user provided data with a USER tag; unwrap in all Hydra@vm at the right time (i.e. prior to call, but not for dispatch)
+- *DONE*: Fix `(define x '(primitive . 0)) (x '(1 2 3 4))` which returns `1`, aka it is able to run CAR (Sandbox escape 0)
+- *DONE*: Fix `(define y '(procedure . "display")) (display 13)` which displays 13 & returns 13, aka is able to run procedures (Sandbox escape 1)
+- *WON'T*: For the above two sandbox escapes: maybe test with eq? which would ensure we're only running the values that were pre-allocated...
+- *DONE*: (used structs) For the above sandbox issues: wrap/tag user provided data with a USER tag; unwrap in all Hydra@vm at the right time (i.e. prior to call, but not for dispatch)
 - The "eq?" version is better, I think, because it requires less memory overall; the tagged version requires each user value to be tagged, which is needlessly wasteful
 - Core version without repl/read, for use with IL->JS
 - Move stack from pair to vector with fixed size, stack pointer, &c. (testing)
 - *DONE*: add define-syntax and syntax-expand to Typhon
 - *WON'T*: add define-syntax and syntax-expand to Hydra
 - add define-macro and macro-expand to Typhon
-- *WON'T*add define-macro and macro-expand to Hydra
+- *WON'T*: add define-macro and macro-expand to Hydra
 - *DONE*: Move dump from pair to vector with fixed size, stack pointer, &c. (testing)
 - *DONE*: hydra@\{operand, instruction\} => simple syntax
 - *DONE*: add BEGIN form to Hydra
