@@ -1188,7 +1188,12 @@
                     (115) ;; return from literal
                         (typhon@operand c)
                     (116) ;; return from environment/locals
-                        #f))))
+                        (let ((element (typhon@operand c)))
+                            (cond
+                                (integer? element) (vector-ref locals element)
+                                (atom? element) ;; environment return
+                                    (typhon@lookup element env)
+                                else (typhon@error "stack underflow in return")))))))
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
