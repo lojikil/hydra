@@ -1452,14 +1452,14 @@
         (dict-has? (car env) item) (nth (car env) item) 
         else (typhon@lookup item (cdr env))))
 
-(define (compile-begin lst params env)
+(define (compile-begin lst params env tail?)
     (if (null? lst)
         '()
         (append
             (typhon@compile (car lst) params env)
             (compile-begin (cdr lst) params env))))
 
-(define (compile-lambda rst env)
+(define (compile-lambda rst env tail?)
     (list 'compiled-lambda
         (vector
             env
@@ -1500,7 +1500,7 @@
     (with code (coerce (typhon@compile line '() env) 'vector)
         (typhon@vm code (length code) env 0 '() '() dump)))
 
-(define (typhon@compile-help sym iter-list params env)
+(define (typhon@compile-help sym iter-list params env tail?)
     " a helper function for typhon@compile, which collects
       the old use of append-map into a single function that
       Eprime can compile (still haven't added HOFs to E'...
@@ -1509,18 +1509,25 @@
     (if (null? iter-list)
         iter-list
         (append
-            (typhon@compile (car iter-list) params env)
+            (typhon@compile (car iter-list) params env tail?)
             (list (list (typhon-primitive-value (typhon@lookup sym env))))
-            (typhon@compile-help sym (cdr iter-list) params env))))
+            (typhon@compile-help sym (cdr iter-list) params env tail?))))
 
-(define (typhon@map iter-list params env)
+(define (typhon@map iter-list params env tail?)
     (if (null? iter-list)
         iter-list
         (cons
-            (typhon@compile (car iter-list) params env)
+            (typhon@compile (car iter-list) params env tail?)
             (typhon@map (cdr iter-list) params env))))
 
-(define (typhon@compile line params env)
+;; tail?:
+;; Need to think about this a bit; the "tail?" parameter is meant to signify that
+;; something can be turned into one of the 3-types of `ret` instructions that the
+;; VM knows about. However, we cannot blindly pass tail? around; inside of forms
+;; it doesn't matter; for instance, `(= x 10)` might be in the tail position,
+;; but we don't want to pass `tail?` = `#t` in when compiling `x` or `10`, only
+;; for the top-level `=` form.
+(define (typhon@compile line params env tail?)
     (catch compile-error
         (if (null? line)
             '()
@@ -1559,7 +1566,7 @@
                             (not (eq? param-mem? #f))
                                 (append
                                     (reverse-append 
-                                        (typhon@map rst params env))
+                                        (typhon@map rst params env tail?))
                                     (list (list 112 (- (length params) (length param-mem?))))
                                     (list (list 110 'param)))
                             (typhon-syntax? v) ;; primitive syntax
@@ -1573,14 +1580,14 @@
                                             (= (length rst) 2)
                                                 (append
                                                     '((4)) ; this should really be a typhon@error
-                                                    (typhon@compile (cadr rst) params env)
-                                                    (typhon@compile (car rst) params env)
+                                                    (typhon@compile (cadr rst) params env tail?)
+                                                    (typhon@compile (car rst) params env tail?)
                                                     '((55)))
                                             (= (length rst) 3)
                                                 (append
-                                                    (typhon@compile (caddr rst) params env)
-                                                    (typhon@compile (cadr rst) params env)
-                                                    (typhon@compile (car rst) params env)
+                                                    (typhon@compile (caddr rst) params env tail?)
+                                                    (typhon@compile (cadr rst) params env tail?)
+                                                    (typhon@compile (car rst) params env tail?)
                                                     '((55)))
                                             else
                                                 (throw compile-error (typhon@error "incorrect arity for NTH")))
@@ -1588,45 +1595,45 @@
                                         (cond
                                             (= (length rst) 1)
                                                 (append '((3 0))
-                                                    (typhon@compile (car rst) params env)
+                                                    (typhon@compile (car rst) params env tail?)
                                                     (list (list (typhon-primitive-value (typhon@lookup '%+ env)))))
                                             (> (length rst) 1)
                                                 (append 
-                                                    (typhon@compile (car rst) params env)
-                                                    (typhon@compile-help '%+ (cdr rst) params env))
+                                                    (typhon@compile (car rst) params env tail?)
+                                                    (typhon@compile-help '%+ (cdr rst) params env tail?))
                                             else (list (list 3 0)))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-minus)
                                         (cond
                                             (= (length rst) 1)
                                                 (append '((3 0))
-                                                    (typhon@compile (car rst) params env)
-                                                    (list (list (typhon-primitive-value (typhon@lookup '%- env)))))
+                                                    (typhon@compile (car rst) params env tail?)
+                                                    (list (list (typhon-primitive-value (typhon@lookup '%- env tail?)))))
                                             (> (length rst) 1)
                                                 (append 
-                                                    (typhon@compile (car rst) params env)
-                                                    (typhon@compile-help '%- (cdr rst) params env))
+                                                    (typhon@compile (car rst) params env tail?)
+                                                    (typhon@compile-help '%- (cdr rst) params env tail?))
                                             else (throw compile-error (typhon@error "minus fail")))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-mult)
                                         (cond
                                             (= (length rst) 1)
                                                 (append '((3 0))
-                                                    (typhon@compile (car rst) params env)
+                                                    (typhon@compile (car rst) params env tail?)
                                                     (list (list (typhon-primitive-value (typhon@lookup '%* env)))))
                                             (> (length rst) 1)
                                                 (append 
-                                                    (typhon@compile (car rst) params env)
-                                                    (typhon@compile-help '%* (cdr rst) params env))
+                                                    (typhon@compile (car rst) params env tail?)
+                                                    (typhon@compile-help '%* (cdr rst) params env tail?))
                                             else (list (list 3 1)))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-div)
                                         (cond
                                             (= (length rst) 1)
                                                 (append '((3 1))
-                                                    (typhon@compile (car rst) params env)
-                                                    (list (list (typhon@lookup '%/ env))))
+                                                    (typhon@compile (car rst) params env tail?)
+                                                    (list (list (typhon-primitive-value (typhon@lookup '%/ env)))))
                                             (> (length rst) 1)
                                                 (append 
-                                                    (typhon@compile (car rst) params env)
-                                                    (typhon@compile-help '%/ (cdr rst) params env))
+                                                    (typhon@compile (car rst) params env tail?)
+                                                    (typhon@compile-help '%/ (cdr rst) params env tail?))
                                             else (throw compile-error (typhon@error "division fail")))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-numeq)
                                         (cond
@@ -1634,8 +1641,8 @@
                                                 (list (list 3 #t))
                                             (> (length rst) 1)
                                                 (append
-                                                    (typhon@compile (car rst) params env)
-                                                    (typhon@compile-help '%= (cdr rst) params env))
+                                                    (typhon@compile (car rst) params env tail?)
+                                                    (typhon@compile-help '%= (cdr rst) params env tail?))
                                             else (throw compile-error (typhon@error "numeq fail")))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-define)
                                         (let ((name (car rst))
