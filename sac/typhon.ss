@@ -1532,18 +1532,33 @@
         (if (null? line)
             '()
             (cond
-                (vector? line) (list (list 3 line))
-                (dict? line) (list (list 3 (dict type: 'dict value: line)))
+                (vector? line)
+                    (if tail?
+                        (list (list 115 line))
+                        (list (list 3 line)))
+                (dict? line) 
+                    (if tail? 
+                        (list (list 115 (dict type: 'dict value: line)))
+                        (list (list 3 (dict type: 'dict value: line))))
                 (symbol? line) 
                     (let ((param-mem? (memq line params)))
                         (if (not (eq? param-mem? #f))
-                            (list
+                            (if tail?
                                 (list
-                                    112 ;; fast load
-                                    (- 
-                                        (length params)
-                                        (length param-mem?))))
-                            (list (list 31 line)))) ;; environment-load
+                                    (list
+                                        116
+                                        (- 
+                                            (length params)
+                                            (length param-mem?))))
+                                (list
+                                    (list
+                                        112 ;; fast load
+                                        (- 
+                                            (length params)
+                                            (length param-mem?)))))
+                            (if tail?
+                                (list (list 116 line))
+                                (list (list 31 line))))) ;; environment-load
                 (pair? line) 
                     (let* ((fst (car line)) ;; decompose line into first & rest
                            (v (typhon@lookup fst env)) ;; find fst in env
