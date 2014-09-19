@@ -1587,9 +1587,16 @@
                             (typhon-syntax? v) ;; primitive syntax
                                 (cond
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-quote)
-                                        (if (null? (car rst))
-                                            '((4))
-                                            (list (list 3 (car rst))))
+                                        (cond
+                                            ; this case is covered by the generic tail? case...
+                                            ;(and (null? (car rst)) tail?)
+                                            ;    '((115 ()))
+                                            tail? ;; e.g. tail pos, but *not* null
+                                                (list (list 115 (car rst))) ;; could be combined with first case...
+                                            (null? (car rst)) ;; e.g. null, but *not* tail pos
+                                                '((4))
+                                            else
+                                                (list (list 3 (car rst))))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-nth)
                                         (cond
                                             (= (length rst) 2)
@@ -1803,8 +1810,8 @@
                                         ;; add count to CMP instruction to jump to <else>
                                         ;; add count to <then> to skip <else>
                                         (let* ((<cond> (typhon@compile (car rst) params env #f))
-                                               (<then> (typhon@compile (cadr rst) params env #f))
-                                               (<else> (typhon@compile (caddr rst) params env #f))
+                                               (<then> (typhon@compile (cadr rst) params env tail?)) ;; should we rely on this here?
+                                               (<else> (typhon@compile (caddr rst) params env tail?))
                                                (then-len (+ (length <then>) 2)) ;; +2 in order to avoid the jump over else
                                                (else-len (+ (length <else>) 1)))
                                             ;; the `28 else-len` is a great opportunity to use a return
