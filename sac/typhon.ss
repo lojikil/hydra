@@ -1191,7 +1191,7 @@
                         (let ((element (typhon@operand c)))
                             (cond
                                 (integer? element) (vector-ref locals element)
-                                (atom? element) ;; environment return
+                                (symbol? element) ;; environment return
                                     (typhon@lookup element env)
                                 else (typhon@error "stack underflow in return")))))))
 
@@ -1456,14 +1456,14 @@
     (if (null? lst)
         '()
         (append
-            (typhon@compile (car lst) params env)
-            (compile-begin (cdr lst) params env))))
+            (typhon@compile (car lst) params env tail?)
+            (compile-begin (cdr lst) params env tail?))))
 
 (define (compile-lambda rst env tail?)
     (list 'compiled-lambda
         (vector
             env
-            (coerce (compile-begin (cdr rst) (car rst) env) 'vector)
+            (coerce (compile-begin (cdr rst) (car rst) env tail?) 'vector)
             (car rst)))) 
 
 (define (typhon@add-env! name value environment)
