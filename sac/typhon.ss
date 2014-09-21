@@ -1497,7 +1497,7 @@
 
 (define (typhon@eval line env dump)
     "simple wrapper around typhon@vm & typhon@compile"
-    (with code (coerce (typhon@compile line '() env) 'vector)
+    (with code (coerce (typhon@compile line '() env #f) 'vector)
         (typhon@vm code (length code) env 0 '() '() dump)))
 
 (define (typhon@compile-help sym iter-list params env tail?)
@@ -1518,7 +1518,7 @@
         iter-list
         (cons
             (typhon@compile (car iter-list) params env tail?)
-            (typhon@map (cdr iter-list) params env))))
+            (typhon@map (cdr iter-list) params env tail?))))
 
 ;; tail?:
 ;; Need to think about this a bit; the "tail?" parameter is meant to signify that

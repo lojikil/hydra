@@ -1761,6 +1761,11 @@
       optimizations to if statements (like rewriting flt to flt_XX)"
     (show <cond> "in if-condition: ")
     (cond
+        (not (pair? <cond>))
+            (begin
+                (display "(" out)
+                (il->c <cond> 0 out)
+                (display " == STRUE)" out))
         (eq? (car <cond>) 'c-and) 
             (condition-connector
                 (cdr <cond>)
