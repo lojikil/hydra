@@ -1629,7 +1629,7 @@
                                             (= (length rst) 1)
                                                 (append '((3 0))
                                                     (typhon@compile (car rst) params env #f)
-                                                    (list (list (typhon-primitive-value (typhon@lookup '%- env #f)))))
+                                                    (list (list (typhon-primitive-value (typhon@lookup '%- env)))))
                                             (> (length rst) 1)
                                                 (append 
                                                     (typhon@compile (car rst) params env #f)
