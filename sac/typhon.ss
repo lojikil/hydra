@@ -1453,17 +1453,25 @@
         else (typhon@lookup item (cdr env))))
 
 (define (compile-begin lst params env tail?)
-    (if (null? lst)
-        '()
-        (append
-            (typhon@compile (car lst) params env tail?)
-            (compile-begin (cdr lst) params env tail?))))
+    (cond
+        (null? lst)
+            '()
+        (and
+            tail?
+            (null? (cdr lst))) ;; tail
+            (typhon@compile (car lst) params env #t)
+        else
+            (append
+                (typhon@compile (car lst) params env tail?)
+                (compile-begin (cdr lst) params env tail?))))
 
 (define (compile-lambda rst env tail?)
     (list 'compiled-lambda
         (vector
             env
-            (coerce (compile-begin (cdr rst) (car rst) env tail?) 'vector)
+            (coerce
+                (compile-begin (cdr rst) (car rst) env #t)
+                'vector)
             (car rst)))) 
 
 (define (typhon@add-env! name value environment)
@@ -1667,6 +1675,9 @@
                                                     (typhon@compile-help '%= (cdr rst) params env #f))
                                             else (throw compile-error (typhon@error "numeq fail")))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-define)
+                                        ;; this almost certainly need not be an instruction...
+                                        ;; just about all syntax could just be at the syntactic
+                                        ;; level...
                                         (let ((name (car rst))
                                               (value (cadr rst)))
                                             (cond
