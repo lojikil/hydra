@@ -365,7 +365,7 @@
         (typhon@error? code)
             code
         (>= ip code-len)
-            (if (= (car dump) 0)
+            (if (= (car dump) 0) ;; should switch dump to a struct...
                 (car stack)
                 (let ((top-dump (cadr dump))
                       (offset (car dump)))
@@ -1184,10 +1184,35 @@
                                 locals
                                 dump))
                     (114) ;; return
-                        (car stack)
+                        (if (= (car dump) 0) ;; should switch dump to a struct...
+                            (car stack)
+                            (let ((top-dump (cadr dump))
+                                  (offset (car dump)))
+
+                                (typhon@vm
+                                    (vector-ref top-dump (- offset 1))
+                                    (vector-ref top-dump (- offset 2))
+                                    (vector-ref top-dump (- offset 3))
+                                    (+ (vector-ref top-dump (- offset 4)) 1)
+                                    (cons (car stack) (vector-ref top-dump (- offset 5)))
+                                    (vector-ref top-dump (- offset 6))
+                                    (list (- offset 6) top-dump))))
                     (115) ;; return from literal
-                        (typhon@operand c)
+                        (if (= (car dump) 0) ;; should switch dump to a struct...
+                            (typhon@operand c)
+                            (let ((top-dump (cadr dump))
+                                  (offset (car dump)))
+
+                                (typhon@vm
+                                    (vector-ref top-dump (- offset 1))
+                                    (vector-ref top-dump (- offset 2))
+                                    (vector-ref top-dump (- offset 3))
+                                    (+ (vector-ref top-dump (- offset 4)) 1)
+                                    (cons (typhon@operand c) (vector-ref top-dump (- offset 5)))
+                                    (vector-ref top-dump (- offset 6))
+                                    (list (- offset 6) top-dump))))
                     (116) ;; return from environment/locals
+                          ;; need to wedge the above items into here some how...
                         (let ((element (typhon@operand c)))
                             (cond
                                 (integer? element) (vector-ref locals element)
@@ -1548,10 +1573,10 @@
                     (if tail? 
                         (list (list 115 (dict type: 'dict value: line)))
                         (list (list 3 (dict type: 'dict value: line))))
-                (number? line)
-                    (if tail?
-                        (list (list 115 line))
-                        (list (list 3 line)))
+                ;(number? line)
+                ;    (if tail?
+                ;        (list (list 115 line))
+                ;        (list (list 3 line)))
                 (symbol? line) 
                     (let ((param-mem? (memq line params)))
                         (if (not (eq? param-mem? #f))
@@ -1831,6 +1856,9 @@
                                                (else-len (+ (length <else>) 1)))
                                             ;; the `28 else-len` is a great opportunity to use a return
                                             ;; instruction here...
+                                            (display "In syntax-if; tail is: ")
+                                            (write tail?)
+                                            (newline)
                                             (append <cond>
                                                 (list (list 29 then-len)) ;; compare & jump
                                                 <then>
@@ -1896,7 +1924,10 @@
                                             (list (list 31 fst))
                                             (list (list 110 'not-found)))
                                 else (throw compile-error (typhon@error "error: the only applicable types are primitive procedures, closures & syntax"))))
-                else (list (list 3 line))))))
+                else 
+                    (if tail?
+                        (list (list 115 line))
+                        (list (list 3 line)))))))
 
 ;; need to separate user values from what 
 ;; is returned in the eval...
