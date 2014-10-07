@@ -1548,6 +1548,10 @@
                     (if tail? 
                         (list (list 115 (dict type: 'dict value: line)))
                         (list (list 3 (dict type: 'dict value: line))))
+                (number? line)
+                    (if tail?
+                        (list (list 115 line))
+                        (list (list 3 line)))
                 (symbol? line) 
                     (let ((param-mem? (memq line params)))
                         (if (not (eq? param-mem? #f))
