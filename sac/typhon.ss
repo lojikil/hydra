@@ -598,7 +598,7 @@
                                     ;; recurse over typhon@vm. 
                                     ;; need to support CALLing primitives too, since they could be passed
                                     ;; in to HOFs...
-                                    (if (> (car dump) (length (cadr dump)))
+                                    (if (> (typhon-dump-offset dump) (length (typhon-dump-dump dump)))
                                         (error "Dump stack overflow")
                                         (let ((env-and-stack (build-environment (vector-ref (cadr call-proc) 1) stack (vector-ref (cadr call-proc) 2) locals))
                                               (v-dump (typhon-dump-dump dump))
