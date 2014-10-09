@@ -81,6 +81,7 @@
 (define-struct typhon-procedure (name)) ;; should include arity, but for now...
 (define-struct typhon-error (message))
 (define-struct typhon-struct (name keys vals))
+(define-struct typhon-dump (offset dump)) ;; almost a singleton...
 
 (define-syntax caar () ((caar x) (car (car x))))
 (define-syntax cadr () ((cadr x) (car (cdr x))))
@@ -365,10 +366,13 @@
         (typhon@error? code)
             code
         (>= ip code-len)
-            (if (= (car dump) 0) ;; should switch dump to a struct...
+            (if (= (typhon-dump-offset dump) 0) ;; should switch dump to a struct...
                 (car stack)
-                (let ((top-dump (cadr dump))
-                      (offset (car dump)))
+                (let ((top-dump (typhon-dump-dump dump)) ;; dump dump dump dump.... dump dump dump dump DUUUUUMP
+                      (offset (typhon-dump-offset dump)))
+                    ;; don't like how imperative this feels, but
+                    ;; it should be relatively more efficient. 
+                    (typhon-dump-set-offset! dump (- offset 6))
 
                     (typhon@vm
                         (vector-ref top-dump (- offset 1))
@@ -377,7 +381,7 @@
                         (+ (vector-ref top-dump (- offset 4)) 1)
                         (cons (car stack) (vector-ref top-dump (- offset 5)))
                         (vector-ref top-dump (- offset 6))
-                        (list (- offset 6) top-dump))))
+                        dump)))
         (typhon@error? (vector-ref code ip))
             (vector-ref code ip)
          else
@@ -597,21 +601,22 @@
                                     (if (> (car dump) (length (cadr dump)))
                                         (error "Dump stack overflow")
                                         (let ((env-and-stack (build-environment (vector-ref (cadr call-proc) 1) stack (vector-ref (cadr call-proc) 2) locals))
-                                              (v-dump (cadr dump))
-                                              (offset (car dump)))
+                                              (v-dump (typhon-dump-dump dump))
+                                              (offset (typhon-dump-offset dump)))
                                             (vector-set! v-dump offset locals)
                                             (vector-set! v-dump (+ offset 1) (cadr env-and-stack))
                                             (vector-set! v-dump (+ offset 2) ip)
                                             (vector-set! v-dump (+ offset 3) env)
                                             (vector-set! v-dump (+ offset 4) code-len)
                                             (vector-set! v-dump (+ offset 5) code)
+                                            (typhon-dump-set-offset! dump (+ offset 6))
                                             (typhon@vm
                                                 (vector-ref (cadr call-proc) 1)
                                                 (length (vector-ref (cadr call-proc) 1))
                                                 (car env-and-stack)
                                                 0 '() 
                                                 (caddr env-and-stack)
-                                                (list (+ offset 6) v-dump))))
+                                                dump)))
                                 (typhon-primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
                                     (begin
                                         ;(display "in typhon@primitive\n\t")
@@ -1126,8 +1131,8 @@
                                     (if (> (car dump) (length (cadr dump)))
                                         (error "Dump stack overflow")
                                         (let ((env-and-stack (build-environment (vector-ref (cadr call-proc) 0) (cdr stack) (vector-ref (cadr call-proc) 2) locals))
-                                              (v-dump (cadr dump))
-                                              (offset (car dump)))
+                                              (v-dump (typhon-dump-dump dump))
+                                              (offset (typhon-dump-offset dump)))
                                             ;(display "in let; (car env-and-stack) == ")
                                             ;(write (car env-and-stack))
                                             ;(newline)
@@ -1137,13 +1142,14 @@
                                             (vector-set! v-dump (+ offset 3) env)
                                             (vector-set! v-dump (+ offset 4) code-len)
                                             (vector-set! v-dump (+ offset 5) code)
+                                            (typhon-dump-set-offset! dump (+ offset 6))
                                             (typhon@vm
                                                 (vector-ref (cadr call-proc) 1)
                                                 (length (vector-ref (cadr call-proc) 1))
                                                 (car env-and-stack)
                                                 0 '() 
                                                 (caddr env-and-stack)
-                                                (list (+ offset 6) v-dump))))
+                                                dump)))
                                 (typhon-primitive? (car stack)) ;; if primitives stored arity, slicing would be easy...
                                     #t
                                 else
@@ -2010,14 +2016,15 @@
                     (typhon@repl env dump)))))))
 
 (define (typhon@main args)
-    (let ((e {})
-          (dump (make-vector 1000 #v)))
+    (let* ((e {})
+          (v-dump (make-vector 1000 #v))
+          (dump (make-typhon-dump 0 v-dump)))
         (typhon@init-env e)
         (if (> (length args) 0)
             (begin
                 (typhon@add-env! '*command-line* (cslice args 1 (length args)) (list e))
-                (typhon@load (nth args 0) (list e) (list 0 dump)))
+                (typhon@load (nth args 0) (list e) dump))
             (begin
                 (display "\n\t()\n\t  ()\n\t()  ()\nDigamma/Typhon: 2014.3/r0\n")
                 (typhon@add-env! '*command-line* '() (list e))
-                (typhon@repl (list e) (list 0 dump))))))
+                (typhon@repl (list e) dump)))))
