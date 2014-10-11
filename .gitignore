@@ -16,3 +16,4 @@ typhon
 *.o
 sac/perf/*
 *.stackdump
+*.times
