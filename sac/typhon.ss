@@ -1501,7 +1501,7 @@
         (vector
             env
             (coerce
-                (compile-begin (cdr rst) (car rst) env #t)
+                (compile-begin (cdr rst) (car rst) env #f)
                 'vector)
             (car rst)))) 
 
@@ -1862,9 +1862,9 @@
                                                (else-len (+ (length <else>) 1)))
                                             ;; the `28 else-len` is a great opportunity to use a return
                                             ;; instruction here...
-                                            (display "In syntax-if; tail is: ")
-                                            (write tail?)
-                                            (newline)
+                                            ;(display "In syntax-if; tail is: ")
+                                            ;(write tail?)
+                                            ;(newline)
                                             (append <cond>
                                                 (list (list 29 then-len)) ;; compare & jump
                                                 <then>
