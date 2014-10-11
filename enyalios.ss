@@ -2282,7 +2282,11 @@
                 ;; shadow parameters that need not be.
                 (cond
                     (< (length (caddr il)) (nth proc-data 2))
-                        (error (format "Incorrect arity for user-defined lambda: ~a" (cadr il)))
+                        (begin
+                            (display "il: ")
+                            (write il)
+                            (newline)
+                            (error (format "Incorrect arity for user-defined lambda: ~a" (cadr il))))
                     (= (length (caddr il)) 0)
                         (begin
                             (int->spaces lvl out)
@@ -2324,7 +2328,11 @@
         (eq? (car il) 'c-call)
             (let ((proc-data (nth *ulambdas* (cadr il))))
                 (if (< (length (caddr il)) (nth proc-data 2))
-                    (error (format "Incorrect arity for user-defined lambda ~a" (cadr il)))
+                    (begin
+                        (display "il: ")
+                        (write il)
+                        (newline)
+                        (error (format "Incorrect arity for user-defined lambda ~a" (cadr il))))
                     (begin
                         (display (cmung (cadr il)) out)
                         (display "(" out)
