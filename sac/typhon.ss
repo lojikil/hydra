@@ -366,14 +366,14 @@
         (typhon@error? code)
             code
         (>= ip code-len)
-            (if (= (typhon-dump-offset dump) 0) ;; should switch dump to a struct...
+            (if (= offset 0) ;; should switch dump to a struct...
                 (car stack)
                 (typhon@vm
                     (vector-ref dump (- offset 1))
                     (vector-ref dump (- offset 2))
                     (vector-ref dump (- offset 3))
                     (+ (vector-ref dump (- offset 4)) 1)
-                    (cons (car stack) (vector-ref dump (- offset 5)))
+                    (cons (car stack) (vector-ref dump (- offset 6)))
                     (vector-ref dump (- offset 6))
                     dump
                     (- offset 6)))
@@ -493,7 +493,7 @@
                     (16) ;; procedure call
                     (let* ((arity (caddr c))
                            (args (cslice stack 0 arity))
-                           (ret (procedure-runner (typhon@operand c) arity args env dump offset)))
+                           (ret (procedure-runner (typhon@operand c) arity args env dump)))
                         (if (or (empty? stack) (= arity 0))
                            (typhon@vm
                                 code code-len
@@ -1197,7 +1197,7 @@
                                     (+ (vector-ref top-dump (- offset 4)) 1)
                                     (cons (car stack) (vector-ref top-dump (- offset 5)))
                                     (vector-ref top-dump (- offset 6))
-                                    (list (- offset 6) top-dump offset))))
+                                    (list (- offset 6) top-dump) offset)))
                     (115) ;; return from literal
                         (if (= (car dump) 0) ;; should switch dump to a struct...
                             (typhon@operand c)
@@ -1211,7 +1211,7 @@
                                     (+ (vector-ref top-dump (- offset 4)) 1)
                                     (cons (typhon@operand c) (vector-ref top-dump (- offset 5)))
                                     (vector-ref top-dump (- offset 6))
-                                    (list (- offset 6) top-dump offset))))
+                                    (list (- offset 6) top-dump) offset)))
                     (116) ;; return from environment/locals
                           ;; need to wedge the above items into here some how...
                         (let ((element (typhon@operand c)))
