@@ -26,4 +26,6 @@ SExp *typhon_main(SExp *args);
 #define SVOID svoid
 
 #define f_error(x) ((x)->type == STRING ? makeerror(2,0,x->object.str) : makeerror(2,1,"something happened"))
+
+#define DEBUG_LINE printf("[C-DEBUG] made it here: %d\n", __LINE__)
 #endif
