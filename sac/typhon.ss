@@ -311,6 +311,14 @@
                     (error "Incorrect arity for procedure: read"))
         (eq? proc "digamma-implementation")
             'typhon
+        (eq? proc "sys/stat")
+            (if (= arity 1)
+                (sys/stat (car args))
+                (error "Incorrect arity for procedure: sys/stat"))
+        (eq? proc "sys/getenv")
+            (if (= arity 1)
+                (sys/getenv (car args))
+                (error "Incorrect arity for procedure: sys/getenv"))
         else
             (error (format "unknown procedure \"~a\"" proc))))
 
@@ -1389,6 +1397,7 @@
     (dict-set! env "=" (make-typhon-syntax 'primitive-syntax-numeq))
     (dict-set! env "set!" (make-typhon-syntax 'primitive-syntax-set))
     (dict-set! env "string" (make-typhon-syntax 'primitive-syntax-string))
+    (dict-set! env "string-append" (make-typhon-syntax 'primitive-syntax-string-append))
     (dict-set! env "make-vector" (make-typhon-syntax 'primitive-syntax-makevector))
     (dict-set! env "make-string" (make-typhon-syntax 'primitive-syntax-makestring))
     (dict-set! env "vector" (make-typhon-syntax 'primitive-syntax-vector))
@@ -1820,6 +1829,14 @@
                                                     (typhon@map rst params env #f))
                                                 (list (list 3 (length rst)))
                                                 (list (list (typhon-syntax-name (typhon@lookup '%string env))))))
+                                    (eq? (typhon-syntax-name v) 'primitive-syntax-string-append)
+                                        (if (null? rst)
+                                            (list (list 3 (make-string 0)))
+                                            (append
+                                                (reverse-append
+                                                    (typhon@map rst params env #f))
+                                                (list (list 3 (length rst)))
+                                                (list (list (typhon-syntax-name (typhon@lookup '%string-append env))))))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-append)
                                         (if (null? rst)
                                             (list (list 4))

@@ -80,6 +80,8 @@
     :sys/getppid ["f_sysgetppid" 0 1]
     :sys/fork ["f_fork" 0 1]
     :sys/time ["f_time" 0 1]
+    :sys/stat ["f_stat" 1 2]
+    :sys/getenv ["f_getenv" 1 0]
     :announce ["f_announce" 3 0]
     :accept ["f_accept" 1 0]
     :listen ["f_listen" 1 0]
@@ -925,6 +927,7 @@
                 (close fh)
                 (set! *ooblambdas* (append *ooblambdas* load-obj-code))
                 (list #f (list 'c-nop)))
+        (eq? (car c) 'define-external) (compile-external (cdr c) rewrites lparams)
         (eq? (car c) 'define-struct) (compile-struct (cdr c) rewrites lparams)
         (eq? (car c) 'define-type) (compile-define-type (cdr c) rewrites lparams)
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
