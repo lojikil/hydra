@@ -78,8 +78,12 @@
 
 (define-struct typhon-primitive (value))
 (define-struct typhon-syntax (name))
+
+;; Add: fixed arity, N-arity, Nullary, & ranged primitives
+;; remove the %-prefixed items, and tag structs w/ their operation
 (define-struct typhon-procedure (name)) ;; should include arity, but for now...
 (define-struct typhon-error (message))
+;; keys & vals are just vectors with linear scan, like Clojure
 (define-struct typhon-struct (name keys vals))
 (define-struct typhon-dump (offset dump)) ;; almost a singleton...
 
