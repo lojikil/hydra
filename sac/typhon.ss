@@ -36,7 +36,7 @@
 ;;   if errors & other types can be simply encoded '(error "error"); SRFI-9, esp. if it
 ;;   has E' support, might be a good option (need to unbox types in E' though, for the
 ;;   most efficient representation, as well as unions).
-;; - Make all instructions support (type . value) pairs, so as to avoid a situation where
+;; - DONE (via structs): Make all instructions support (type . value) pairs, so as to avoid a situation where
 ;;   the user enters the code (0 (list 1 2 3)) and recieves the value 1 back, because:
 ;;   (load 0)
 ;;   (call) ;; call integer 0, since integers -> primitives, this can add some weird behavior.
@@ -66,6 +66,20 @@
 ;; (load f)
 ;; (%define)
 ;; - SRFIs to be added: 9, 22, 34, 35, 36, 57, 60, 89, 88 (already done, via Vesta's run time)
+;; - SRFI list:
+;; --  6: String IO ports are already kinda sorta supported...
+;; -- 22: handled by vesta's reader
+;; -- 23: Need to have an error function that handles error generation
+;; -- 34: Need to add watch list, even in face of continuations
+;; -- 35: is this distinct from 23 really? do I want to generate conditions too? can include more info...
+;; -- 36: IO conditions as distinct from SRFI-35?
+;; -- 9/57: already support Racket/Bigloo style structs, no need to add others.
+;; -- 60: just need to define the names I think instead of C-style operators
+;; -- 88: handled via Vesta's reader
+;; -- 89: need to handle positional arguments gracefully...
+;; - Non-SRFI stuffs:
+;; -- current-X-port, set-current-X-port!
+;; -- Delimited continuations, and a fibre library atop them
 
 ;; Include files for C output
 ;; once SRFI-0 support is here, use that to make things a bit
@@ -76,12 +90,13 @@
 ;; mini-prelude
 ;; should be removed once Enyalios supports load better...
 
-(define-struct typhon-primitive (value))
+(define-struct typhon-primitive (value min-arity max-arity))
 (define-struct typhon-syntax (name))
 
 ;; Add: fixed arity, N-arity, Nullary, & ranged primitives
 ;; remove the %-prefixed items, and tag structs w/ their operation
-(define-struct typhon-procedure (name)) ;; should include arity, but for now...
+;; should include arity too, but for now...
+(define-struct typhon-procedure (name min-arity max-arity)) 
 (define-struct typhon-error (message))
 ;; keys & vals are just vectors with linear scan, like Clojure
 (define-struct typhon-struct (name keys vals))
