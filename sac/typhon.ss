@@ -1936,10 +1936,13 @@
                                     ;; (+ 1 2)
                                     ;; (cons)
                                     ;; this isn't the *most* efficient, but it is pretty easy
-                                    (append
-                                        (reverse-append
-                                            (typhon@map rst params env #f))
-                                        (list (list (typhon-primitive-value v))))
+                                    (let ((min-arity (typhon-procedure-min-arity v))
+                                          (max-arity (typhon-procedure-max-arity v))
+                                          (opcode (typhon-primitive-value v)))
+                                        (append
+                                            (reverse-append
+                                                (typhon@map rst params env #f))
+                                            (list (list (typhon-primitive-value v)))))
                                 (typhon@lambda? v) ;; hydra closure; change this into (load-from-env fst) (call-from-stack) 
                                     (append
                                         (reverse-append
