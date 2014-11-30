@@ -1938,11 +1938,35 @@
                                     ;; this isn't the *most* efficient, but it is pretty easy
                                     (let ((min-arity (typhon-procedure-min-arity v))
                                           (max-arity (typhon-procedure-max-arity v))
-                                          (opcode (typhon-primitive-value v)))
-                                        (append
-                                            (reverse-append
-                                                (typhon@map rst params env #f))
-                                            (list (list (typhon-primitive-value v)))))
+                                          (opcode (typhon-primitive-value v))
+                                          (rst-len (length rst)))
+                                        (cond
+                                            (= min-arity max-arity)
+                                                (if (= min-arity rst-len)
+                                                    (append
+                                                        (reverse-append
+                                                            (typhon@map rst params env #f))
+                                                        (list (list opcode)))
+                                                    (typhon@error (format "arity mismatch for ~a" fst)))
+                                            (> min-arity max-arity)
+                                                (if (and
+                                                        (>= rst-len min-arity)
+                                                        (<= rst-len max-airty))
+                                                    (append
+                                                        (reverse-append
+                                                            (typhon@map rst params env #f))
+                                                        (list
+                                                            (list 3 rst-len)
+                                                            (list opcode))))
+                                            (= max-arity -1)
+                                                (if (>= rst-len min-arity)
+                                                    (append
+                                                        (reverse-append
+                                                            (typhon@map rst params env #f))
+                                                        (list
+                                                            (list 3 rst-len)
+                                                            (list opcode))))))
+                                                
                                 (typhon@lambda? v) ;; hydra closure; change this into (load-from-env fst) (call-from-stack) 
                                     (append
                                         (reverse-append
