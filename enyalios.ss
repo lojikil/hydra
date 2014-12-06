@@ -2154,8 +2154,8 @@
                             (format
                                 "~a->~a = ~a;~%"
                                 tmp-skt
-                                x
-                                x)
+                                (cmung x)
+                                (cmung x))
                             out))
                     members)
                 (int->spaces lvl out)

@@ -1951,7 +1951,7 @@
                                             (> min-arity max-arity)
                                                 (if (and
                                                         (>= rst-len min-arity)
-                                                        (<= rst-len max-airty))
+                                                        (<= rst-len max-arity))
                                                     (append
                                                         (reverse-append
                                                             (typhon@map rst params env #f))
