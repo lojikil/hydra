@@ -1948,7 +1948,7 @@
                                                             (typhon@map rst params env #f))
                                                         (list (list opcode)))
                                                     (typhon@error (format "arity mismatch for ~a" fst)))
-                                            (> min-arity max-arity)
+                                            (> max-arity min-arity)
                                                 (if (and
                                                         (>= rst-len min-arity)
                                                         (<= rst-len max-arity))
@@ -1957,7 +1957,8 @@
                                                             (typhon@map rst params env #f))
                                                         (list
                                                             (list 3 rst-len)
-                                                            (list opcode))))
+                                                            (list opcode)))
+                                                    (typhon@error (format "arity mismatch for ~a" fst)))
                                             (= max-arity -1)
                                                 (if (>= rst-len min-arity)
                                                     (append
@@ -1965,7 +1966,8 @@
                                                             (typhon@map rst params env #f))
                                                         (list
                                                             (list 3 rst-len)
-                                                            (list opcode))))))
+                                                            (list opcode)))
+                                                    (typhon@error (format "arity mismatch for ~a" fst)))))
                                                 
                                 (typhon@lambda? v) ;; hydra closure; change this into (load-from-env fst) (call-from-stack) 
                                     (append
