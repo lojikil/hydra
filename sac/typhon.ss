@@ -410,7 +410,7 @@
                     (- offset 6)))
         (typhon@error? (vector-ref code ip))
             (vector-ref code ip)
-         else
+        else
          (let* ((c (vector-ref code ip))
                 (instr (typhon@instruction c)))
               ;(display (format "current ip: ~n~%current instruction: " ip))
@@ -466,12 +466,33 @@
                                  locals
                                  dump offset)
                     (6) ;; +
-                        (typhon@vm code code-len
-                                 env
-                                 (+ ip 1)
-                                 (cons (+ (car stack) (cadr stack)) (cddr stack))
-                                 locals
-                                 dump offset)
+
+                        ;; this would be perfect as:
+                        ;; (cut
+                        ;;      (cond
+                        ;;          (= top-of-stack 0) 0
+                        ;;          (= top-of-stack 1) (cadr stack)
+                        ;;          (= top-of-stack 2) (+ (cadr stack) (caddr stack))
+                        ;;          else (foldl + 0 (cslice stack 1 top-of-stack)))
+                        ;;      (typhon@vm ...))
+                        (let ((top-of-stack (car stack))
+                              (ret 0))
+                            (cond
+                                (= top-of-stack 0)
+                                    (set! ret 0)
+                                (= top-of-stack 1)
+                                    (set! ret (cadr stack))
+                                (= top-of-stack 2)
+                                    (set! ret (+ (cadr stack) (caddr stack)))
+                                else
+                                    (set! ret
+                                        (foldl + 0 (cslice stack 1 top-of-stack))))
+                            (typhon@vm code code-len
+                                     env
+                                     (+ ip 1)
+                                     (cons (+ (car stack) (cadr stack)) (cddr stack))
+                                     locals
+                                     dump offset))
                     (7) ;; * 
                         (typhon@vm code code-len
                                  env
