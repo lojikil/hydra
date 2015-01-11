@@ -150,6 +150,22 @@
 		'()
 		(cons (cons (car xs) (cons (car ys) '())) (zip (cdr xs) (cdr ys)))))
 
+(define (foldl proc val lst)
+    (cond
+        (empty? lst) val
+        else (proc (foldl proc val (rest lst)) (first lst))))
+
+(define (foldr proc val lst)
+    (cond
+        (empty? lst) val
+        else (proc (first lst) (foldr proc val (rest lst)))))
+
+(define (filter proc coll) ; generic now, for map-able collections (string, vector, list)
+    (cond
+        (empty? coll) coll
+        (proc (first coll)) (ccons (first coll) (filter proc (rest coll)))
+        else (filter proc (rest coll))))
+
 (define (srfi1-list-copy l)
     " really, should be included from SRFI-1, but this simply makes a copy
       of the spine of a pair
