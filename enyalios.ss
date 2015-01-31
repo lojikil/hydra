@@ -1114,7 +1114,7 @@
                     
 (define (generate-vector x)
     (let ((n (length x)) (p (coerce x 'pair)))
-        (string-append (format "vector(~n," n) (string-join (map generate-quoted-literal p) ",") ")")))
+        (string-append (format "vector(~i," n) (string-join (map generate-quoted-literal p) ",") ")")))
 
 (define (generate-pair x)
     (string-append
@@ -1129,7 +1129,7 @@
     ;(write x)
     ;(newline)
     (let ((n (length x)))
-        (string-append (format "list(~n," n) (string-join (map generate-quoted-literal x) ",") ")")))
+        (string-append (format "list(~i," n) (string-join (map generate-quoted-literal x) ",") ")")))
 
 (define (generate-dict d)
     ;(display "%%I-GENERATE-DICT: (keys d) -> ")
@@ -1146,8 +1146,8 @@
 
 (define (generate-number x)
     (cond
-        (integer? x) (format "makeinteger(~n)" x)
-        (rational? x) (format "makerational(~n,~n)" (numerator x) (denomenator x))
+        (integer? x) (format "makeinteger(~i)" x)
+        (rational? x) (format "makerational(~i,~i)" (numerator x) (denomenator x))
         (real? x) (format "makereal(~n)" x)
         (complex? x) (format "makecomplex(~n,~n)" (real-part x) (imag-part x))
         else (error "NaN")))
@@ -1223,7 +1223,7 @@
                 ;; these could be decomposed down properly, but I'm lazy atm
                 (begin
                     (display proc out)
-                    (display (format "(list(~n," lp) out)
+                    (display (format "(list(~i," lp) out)
                     (comma-separated-c args out)
                     (display ")" out))
             (and
@@ -1436,11 +1436,11 @@
             (= arg-len 1)
                 (cond
                     (integer? a0)
-                        (display (format "makeinteger(~a)" a0) out)
+                        (display (format "makeinteger(~i)" a0) out)
                     (rational? a0)
                         (display
                             (format
-                                "makerational(~a, ~a)"
+                                "makerational(~i, ~i)"
                                 (numerator a0)
                                 (denomenator a0))
                             out)
@@ -1516,11 +1516,11 @@
             (= arg-len 1)
                 (cond
                     (integer? a0)
-                        (display (format "makeinteger(~a)" a0) out)
+                        (display (format "makeinteger(~i)" a0) out)
                     (rational? a0)
                         (display
                             (format
-                                "makerational(~a, ~a)"
+                                "makerational(~i, ~i)"
                                 (numerator a0)
                                 (denomenator a0))
                             out)
@@ -1548,7 +1548,7 @@
                             (set! a1 (nth args 0))))
                     (cond
                         (and (integer? a0) (integer? a1))
-                            (display (format "makeinteger(~a)" (+ a0 a1)) out)
+                            (display (format "makeinteger(~i)" (+ a0 a1)) out)
                         (and (integer? a0) (rational? a1))
                             (display (format "makerational(~a, ~a)" (+ a0 (numerator a1)) (denomenator a1)) out)
                         (and (integer? a0) (real? a1))
@@ -1889,11 +1889,11 @@
         (eof-object? il) (display "SEOF" out)
         (bool? il) (if il (display "STRUE" out) (display "SFALSE" out))
         (goal? il) (if il (display "SSUCC" out) (display "SUNSUCC" out))
-        (integer? il) (display (format "makeinteger(~n)" il) out)
+        (integer? il) (display (format "makeinteger(~i)" il) out)
         (real? il) (display (format "makereal(~a)" il) out)
         (rational? il)
             (display
-                (format "makerational(~n,~n)"
+                (format "makerational(~i,~i)"
                     (numerator il)
                     (denomenator il))
                 out)
@@ -2349,7 +2349,7 @@
                 (display ")" out))
         (eq? (car il) 'c-variable-primitive)
             (let ((name (nth *varprimitives* (cadr il))))
-                (display (format "~a(~n, " name (length (caddr il))) out)
+                (display (format "~a(~i, " name (length (caddr il))) out)
                 (comma-separated-c (caddr il) out)
                 (display ")" out))
         (eq? (car il) 'c-procedure)
@@ -2376,7 +2376,7 @@
                 (display "il => ")
                 (write il)
                 (newline)
-                (display (format "~a(~n, " name (length (caddr il))) out)
+                (display (format "~a(~i, " name (length (caddr il))) out)
                 (il->c (caddr il) 0 out)
                 (display ")" out))
         else

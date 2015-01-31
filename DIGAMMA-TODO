@@ -137,3 +137,37 @@ Original error expression:
 begin stack trace
 -----
 source: (eq? (type obj) "Pair")`
+
+* Enyalios `case` rewriting
+
+The current form is to rewrite a case statement into an AVL tree. This is kinda complex and not
+all together that fast. I think rewriting based on the types of data within the `case` form
+is an excellent idea, and one that I should blog about. So!
+
+- all integrals (long/integer): linearize the numbers, do a lookup into the table for these (no scan, no lookup)
+- mixed, but small (< 8 cases?): create linear scan like Clojure dicts (scan, no lookup)
+- mixed, but large (> 8 cases?): create an AVL tree, hash objects with FNV1a (scan, lookup)
+
+** Clojure dicts
+
+Clojure dictionaries work in an interesting way: if there are a small number of cases, they're actually just
+an array, where N is the key, and N+1 is the value. 
+
+** Linear scan
+
+I've done this a few times before manually, but:
+
+`
+static void **array[10] = {0};
+if(array[0] == 0){
+    array[0] = &&goto0;
+    array[1] = &&goto1;
+    ...
+    array[9] = &&goto9;
+}`
+
+then the process of lookup is pretty simply:
+
+`void *jmp = array[AINT(value)];
+goto *jmp;`
+
