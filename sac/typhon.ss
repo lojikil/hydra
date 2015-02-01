@@ -491,7 +491,7 @@
                         ;;          (= top-of-stack 2) (+ (cadr stack) (caddr stack))
                         ;;          else (foldl + 0 (cslice stack 1 top-of-stack)))
                         ;;      (typhon@vm ...))
-                        (let ((top-of-stack (car stack))
+                        (let ((top-of-stack (+ 1 (car stack)))
                               (ret 0))
                             (cond
                                 (= top-of-stack 0)
@@ -506,16 +506,28 @@
                             (typhon@vm code code-len
                                      env
                                      (+ ip 1)
-                                     (cons (+ (car stack) (cadr stack)) (cddr stack))
+                                     (cons ret (cddr stack))
                                      locals
                                      dump offset))
                     (7) ;; * 
-                        (typhon@vm code code-len
-                                 env
-                                 (+ ip 1)
-                                 (cons (* (car stack) (cadr stack)) (cddr stack))
-                                 locals
-                                 dump offset)
+                        (let ((top-of-stack (+ 1 (car stack)))
+                              (ret 0))
+                            (cond
+                                (= top-of-stack 0)
+                                    (set! ret 1)
+                                (= top-of-stack 1)
+                                    (set! ret (cadr stack))
+                                (= top-of-stack 2)
+                                    (set! ret (* (cadr stack) (caddr stack)))
+                                else
+                                    (set! ret
+                                        (foldl * 0 (cslice stack 1 top-of-stack))))
+                            (typhon@vm code code-len
+                                     env
+                                     (+ ip 1)
+                                     (cons ret (cddr stack))
+                                     locals
+                                     dump offset))
                     (8) ;; / 
                         (typhon@vm code code-len
                                  env

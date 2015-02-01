@@ -171,3 +171,13 @@ then the process of lookup is pretty simply:
 `void *jmp = array[AINT(value)];
 goto *jmp;`
 
+
+** Woah! Why use either?
+
+Turn `case` into a C `switch`, with these 5 weird tricks...
+
+- integer/float get's mapped to the same
+- all others pass thru `fnv1a`
+- no non-literals, no hashing
+- use literals for hash in switch...
+- PROFIT
