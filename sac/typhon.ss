@@ -153,7 +153,7 @@
 (define (foldl proc val lst)
     (cond
         (empty? lst) val
-        else (proc (foldl proc val (rest lst)) (first lst))))
+        else (foldl proc (proc val (first lst)) (rest lst))))
 
 (define (foldr proc val lst)
     (cond
@@ -475,12 +475,24 @@
                                  locals
                                  dump offset)
                     (5) ;; -
-                        (typhon@vm code code-len
-                                 env
-                                 (+ ip 1)
-                                 (cons (- (cadr stack) (car stack)) (cddr stack))
-                                 locals
-                                 dump offset)
+                        (let ((top-of-stack (+ 1 (car stack)))
+                              (ret 0))
+                            (cond
+                                (= top-of-stack 0)
+                                    (set! ret 0)
+                                (= top-of-stack 1)
+                                    (set! ret (cadr stack))
+                                (= top-of-stack 2)
+                                    (set! ret (- (cadr stack) (caddr stack)))
+                                else
+                                    (set! ret
+                                        (foldl - 0 (cslice stack 1 top-of-stack))))
+                            (typhon@vm code code-len
+                                     env
+                                     (+ ip 1)
+                                     (cons ret (cddr stack))
+                                     locals
+                                     dump offset))
                     (6) ;; +
 
                         ;; this would be perfect as:
