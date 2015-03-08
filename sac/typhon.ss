@@ -91,6 +91,10 @@
 ;; should be removed once Enyalios supports load better...
 
 (define-struct typhon-primitive (value min-arity max-arity))
+
+;; just like primitives, but don't call reverse-append on them...
+;; should just be a handful of primitives, but still
+(define-struct typhon-antipole-primitive (value min-arity max-arity))
 (define-struct typhon-syntax (name))
 
 ;; Add: fixed arity, N-arity, Nullary, & ranged primitives
@@ -483,14 +487,17 @@
                                 (= top-of-stack 1)
                                     (set! ret (cadr stack))
                                 (= top-of-stack 2)
-                                    (set! ret (- (cadr stack) (caddr stack)))
+                                    (set! ret (- (caddr stack) (cadr stack)))
                                 else
                                     (set! ret
                                         (foldl - (cadr stack) (cslice (cddr stack) 0 top-of-stack))))
                             (typhon@vm code code-len
                                      env
                                      (+ ip 1)
-                                     (cons ret (cddr stack))
+                                     ;; woah! duh! this is *super* wrong
+                                     ;; in the foldl case, we're taking *more* than 2 items off
+                                     ;; the stack here...
+                                     (cons ret (cddr stack)) ;; woah! duh! this is *super* wrong...
                                      locals
                                      dump offset))
                     (6) ;; +
@@ -2024,6 +2031,44 @@
                                                 (if (>= rst-len min-arity)
                                                     (append
                                                         (reverse-append
+                                                            (typhon@map rst params env #f))
+                                                        (list
+                                                            (list 3 rst-len)
+                                                            (list opcode)))
+                                                    (typhon@error (format "arity mismatch for ~a" fst)))))
+                                (typhon-antipole-primitive? v) ;; primitive procedure
+                                    ;; need to generate the list of HLAP code, but *not* reverse it
+                                    (let ((min-arity (typhon-antipole-primitive-min-arity v))
+                                          (max-arity (typhon-antipole-primitive-max-arity v))
+                                          (opcode (typhon-antipole-primitive-value v))
+                                          (rst-len (length rst)))
+                                        (display "in antipolar primitive section...\n")
+                                        (cond
+                                            (= min-arity max-arity)
+                                                (if (= min-arity rst-len)
+                                                    (append
+                                                        (apply
+                                                            append
+                                                            (typhon@map rst params env #f))
+                                                        (list (list opcode)))
+                                                    (typhon@error (format "arity mismatch for ~a" fst)))
+                                            (> max-arity min-arity)
+                                                (if (and
+                                                        (>= rst-len min-arity)
+                                                        (<= rst-len max-arity))
+                                                    (append
+                                                        (apply
+                                                            append
+                                                            (typhon@map rst params env #f))
+                                                        (list
+                                                            (list 3 rst-len)
+                                                            (list opcode)))
+                                                    (typhon@error (format "arity mismatch for ~a" fst)))
+                                            (= max-arity -1)
+                                                (if (>= rst-len min-arity)
+                                                    (append
+                                                        (apply
+                                                            append
                                                             (typhon@map rst params env #f))
                                                         (list
                                                             (list 3 rst-len)
