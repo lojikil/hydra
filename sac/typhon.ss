@@ -479,25 +479,36 @@
                                  locals
                                  dump offset)
                     (5) ;; -
-                        (let ((top-of-stack (- (car stack) 1))
+                        (let ((top-of-stack (+ 1 (car stack)))
+                              (bottom-of-stack '())
+                              (portion '())
                               (ret 0))
                             (cond
                                 (= top-of-stack 0)
-                                    (set! ret 0)
+                                    (begin
+                                        (set! ret 0)
+                                        (set! bottom-of-stack (cdr stack)))
                                 (= top-of-stack 1)
-                                    (set! ret (cadr stack))
+                                    (begin
+                                        (set! ret (cadr stack))
+                                        (set! bottom-of-stack (cddr stack)))
                                 (= top-of-stack 2)
-                                    (set! ret (- (caddr stack) (cadr stack)))
+                                    (begin
+                                        (set! ret (- (caddr stack) (cadr stack)))
+                                        (set! bottom-of-stack (cdddr stack)))
                                 else
-                                    (set! ret
-                                        (foldl - (cadr stack) (cslice (cddr stack) 0 top-of-stack))))
+                                    (begin 
+                                        (set! portion (cslice stack 1 top-of-stack))
+                                        (set! ret
+                                            (foldl - (car portion) (cdr portion)))
+                                        (set! bottom-of-stack stack top-of-stack -1)))
                             (typhon@vm code code-len
                                      env
                                      (+ ip 1)
                                      ;; woah! duh! this is *super* wrong
                                      ;; in the foldl case, we're taking *more* than 2 items off
                                      ;; the stack here...
-                                     (cons ret (cddr stack)) ;; woah! duh! this is *super* wrong...
+                                     (cons ret (cdddr stack)) ;; woah! duh! this is *super* wrong...
                                      locals
                                      dump offset))
                     (6) ;; +
@@ -511,21 +522,30 @@
                         ;;          else (foldl + 0 (cslice stack 1 top-of-stack)))
                         ;;      (typhon@vm ...))
                         (let ((top-of-stack (+ 1 (car stack)))
+                              (bottom-of-stack '())
                               (ret 0))
                             (cond
                                 (= top-of-stack 0)
-                                    (set! ret 0)
+                                    (begin
+                                        (set! ret 0)
+                                        (set! bottom-of-stack (cdr stack)))
                                 (= top-of-stack 1)
-                                    (set! ret (cadr stack))
+                                    (begin
+                                        (set! ret (cadr stack))
+                                        (set! bottom-of-stack (cddr stack)))
                                 (= top-of-stack 2)
-                                    (set! ret (+ (cadr stack) (caddr stack)))
+                                    (begin
+                                        (set! ret (+ (cadr stack) (caddr stack)))
+                                        (set! bottom-of-stack (cdddr stack)))
                                 else
-                                    (set! ret
-                                        (foldl + 0 (cslice stack 1 top-of-stack))))
+                                    (begin 
+                                        (set! ret
+                                            (foldl + 0 (cslice stack 1 top-of-stack)))
+                                        (set! bottom-of-stack stack top-of-stack -1)))
                             (typhon@vm code code-len
                                      env
                                      (+ ip 1)
-                                     (cons ret (cddr stack))
+                                     (cons ret bottom-of-stack)
                                      locals
                                      dump offset))
                     (7) ;; * 
