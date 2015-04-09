@@ -479,36 +479,39 @@
                                  locals
                                  dump offset)
                     (5) ;; -
-                        (let ((top-of-stack (+ 1 (car stack)))
-                              (bottom-of-stack '())
-                              (portion '())
-                              (ret 0))
+                        (let* ((top-of-stack (car stack))
+                               (stack-offset (+ top-of-stack 1))
+                               (bottom-of-stack '())
+                               (portion '())
+                               (ret 0))
                             (cond
                                 (= top-of-stack 0)
                                     (begin
+                                        (display "here?\n")
                                         (set! ret 0)
-                                        (set! bottom-of-stack (cdr stack)))
+                                        (set! bottom-of-stack (cdr stack))
+                                        (display "here?\n"))
                                 (= top-of-stack 1)
                                     (begin
-                                        (set! ret (cadr stack))
+                                        (set! ret (- 0 (cadr stack)))
                                         (set! bottom-of-stack (cddr stack)))
                                 (= top-of-stack 2)
                                     (begin
-                                        (set! ret (- (caddr stack) (cadr stack)))
+                                        (set! ret (- (cadr stack) (caddr stack)))
                                         (set! bottom-of-stack (cdddr stack)))
                                 else
                                     (begin 
-                                        (set! portion (cslice stack 1 top-of-stack))
+                                        (set! portion (cslice stack 1 stack-offset))
                                         (set! ret
                                             (foldl - (car portion) (cdr portion)))
-                                        (set! bottom-of-stack stack top-of-stack -1)))
+                                        (set! bottom-of-stack (cslice stack stack-offset -1))))
                             (typhon@vm code code-len
                                      env
                                      (+ ip 1)
                                      ;; woah! duh! this is *super* wrong
                                      ;; in the foldl case, we're taking *more* than 2 items off
                                      ;; the stack here...
-                                     (cons ret (cdddr stack)) ;; woah! duh! this is *super* wrong...
+                                     (cons ret bottom-of-stack) ;; woah! duh! this is *super* wrong...
                                      locals
                                      dump offset))
                     (6) ;; +
@@ -541,7 +544,7 @@
                                     (begin 
                                         (set! ret
                                             (foldl + 0 (cslice stack 1 top-of-stack)))
-                                        (set! bottom-of-stack stack top-of-stack -1)))
+                                        (set! bottom-of-stack (cslice stack top-of-stack -1))))
                             (typhon@vm code code-len
                                      env
                                      (+ ip 1)
