@@ -433,15 +433,17 @@
         else
          (let* ((c (vector-ref code ip))
                 (instr (typhon@instruction c)))
-              ;(display (format "current ip: ~n~%current instruction: " ip))
-              ;(write (nth code ip))
-              ;(display "\ncurrent stack: ")
-              ;(write stack)
+              (display (format "current ip: ~n~%current instruction: " ip))
+              (write (nth code ip))
+              (display "\ncurrent stack: ")
+              (write stack)
               ;(display "\ncurrent dump: ")
               ;(write dump)
-              ;(display "\ncurrent env: ")
-              ;(write env)
-              ;(display "\n=====\n")
+              (display "\ncurrent code: ")
+              (write code)
+              (display "\ncurrent env: ")
+              (write env)
+              (display "\n=====\n")
               (case instr 
                     (0) ;; car
                         (typhon@vm
@@ -487,10 +489,8 @@
                             (cond
                                 (= top-of-stack 0)
                                     (begin
-                                        (display "here?\n")
                                         (set! ret 0)
-                                        (set! bottom-of-stack (cdr stack))
-                                        (display "here?\n"))
+                                        (set! bottom-of-stack (cdr stack)))
                                 (= top-of-stack 1)
                                     (begin
                                         (set! ret (- 0 (cadr stack)))
@@ -524,7 +524,8 @@
                         ;;          (= top-of-stack 2) (+ (cadr stack) (caddr stack))
                         ;;          else (foldl + 0 (cslice stack 1 top-of-stack)))
                         ;;      (typhon@vm ...))
-                        (let ((top-of-stack (+ 1 (car stack)))
+                        (let* ((top-of-stack (car stack))
+                              (stack-offset (+ top-of-stack 1))
                               (bottom-of-stack '())
                               (ret 0))
                             (cond
@@ -543,8 +544,8 @@
                                 else
                                     (begin 
                                         (set! ret
-                                            (foldl + 0 (cslice stack 1 top-of-stack)))
-                                        (set! bottom-of-stack (cslice stack top-of-stack -1))))
+                                            (foldl + 0 (cslice stack 1 stack-offset)))
+                                        (set! bottom-of-stack (cslice stack stack-offset -1))))
                             (typhon@vm code code-len
                                      env
                                      (+ ip 1)

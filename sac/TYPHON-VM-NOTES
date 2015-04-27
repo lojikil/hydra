@@ -157,3 +157,22 @@ one fell-swoop: never, ever allow naked user structs on the stack. Instead, do t
 
 - structs: {type: struct, fields: [list of fields], fieldvalues: {dict}}
 - primitives: {type: primitive|procedure, value: val}
+
+* Issue from 26APR2015
+
+Seems like the work I did on making operators more efficient didn't exactly work...
+
+`;t (define (y n) (if (<= n 1) 1 (+ n (y (- n 1)))))
+;t (y 10)`
+
+Typhon: 53
+Vesta : 55
+
+TCO fib dies in Typhon... SIGSEGV
+
+Even worse:
+
+`(define (x n) (if (>= n 10) n (+ n (x (+ n 1)))))`
+
+- totally broken in Typhon
+- Works as expected in Vesta
