@@ -544,7 +544,7 @@
                                 else
                                     (begin 
                                         (set! ret
-                                            (foldl + 0 (cslice stack 1 stack-offset)))
+                                            (foldl + 0 (cslice stack 1 stack-offset))) ;; optional len param to foldl?
                                         (set! bottom-of-stack (cslice stack stack-offset -1))))
                             (typhon@vm code code-len
                                      env
@@ -578,6 +578,9 @@
                                  (cons (/ (cadr stack) (car stack)) (cddr stack))
                                  locals
                                  dump offset)
+
+                    ;; the below are all broken, that's why the tests are failing...
+                    ;; need to implement something similar to what we did in +/-/* above
                     (9) ;;  < 
                         (typhon@vm code code-len
                                  env

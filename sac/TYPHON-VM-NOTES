@@ -176,3 +176,17 @@ Even worse:
 
 - totally broken in Typhon
 - Works as expected in Vesta
+
+** update on 04MAY2015
+
+Ok... so that's  broken because the logical primitives are broken, due to me fixing the compiler there...
+
+So!
+
+- move the logical numerical primitives (>,<,>=, <=, =) to multi arity
+- move all multi-arity primitives to having an operand; `(3 4) (6)` should just be `(6 4)` in byte code (saves one loop!)
+- see if we can some how avoid that `cslice` call
+- doing the above too should allows us to start focusing on speed again...
+
+Additionally, eventually I need to look into stream/list fusion for the compiler itself; that would save many of the 
+smaller allocations I'm doing all over the place in Typhon (foldl, map, reduce, filter, append, reverse-append...)
