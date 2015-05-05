@@ -1257,7 +1257,7 @@
                             (display ", " out)
                             (display a1 out)
                             (display ")" out))
-                    (rationalq? a1)
+                    (rational? a1)
                         (begin
                             (display (format "~a_nq(" proc) out)
                             (il->c a0 0 out)
@@ -1276,7 +1276,7 @@
                             (display (imag-part a1) out)
                             (display ")" out))
                     else
-                        (error "Incorrect argument for logical procedure"))
+                        (error (format "Incorrect argument for logical procedure ~a" proc)))
             (or 
                 (symbol? a1)
                 (pair? a1))
@@ -1314,7 +1314,7 @@
                             (il->c a1 0 out)
                             (display ")" out))
                     else
-                        (error "Incorrect argument for logical procedure"))
+                        (error (format "Incorrect argument for logical procedure ~a" proc)))
             else
                 (error "Unable to optimize logical procedure; incorrect arguments provided."))
             (if status

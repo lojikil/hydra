@@ -582,10 +582,33 @@
                     ;; the below are all broken, that's why the tests are failing...
                     ;; need to implement something similar to what we did in +/-/* above
                     (9) ;;  < 
-                        (typhon@vm code code-len
-                                 env
-                                 (+ ip 1)
-                                 (cons (< (cadr stack) (car stack)) (cddr stack)) locals dump offset)
+                        (let* ((top-of-stack (car stack))
+                              (stack-offset (+ top-of-stack 1))
+                              (bottom-of-stack '())
+                              (ret 0))
+                            (cond
+                                (= top-of-stack 0)
+                                    (begin
+                                        (set! ret (make-typhon-error "in correct arity for <"))
+                                        (set! bottom-of-stack (cdr stack)))
+                                (= top-of-stack 1)
+                                    (begin
+                                        (set! ret #t)
+                                        (set! bottom-of-stack (cddr stack)))
+                                (= top-of-stack 2)
+                                    (begin
+                                        (set! ret (< (cadr stack) (caddr stack)))
+                                        (set! bottom-of-stack (cdddr stack)))
+                                else
+                                    (begin
+                                        (set! ret (apply < (cslice stack 0 (+ 1 top-of-stack))))
+                                        (set! bottom-of-stack (cslice stack (+ 1 top-of-stack) -1))))
+                                (typhon@vm code code-len
+                                    env
+                                    (+ ip 1)
+                                    (cons ret bottom-of-stack)
+                                    locals
+                                    dump offset))
                     (10) ;; >
                         (typhon@vm code code-len
                                  env
