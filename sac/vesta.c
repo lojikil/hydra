@@ -5799,6 +5799,7 @@ flte_nn(SExp *n, SExp *p)
     }
     return sfalse;
 }
+
 SExp *
 flt_nn(SExp *n, SExp *p)
 {
