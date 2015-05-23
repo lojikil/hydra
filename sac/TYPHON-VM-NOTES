@@ -190,3 +190,7 @@ So!
 
 Additionally, eventually I need to look into stream/list fusion for the compiler itself; that would save many of the 
 smaller allocations I'm doing all over the place in Typhon (foldl, map, reduce, filter, append, reverse-append...)
+
+* Compiler issues:
+
+- this should fail: `;t (define (test-prime n (if (< n 10) (+ n (test-prime (+ n 1))) n)))`
