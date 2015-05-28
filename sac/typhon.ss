@@ -773,10 +773,32 @@
                                   (+ ip 1)
                                   (cons (denomenator (car stack)) (cdr stack)) locals dump offset)
                     (26) ;; = 
-                        (typhon@vm code code-len
-                                 env
-                                 (+ ip 1)
-                                 (cons (= (car stack) (cadr stack)) (cddr stack)) locals dump offset)
+                        (let* ((top-of-stack (typhon@operand c))
+                              (bottom-of-stack '())
+                              (ret 0))
+                            (cond
+                                (= top-of-stack 0)
+                                    (begin
+                                        (set! ret (make-typhon-error "in correct arity for ="))
+                                        (set! bottom-of-stack stack))
+                                (= top-of-stack 1)
+                                    (begin
+                                        (set! ret #t)
+                                        (set! bottom-of-stack (cdr stack)))
+                                (= top-of-stack 2)
+                                    (begin
+                                        (set! ret (= (car stack) (cadr stack)))
+                                        (set! bottom-of-stack (cddr stack)))
+                                else
+                                    (begin
+                                        (set! ret (apply = (cslice stack 0 top-of-stack)))
+                                        (set! bottom-of-stack (cslice stack top-of-stack -1))))
+                                (typhon@vm code code-len
+                                    env
+                                    (+ ip 1)
+                                    (cons ret bottom-of-stack)
+                                    locals
+                                    dump offset))
                     (27) ;; eq?
                         (typhon@vm code code-len
                                  env

@@ -1538,6 +1538,7 @@ newline(SExp *s, Symbol *env)
 	//LINE_DEBUG;
 	return svoid;
 }
+
 SExp *
 f_princ(SExp *s, Symbol *env)
 {
@@ -1547,7 +1548,7 @@ f_princ(SExp *s, Symbol *env)
 		return makeerror(2,0,"display expects at least one argument, and no more than two: display o : SEXPRESSION [p : PORT] => SEXRESSION");
 	f = car(s);
 	if(i == 1)
-		llprinc(f,stdout,0); /* should look up what *current-output-port* is set to... */
+		llprinc(f, stdout, 0); /* should look up what *current-output-port* is set to... */
 	else 
 	{
 		t = car(cdr(s));
@@ -1567,6 +1568,7 @@ princ(SExp *s)
 	 */
 	llprinc(s,stdout,0);
 }
+
 void
 llprinc(SExp *s, FILE *fd, int mode)
 {
