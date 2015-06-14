@@ -194,3 +194,14 @@ smaller allocations I'm doing all over the place in Typhon (foldl, map, reduce, 
 * Compiler issues:
 
 - this should fail: `;t (define (test-prime n (if (< n 10) (+ n (test-prime (+ n 1))) n)))`
+
+* Update 14JUN2015: Weirdness with eq?
+
+` ;t (tilde-expand "~/Code")
+"~/Code"
+;t (eq? (nth "~/code" 0) #\~)
+#f
+;t (nth "~/code" 0)
+#\~
+;t (eq? #\~ #\~)
+#t`

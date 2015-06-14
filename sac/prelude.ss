@@ -164,7 +164,7 @@
 (def require (let ((paths ["~/.digamma/lib" "."]) (loaded {})) (fn (x) #f)))
 (define (tilde-expand f) ; need to flush this out & support ~user as well...
  (if (eq? (nth f 0) #\~)
-  (string-append (sys :getenv "HOME") (cslice f 1 (length f)))
+  (string-append (sys/getenv "HOME") (cslice f 1 (length f)))
   f))
 (def *lib-path* ["~/.digamma/lib" "."])
 ; Incredible inefficient definition of 'use, but works for now

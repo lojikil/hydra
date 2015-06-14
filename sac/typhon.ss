@@ -170,16 +170,34 @@
 ;; would almost be an FExpr...
 
 (define (flt lst)
-    (foldl flt (car lst) (cdr lst)))
+    (cond
+        (null? (cdr lst)) #t
+        (< (car lst) (cadr lst)) (flt (cdr lst))
+        else #f))
 
 (define (flte lst)
-    (foldl flte (car lst) (cdr lst)))
+    (cond
+        (null? (cdr lst)) #t
+        (<= (car lst) (cadr lst)) (flte (cdr lst))
+        else #f))
 
 (define (fgt lst)
-    (foldl fgt (car lst) (cdr lst)))
+    (cond
+        (null? (cdr lst)) #t
+        (> (car lst) (cadr lst)) (fgt (cdr lst))
+        else #f))
 
 (define (fgte lst)
-    (foldl fgte (car lst) (cdr lst)))
+    (cond
+        (null? (cdr lst)) #t
+        (>= (car lst) (cadr lst)) (fgte (cdr lst))
+        else #f))
+
+(define (fnumeq lst)
+    (cond
+        (null? (cdr lst)) #t
+        (= (car lst) (cadr lst)) (fnumeq (cdr lst))
+        else #f))
 
 (define (filter proc coll) ; generic now, for map-able collections (string, vector, list)
     (cond

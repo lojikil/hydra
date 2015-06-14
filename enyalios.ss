@@ -933,6 +933,7 @@
         (eq? (car c) 'if) (compile-if (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'cond) (compile-cond (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'case) (compile-case (cdr c) name tail? rewrites lparams)
+        (eq? (car c) 'do) (compile-do (cdr c) name tail? rewrites lparams)
         (eq? (car c) 'catch)
             (let ((body (compile-begin (cddr c) name tail? rewrites lparams)))
                 (list
