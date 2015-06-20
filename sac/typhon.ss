@@ -106,6 +106,7 @@
 ;; keys & vals are just vectors with linear scan, like Clojure
 (define-struct typhon-struct (name keys vals))
 (define-struct typhon-dump (offset dump)) ;; almost a singleton...
+(define-struct typhon-lambda (env code params))
 
 (define-syntax caar () ((caar x) (car (car x))))
 (define-syntax cadr () ((cadr x) (car (cdr x))))
@@ -261,6 +262,9 @@
 
 (load "./experiments/sr.ss")
 ;; end mini-prelude.
+
+;; get rid of the below; use the proper typed versions from
+;; the SRFI-9 declarations above
 
 (define-syntax typhon@instruction () 
     ((typhon@instruction c) (car c)))
@@ -2309,6 +2313,11 @@
                 (eq? (cadr inp) 'dribble) (begin (typhon@repl env dump))
                 (eq? (cadr inp) 'save) (begin (typhon@repl env dump))
                 (eq? (cadr inp) 'save-and-die) (begin (typhon@repl env dump))
+                (eq? (cadr inp) 'a)
+                    (with item (read)
+                        (write (typhon@appropos item env))
+                        (newline)
+                        (typhon@repl env dump))
                 (or
                     (eq? (cadr inp) 'h)
                     (eq? (cadr inp) 'help))
@@ -2316,7 +2325,11 @@
                         (typhon@help item env)
                         (newline)
                         (typhon@repl env dump))
-                (eq? (cadr inp) 'i) (with item (read) (write (typhon@lookup item env)) (newline) (typhon@repl env dump))
+                (eq? (cadr inp) 'i)
+                    (with item (read)
+                        (write (typhon@lookup item env))
+                        (newline)
+                        (typhon@repl env dump))
                 else (begin (display (format "Unknown command: ~a~%" (cadr inp))) (typhon@repl env dump)))
         (eof-object? inp)
             #v
