@@ -1734,9 +1734,12 @@
     ;(newline)
     (cond
         (not (symbol? item)) item ;; to support ((fn (x) (+ x x)) (+ x x) 3)
-        (null? env) (typhon@error (format "unbound variable: ~a" item)) 
+        (null? env) (make-typhon-error (format "unbound variable: ~a" item)) 
         (dict-has? (car env) item) (nth (car env) item) 
         else (typhon@lookup item (cdr env))))
+
+(define (typhon@appropos item env)
+    #f)
 
 (define (compile-begin lst params env tail?)
     (cond
