@@ -451,9 +451,9 @@
      ;(display "====================\n")
      (cond
         (or (type? (car stack) "ERROR")
-            (typhon@error? (car stack)))
+            (typhon-error? (car stack)))
             (car stack)
-        (typhon@error? code)
+        (typhon-error? code)
             code
         (>= ip code-len)
             (if (= offset 0) ;; should switch dump to a struct...
@@ -467,7 +467,7 @@
                     (vector-ref dump (- offset 6))
                     dump
                     (- offset 6)))
-        (typhon@error? (vector-ref code ip))
+        (typhon-error? (vector-ref code ip))
             (vector-ref code ip)
         else
          (let* ((c (vector-ref code ip))
@@ -852,8 +852,8 @@
                                 (and
                                     (eq? (cdr stack) '())
                                     (not (eq? (nth (cadr call-proc) 2) '())))
-                                    (typhon@error "incorrect arity for user procedure")
-                                (typhon@error? call-proc)
+                                    (make-typhon-error "incorrect arity for user procedure")
+                                (typhon-error? call-proc)
                                     call-proc
                                 (typhon@lambda? call-proc)
                                     ;; create a list from the current registers, cons this to dump, and 
@@ -899,7 +899,7 @@
                                 #f)))
                     (31) ;; environment-load; there is never a raw #f, so this is safe
                         (with r (typhon@lookup (typhon@operand c) env)
-                            (if (typhon@error? r)
+                            (if (typhon-error? r)
                                 r
                                 (typhon@vm
                                     code
@@ -1377,8 +1377,8 @@
                                 (and
                                     (eq? (cdr stack) '())
                                     (not (eq? (nth (cadr call-proc) 2) '())))
-                                    (typhon@error "incorrect arity for user procedure")
-                                (typhon@error? call-proc)
+                                    (make-typhon-error "incorrect arity for user procedure")
+                                (typhon-error? call-proc)
                                     (begin
                                         ;(display "error: ")
                                         ;(write call-proc)
@@ -1486,7 +1486,7 @@
                                 (integer? element) (vector-ref locals element)
                                 (symbol? element) ;; environment return
                                     (typhon@lookup element env)
-                                else (typhon@error "stack underflow in return")))))))
+                                else (make-typhon-error "stack underflow in return")))))))
 
 ; syntax to make the above nicer:
 ; (define-instruction := "numeq" '() '() (+ ip 1) (cons (= (car stack) (cadr stack)) (cddr stack)))
@@ -1774,7 +1774,7 @@
     " sets a value in the current environment, and returns
       an error if that binding has not been previously defined"
     (cond
-        (null? environment) (typhon@error (format "SET! error: undefined name \"~a\"" name))
+        (null? environment) (make-typhon-error (format "SET! error: undefined name \"~a\"" name))
         (dict-has? (car environment) name)
             (cset! (car environment) name value)
         else (typhon@set-env! name value (cdr environment))))
@@ -1913,7 +1913,7 @@
                                                     (typhon@compile (car rst) params env #f)
                                                     '((55)))
                                             else
-                                                (throw compile-error (typhon@error "incorrect arity for NTH")))
+                                                (throw compile-error (make-typhon-error "incorrect arity for NTH")))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-plus)
                                         (cond
                                             (= (length rst) 1)
@@ -1935,7 +1935,7 @@
                                                 (append 
                                                     (typhon@compile (car rst) params env #f)
                                                     (typhon@compile-help '%- (cdr rst) params env #f))
-                                            else (throw compile-error (typhon@error "minus fail")))
+                                            else (throw compile-error (make-typhon-error "minus fail")))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-mult)
                                         (cond
                                             (= (length rst) 1)
@@ -1957,7 +1957,7 @@
                                                 (append 
                                                     (typhon@compile (car rst) params env #f)
                                                     (typhon@compile-help '%/ (cdr rst) params env #f))
-                                            else (throw compile-error (typhon@error "division fail")))
+                                            else (throw compile-error (make-typhon-error "division fail")))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-numeq)
                                         (cond
                                             (= (length rst) 1)
@@ -1966,7 +1966,7 @@
                                                 (append
                                                     (typhon@compile (car rst) params env #f)
                                                     (typhon@compile-help '%= (cdr rst) params env #f))
-                                            else (throw compile-error (typhon@error "numeq fail")))
+                                            else (throw compile-error (make-typhon-error "numeq fail")))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-define)
                                         ;; this almost certainly need not be an instruction...
                                         ;; just about all syntax could just be at the syntactic
@@ -1984,7 +1984,7 @@
                                                         (typhon@compile value params env #f)
                                                         (list (list 3 name))
                                                         (list (list (typhon-syntax-name (typhon@lookup '%define env)))))
-                                                else (throw compile-error (typhon@error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*"))))
+                                                else (throw compile-error (make-typhon-error "DEFINE error: define SYMBOL VALUE | DEFINE PAIR S-EXPR*"))))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-set)
                                         (let ((name (car rst))
                                               (value (cadr rst)))
@@ -1993,7 +1993,7 @@
                                                     (typhon@compile value params env #f)
                                                     (list (list 3 name))
                                                     (list (list (typhon-syntax-name (typhon@lookup '%set! env)))))
-                                                (throw compile-error (typhon@error "SET!: set! SYMBOL S-EXPR*"))))
+                                                (throw compile-error (make-typhon-error "SET!: set! SYMBOL S-EXPR*"))))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-defsyn)
                                         (let ((name (car rst))
                                               (rules (cdr rst)))
@@ -2100,7 +2100,7 @@
                                                     (append
                                                         (reverse-append (typhon@map rst params env #f))
                                                         (list (list (typhon-syntax-name (typhon@lookup '%make-vector env)))))
-                                                else (throw compile-error (typhon@error "make-vector len : INTEGER (v : SEXPR) => VECTOR"))))
+                                                else (throw compile-error (make-typhon-error "make-vector len : INTEGER (v : SEXPR) => VECTOR"))))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-makestring)
                                         (with l (length rst)
                                             (cond
@@ -2113,7 +2113,7 @@
                                                     (append
                                                         (reverse-append (typhon@map rst params env #f))
                                                         (list (list (typhon-syntax-name (typhon@lookup '%make-string env)))))
-                                                else (throw compile-error (typhon@error "make-string len : INTEGER (c : CHAR) => STRING"))))
+                                                else (throw compile-error (make-typhon-error "make-string len : INTEGER (c : CHAR) => STRING"))))
                                     (eq? (typhon-syntax-name v) 'primitive-syntax-if)
                                         ;; need to generate code for <cond>
                                         ;; add CMP instruction '(30)
@@ -2186,7 +2186,7 @@
                                                         (reverse-append
                                                             (typhon@map rst params env #f))
                                                         (list (list opcode)))
-                                                    (typhon@error (format "arity mismatch for ~a" fst)))
+                                                    (make-typhon-error (format "arity mismatch for ~a" fst)))
                                             (> max-arity min-arity)
                                                 (if (and
                                                         (>= rst-len min-arity)
@@ -2196,7 +2196,7 @@
                                                             (typhon@map rst params env #f))
                                                         (list
                                                             (list opcode rst-len)))
-                                                    (typhon@error (format "arity mismatch for ~a" fst)))
+                                                    (make-typhon-error (format "arity mismatch for ~a" fst)))
                                             (= max-arity -1)
                                                 (if (>= rst-len min-arity)
                                                     (append
@@ -2204,7 +2204,7 @@
                                                             (typhon@map rst params env #f))
                                                         (list
                                                             (list opcode rst-len)))
-                                                    (typhon@error (format "arity mismatch for ~a" fst)))))
+                                                    (make-typhon-error (format "arity mismatch for ~a" fst)))))
                                 (typhon-antipole-primitive? v) ;; primitive procedure
                                     ;; need to generate the list of HLAP code, but *not* reverse it
                                     (let ((min-arity (typhon-antipole-primitive-min-arity v))
@@ -2220,7 +2220,7 @@
                                                             append
                                                             (typhon@map rst params env #f))
                                                         (list (list opcode)))
-                                                    (typhon@error (format "arity mismatch for ~a" fst)))
+                                                    (make-typhon-error (format "arity mismatch for ~a" fst)))
                                             (> max-arity min-arity)
                                                 (if (and
                                                         (>= rst-len min-arity)
@@ -2232,7 +2232,7 @@
                                                         (list
                                                             (list 3 rst-len)
                                                             (list opcode)))
-                                                    (typhon@error (format "arity mismatch for ~a" fst)))
+                                                    (make-typhon-error (format "arity mismatch for ~a" fst)))
                                             (= max-arity -1)
                                                 (if (>= rst-len min-arity)
                                                     (append
@@ -2242,7 +2242,7 @@
                                                         (list
                                                             (list 3 rst-len)
                                                             (list opcode)))
-                                                    (typhon@error (format "arity mismatch for ~a" fst)))))
+                                                    (make-typhon-error (format "arity mismatch for ~a" fst)))))
                                                 
                                 (typhon@lambda? v) ;; hydra closure; change this into (load-from-env fst) (call-from-stack) 
                                     (append
@@ -2260,7 +2260,7 @@
                                             (typhon@map rst params env #f)) 
                                             (list (list 31 fst))
                                             (list (list 110 'not-found)))
-                                else (throw compile-error (typhon@error "error: the only applicable types are primitive procedures, closures & syntax"))))
+                                else (throw compile-error (make-typhon-error "error: the only applicable types are primitive procedures, closures & syntax"))))
                 else 
                     (if tail?
                         (list (list 115 line))
@@ -2348,7 +2348,7 @@
                 (if (eq? r #v)
                  (typhon@repl env dump)
                  (begin
-                    (if (typhon@error? r)
+                    (if (typhon-error? r)
                         #v
                         (typhon@add-env! '_ r env))
                     (top-level-print r)
