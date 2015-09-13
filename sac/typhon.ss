@@ -397,6 +397,10 @@
             (if (= arity 1)
                 (sys/getenv (car args))
                 (error "Incorrect arity for procedure: sys/getenv"))
+        (eq? proc "format")
+            (if (= arity 1)
+                (car args) ;; no need to call format for a 1-ary call...
+                (cdr args)) ;; garbage for now
         else
             (error (format "unknown procedure \"~a\"" proc))))
 
@@ -542,7 +546,7 @@
                                     (begin 
                                         (set! portion (cslice stack 0 top-of-stack))
                                         (set! ret
-                                            (foldl - (car portion) (cdr portion)))
+                                            (foldl (fn (x y) (- x y)) (car portion) (cdr portion)))
                                         (set! bottom-of-stack (cslice stack top-of-stack -1))))
                             (typhon@vm code code-len
                                      env
@@ -578,7 +582,7 @@
                                 else
                                     (begin 
                                         (set! ret
-                                            (foldl + 0 (cslice stack 0 top-of-stack))) ;; optional len param to foldl?
+                                            (foldl (fn (x y) (+ x y)) 0 (cslice stack 0 top-of-stack))) ;; optional len param to foldl?
                                         (set! bottom-of-stack (cslice stack top-of-stack -1))))
                             (typhon@vm code code-len
                                      env
@@ -598,7 +602,7 @@
                                     (set! ret (* (cadr stack) (caddr stack)))
                                 else
                                     (set! ret
-                                        (foldl * 0 (cslice stack 0 top-of-stack))))
+                                        (foldl (fn (x y) (* x y)) 0 (cslice stack 0 top-of-stack))))
                             (typhon@vm code code-len
                                      env
                                      (+ ip 1)
@@ -2276,7 +2280,7 @@
         (typhon-primitive? x) (display (format "#<primitive-procedure ~a>" (typhon-primitive-value x)))
         (typhon-procedure? x) (display (format "#<procedure ~a>" (typhon-procedure-name x)))
         (typhon-syntax? x) (display (format "#<syntax ~a>" (typhon-syntax-name x)))
-        (typhon-error? x) (display (format "ERROR: ~a" (cdr x)))
+        (typhon-error? x) (display (format "ERROR: ~a" (typhon-error-message x)))
         (typhon@usyntax? x) (display "#<syntax rules>")
         else (write x)))
 
