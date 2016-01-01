@@ -592,30 +592,62 @@
                                      dump offset))
                     (7) ;; * 
                         (let ((top-of-stack (typhon@operand c))
+                              (bottom-of-stack '())
                               (ret 0))
                             (cond
                                 (= top-of-stack 0)
-                                    (set! ret 1)
+                                    (begin
+                                        (set! ret 1)
+                                        (set! bottom-of-stack stack))
                                 (= top-of-stack 1)
-                                    (set! ret (cadr stack))
+                                    (begin
+                                        (set! ret (car stack))
+                                        (set! bottom-of-stack (cdr stack)))
                                 (= top-of-stack 2)
-                                    (set! ret (* (cadr stack) (caddr stack)))
+                                    (begin
+                                        (set! bottom-of-stack (cddr stack))
+                                        (set! ret (* (car stack) (cadr stack))))
                                 else
-                                    (set! ret
-                                        (foldl (fn (x y) (* x y)) 0 (cslice stack 0 top-of-stack))))
+                                    (begin 
+                                        (set! ret
+                                            (foldl (fn (x y) (* x y)) 1 (cslice stack 0 top-of-stack))) ;; optional len param to foldl?
+                                        (set! bottom-of-stack (cslice stack top-of-stack -1))))
                             (typhon@vm code code-len
                                      env
                                      (+ ip 1)
-                                     (cons ret (cddr stack))
+                                     (cons ret bottom-of-stack)
                                      locals
                                      dump offset))
                     (8) ;; / 
-                        (typhon@vm code code-len
-                                 env
-                                 (+ ip 1)
-                                 (cons (/ (cadr stack) (car stack)) (cddr stack))
-                                 locals
-                                 dump offset)
+                        (let ((top-of-stack (typhon@operand c))
+                              (first-operand 0)
+                              (bottom-of-stack '())
+                              (ret 0))
+                            (cond
+                                (= top-of-stack 0)
+                                    (begin
+                                        (set! ret 1)
+                                        (set! bottom-of-stack stack))
+                                (= top-of-stack 1)
+                                    (begin
+                                        (set! ret (car stack))
+                                        (set! bottom-of-stack (cdr stack)))
+                                (= top-of-stack 2)
+                                    (begin
+                                        (set! ret (/ (car stack) (cadr stack)))
+                                        (set! bottom-of-stack (cddr stack)))
+                                else
+                                    (begin
+                                        (set! first-operand (car stack))
+                                        (set! bottom-of-stack (cslice stack top-of-stack -1))
+                                        (set! ret
+                                            (foldl (fn (x y) (/ x y)) first-operand (cslice stack 1 top-of-stack)))))
+                            (typhon@vm code code-len
+                                     env
+                                     (+ ip 1)
+                                     (cons ret bottom-of-stack)
+                                     locals
+                                     dump offset))
                     (9) ;;  < 
                         (let* ((top-of-stack (typhon@operand c))
                               (bottom-of-stack '())
